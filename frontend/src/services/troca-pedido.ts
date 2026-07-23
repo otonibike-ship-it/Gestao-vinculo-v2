@@ -1,0 +1,78 @@
+import api from '@/lib/api'
+
+export interface TrocaPedidoData {
+  id: number
+  franquia_id: number
+  franquia_nome: string
+  motivo: string
+  nome_vendedor: string
+  numero_pedido_cancelar: string
+  data_pedido_cancelar: string
+  codigo_produto_cancelar: string
+  descricao_pedido_cancelar: string
+  numero_novo_pedido: string
+  codigo_produto_novo: string
+  descricao_novo_pedido: string
+  status_portal: string
+  status: 'aberto' | 'aguardando_comercial' | 'aguardando_faturamento' | 'aguardando_financeiro' | 'aguardando_ti' | 'fechado'
+  anexos: string[]
+  observacao_comercial: string | null
+  justificativa_reprovacao: string | null
+  destino_reprovacao: string | null
+  criado_em: string
+  atualizado_em: string
+}
+
+export interface TrocaPedidoCreatePayload {
+  franquia_id: number
+  motivo: string
+  nome_vendedor: string
+  numero_pedido_cancelar: string
+  data_pedido_cancelar: string
+  codigo_produto_cancelar: string
+  descricao_pedido_cancelar: string
+  numero_novo_pedido: string
+  codigo_produto_novo: string
+  descricao_novo_pedido: string
+  status_portal: string
+  anexos?: string[]
+}
+
+export const trocaPedidoService = {
+  async listar(status?: string, franquia_id?: number) {
+    const params: Record<string, string | number> = {}
+    if (status) params.status = status
+    if (franquia_id) params.franquia_id = franquia_id
+    const { data } = await api.get('/trocas-pedido', { params })
+    return data as TrocaPedidoData[]
+  },
+
+  async obter(id: number) {
+    const { data } = await api.get(`/trocas-pedido/${id}`)
+    return data as TrocaPedidoData
+  },
+
+  async criar(payload: TrocaPedidoCreatePayload) {
+    const { data } = await api.post('/trocas-pedido', payload)
+    return data as TrocaPedidoData
+  },
+
+  async aprovar(id: number, opts: { destino?: string; observacao?: string; anexos?: string[] } = {}) {
+    const { data } = await api.put(`/trocas-pedido/${id}/aprovar`, opts)
+    return data as TrocaPedidoData
+  },
+
+  async reprovar(id: number, justificativa: string) {
+    const { data } = await api.put(`/trocas-pedido/${id}/reprovar`, { justificativa })
+    return data as TrocaPedidoData
+  },
+
+  async reenviar(id: number, payload: TrocaPedidoCreatePayload) {
+    const { data } = await api.put(`/trocas-pedido/${id}/reenviar`, payload)
+    return data as TrocaPedidoData
+  },
+
+  async deletar(id: number) {
+    await api.delete(`/trocas-pedido/${id}`)
+  },
+}

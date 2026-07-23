@@ -1,0 +1,98 @@
+version: '3.9'
+
+services:
+  # ─────────────────────────────────────────
+  # Frontend — React / Next.js
+  # ─────────────────────────────────────────
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+      target: prod
+    restart: unless-stopped
+    expose:
+      - "3000"
+    environment:
+      - NODE_ENV=production
+      - INTERNAL_API_URL=http://api:8000
+    depends_on:
+      - api
+    networks:
+      - vinculo_net
+
+  # ─────────────────────────────────────────
+  # API — Backend principal (FastAPI)
+  # ─────────────────────────────────────────
+  api:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+      target: dev
+    restart: unless-stopped
+    expose:
+      - "8000"
+    environment:
+      - DATABASE_URL=postgresql://vinculo_user:vinculo_pass@postgres:5432/vinculo_db
+      - REDIS_URL=redis://redis:6379/0
+      - JWT_SECRET=super-secret-key-change-in-production
+      - ENVIRONMENT=production
+      - CLOUDINARY_CLOUD_NAME=dbzpohsfm
+      - CLOUDINARY_API_KEY=284889976331793
+      - CLOUDINARY_API_SECRET=kD7muTf0DKojnKGue4FyA9h5gPs
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_started
+    networks:
+      - vinculo_net
+
+  # ─────────────────────────────────────────
+  # PostgreSQL
+  # ─────────────────────────────────────────
+  postgres:
+    build:
+      context: ./docker/postgres
+      dockerfile: Dockerfile
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: vinculo_user
+      POSTGRES_PASSWORD: vinculo_pass
+      POSTGRES_DB: vinculo_db
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U vinculo_user -d vinculo_db"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - vinculo_net
+
+  # ─────────────────────────────────────────
+  # Redis — Cache + Filas
+  # ─────────────────────────────────────────
+  redis:
+    image: redis:7-alpine
+    restart: unless-stopped
+    volumes:
+      - redis_data:/data
+    command: redis-server --appendonly yes
+    networks:
+      - vinculo_net
+
+# ─────────────────────────────────────────
+# Volumes nomeados
+# ─────────────────────────────────────────
+volumes:
+  postgres_data:
+    driver: local
+  redis_data:
+    driver: local
+
+# ─────────────────────────────────────────
+# Rede interna
+# ─────────────────────────────────────────
+networks:
+  vinculo_net:
+    driver: bridge
