@@ -32,6 +32,7 @@ def upgrade() -> None:
         'aberto', 'aguardando_comercial', 'aguardando_faturamento',
         'aguardando_financeiro', 'aguardando_ti', 'fechado',
         name='statustrocapedido',
+        create_type=False,  # criado manualmente abaixo — evita CREATE TYPE duplicado no create_table
     )
     status_troca_pedido.create(op.get_bind(), checkfirst=True)
 
