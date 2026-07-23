@@ -25,10 +25,10 @@ export function Header() {
   }, [])
 
   return (
-    <header className="bg-white border-b border-slate-200 px-6 py-4 flex items-center justify-between shrink-0">
-      <h2 className="text-lg font-semibold text-slate-800">{titulo}</h2>
+    <header className="bg-white border-b border-brand-teal/20 px-6 py-4 flex items-center justify-between shrink-0">
+      <h2 className="text-lg font-semibold text-brand-forest">{titulo}</h2>
       <div className="flex items-center gap-3">
-        <div className="w-8 h-8 rounded-full bg-slate-100 flex items-center justify-center text-xs font-semibold text-slate-600">
+        <div className="w-8 h-8 rounded-full bg-brand-pine/10 flex items-center justify-center text-xs font-semibold text-brand-pine">
           {inicial}
         </div>
       </div>

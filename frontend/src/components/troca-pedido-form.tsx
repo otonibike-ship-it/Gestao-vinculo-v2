@@ -130,7 +130,7 @@ export default function TrocaPedidoForm({ voltarPara }: Props) {
     }
   }
 
-  const inputClass = "w-full border border-slate-200 rounded-xl px-4 py-3 text-sm text-slate-700 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-slate-300 transition-all"
+  const inputClass = "w-full border border-slate-200 rounded-xl px-4 py-3 text-sm text-slate-700 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-brand-teal/60 transition-all"
   const labelClass = "block text-xs font-semibold text-slate-500 uppercase tracking-wider mb-2"
 
   return (
@@ -293,11 +293,11 @@ export default function TrocaPedidoForm({ voltarPara }: Props) {
               type="button"
               onClick={() => fileInputRef.current?.click()}
               className={`w-full flex items-center gap-2 px-4 py-3 border-2 border-dashed rounded-xl cursor-pointer transition-colors ${
-                arquivos.length === 0 ? 'border-slate-300 hover:border-slate-400' : 'border-green-300 hover:border-green-400'
+                arquivos.length === 0 ? 'border-slate-300 hover:border-slate-400' : 'border-brand-olive/50 hover:border-brand-olive'
               }`}
             >
-              <Upload size={16} className={arquivos.length === 0 ? 'text-slate-400' : 'text-green-500'} />
-              <span className={`text-sm ${arquivos.length === 0 ? 'text-slate-400' : 'text-green-600 font-medium'}`}>
+              <Upload size={16} className={arquivos.length === 0 ? 'text-slate-400' : 'text-brand-pine'} />
+              <span className={`text-sm ${arquivos.length === 0 ? 'text-slate-400' : 'text-brand-pine font-medium'}`}>
                 {arquivos.length === 0
                   ? 'Selecionar arquivos...'
                   : `${arquivos.length} arquivo${arquivos.length > 1 ? 's' : ''} selecionado${arquivos.length > 1 ? 's' : ''} — clique para adicionar mais`}
@@ -321,8 +321,8 @@ export default function TrocaPedidoForm({ voltarPara }: Props) {
             {arquivos.length > 0 && (
               <div className="mt-2 space-y-1">
                 {arquivos.map((arq, i) => (
-                  <div key={i} className="flex items-center gap-2 text-sm text-slate-600 bg-green-50 border border-green-100 rounded-lg px-3 py-2">
-                    <Upload size={13} className="text-green-500 shrink-0" />
+                  <div key={i} className="flex items-center gap-2 text-sm text-slate-600 bg-brand-olive/10 border border-brand-olive/20 rounded-lg px-3 py-2">
+                    <Upload size={13} className="text-brand-pine shrink-0" />
                     <span className="flex-1 truncate">{arq.name}</span>
                     <span className="text-xs text-slate-400 shrink-0">{(arq.size / 1024).toFixed(0)} KB</span>
                     <button type="button" onClick={() => setArquivos(prev => prev.filter((_, idx) => idx !== i))} className="text-slate-400 hover:text-red-500 shrink-0">
@@ -352,7 +352,7 @@ export default function TrocaPedidoForm({ voltarPara }: Props) {
             <button
               type="submit"
               disabled={enviando || !camposObrigatoriosPreenchidos}
-              className="flex-1 py-3 px-4 rounded-xl text-sm font-medium text-white bg-slate-800 hover:bg-slate-900 transition-colors disabled:opacity-50"
+              className="flex-1 py-3 px-4 rounded-xl text-sm font-medium text-white bg-brand-pine hover:bg-brand-forest transition-colors disabled:opacity-50"
             >
               {enviando ? 'Enviando...' : 'Criar Solicitação'}
             </button>

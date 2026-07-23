@@ -20,7 +20,7 @@ export function TrocaMotivoSelect({ value, onChange, className = '' }: TrocaMoti
     <select
       value={value}
       onChange={(e) => onChange(e.target.value)}
-      className={`w-full border border-slate-200 rounded-xl px-4 py-3 text-sm text-slate-700 focus:outline-none focus:ring-2 focus:ring-slate-300 focus:border-slate-300 transition-all bg-white ${className}`}
+      className={`w-full border border-slate-200 rounded-xl px-4 py-3 text-sm text-slate-700 focus:outline-none focus:ring-2 focus:ring-brand-teal/60 focus:border-brand-teal transition-all bg-white ${className}`}
     >
       <option value="">Selecione o motivo...</option>
       {MOTIVOS_TROCA.map((opcao) => (

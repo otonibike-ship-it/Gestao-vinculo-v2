@@ -178,7 +178,7 @@ export default function EmpresasPage() {
             placeholder="Buscar franquia..."
             value={busca}
             onChange={(e) => setBusca(e.target.value)}
-            className="w-full pl-9 pr-3 py-2 rounded-lg border border-slate-200 bg-white text-sm placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-slate-300 transition-all"
+            className="w-full pl-9 pr-3 py-2 rounded-lg border border-slate-200 bg-white text-sm placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-brand-teal/60 transition-all"
           />
         </div>
         <div className="flex items-center gap-2">
@@ -201,7 +201,7 @@ export default function EmpresasPage() {
           <input ref={csvInputRef} type="file" accept=".csv" className="hidden" onChange={handleImportarCsv} />
           <button
             onClick={() => { resetForm(); setShowForm(true) }}
-            className="flex items-center gap-2 bg-slate-800 hover:bg-slate-900 text-white text-sm font-medium px-4 py-2.5 rounded-lg transition-colors"
+            className="flex items-center gap-2 bg-brand-pine hover:bg-brand-forest text-white text-sm font-medium px-4 py-2.5 rounded-lg transition-colors"
           >
             <Plus size={16} />
             Nova Franquia
@@ -211,17 +211,17 @@ export default function EmpresasPage() {
 
       {/* Resultado da importação */}
       {importResult && (
-        <div className={`rounded-xl border px-5 py-4 ${importResult.erros > 0 && importResult.criados === 0 ? 'bg-red-50 border-red-100' : 'bg-green-50 border-green-100'}`}>
+        <div className={`rounded-xl border px-5 py-4 ${importResult.erros > 0 && importResult.criados === 0 ? 'bg-red-50 border-red-100' : 'bg-brand-olive/10 border-brand-olive/30'}`}>
           <div className="flex items-start justify-between gap-4">
             <div className="flex items-center gap-3">
               {importResult.criados > 0 || importResult.ignorados > 0
-                ? <CheckCircle size={18} className="text-green-600 shrink-0" />
+                ? <CheckCircle size={18} className="text-brand-pine shrink-0" />
                 : <AlertTriangle size={18} className="text-red-500 shrink-0" />
               }
               <div>
                 <p className="text-sm font-semibold text-slate-800">Resultado da importação</p>
                 <p className="text-sm text-slate-600 mt-0.5">
-                  <span className="text-green-700 font-medium">{importResult.criados} criada(s)</span>
+                  <span className="text-brand-pine font-medium">{importResult.criados} criada(s)</span>
                   {importResult.ignorados > 0 && <span className="text-slate-500"> · {importResult.ignorados} ignorada(s) (CNPJ já existe)</span>}
                   {importResult.erros > 0 && <span className="text-red-600"> · {importResult.erros} erro(s)</span>}
                 </p>
@@ -264,7 +264,7 @@ export default function EmpresasPage() {
                 value={formNome}
                 onChange={(e) => setFormNome(e.target.value)}
                 placeholder="Nome da franquia"
-                className="w-full border border-slate-200 rounded-lg px-3 py-2.5 text-sm text-slate-700 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-slate-300 transition-all"
+                className="w-full border border-slate-200 rounded-lg px-3 py-2.5 text-sm text-slate-700 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-brand-teal/60 transition-all"
               />
             </div>
             <div>
@@ -275,7 +275,7 @@ export default function EmpresasPage() {
                 value={formCnpj}
                 onChange={(e) => setFormCnpj(formatCnpj(e.target.value))}
                 placeholder="00.000.000/0000-00"
-                className="w-full border border-slate-200 rounded-lg px-3 py-2.5 text-sm text-slate-700 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-slate-300 transition-all font-mono"
+                className="w-full border border-slate-200 rounded-lg px-3 py-2.5 text-sm text-slate-700 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-brand-teal/60 transition-all font-mono"
               />
             </div>
             <div>
@@ -287,7 +287,7 @@ export default function EmpresasPage() {
                 value={formEmail}
                 onChange={(e) => setFormEmail(e.target.value)}
                 placeholder="contato@franquia.com.br"
-                className="w-full border border-slate-200 rounded-lg px-3 py-2.5 text-sm text-slate-700 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-slate-300 transition-all"
+                className="w-full border border-slate-200 rounded-lg px-3 py-2.5 text-sm text-slate-700 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-brand-teal/60 transition-all"
               />
             </div>
           </div>
@@ -304,7 +304,7 @@ export default function EmpresasPage() {
             <button
               onClick={handleSubmit}
               disabled={salvando}
-              className="px-4 py-2 text-sm font-medium text-white bg-slate-800 hover:bg-slate-900 rounded-lg transition-colors disabled:opacity-50"
+              className="px-4 py-2 text-sm font-medium text-white bg-brand-pine hover:bg-brand-forest rounded-lg transition-colors disabled:opacity-50"
             >
               {salvando ? 'Salvando...' : editando ? 'Salvar' : 'Cadastrar'}
             </button>
@@ -332,7 +332,7 @@ export default function EmpresasPage() {
         <div className="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
           <table className="w-full text-sm">
             <thead>
-              <tr className="border-b border-slate-100 bg-slate-50">
+              <tr className="border-b border-slate-100 bg-brand-mist">
                 <th className="text-left px-5 py-3 font-medium text-slate-500 text-xs uppercase tracking-wider">Nome</th>
                 <th className="text-left px-5 py-3 font-medium text-slate-500 text-xs uppercase tracking-wider">CNPJ</th>
                 <th className="text-left px-5 py-3 font-medium text-slate-500 text-xs uppercase tracking-wider">E-mail</th>
@@ -342,10 +342,10 @@ export default function EmpresasPage() {
             </thead>
             <tbody className="divide-y divide-slate-50">
               {filtrados.map((f) => (
-                <tr key={f.id} className="hover:bg-slate-50 transition-colors">
+                <tr key={f.id} className="hover:bg-brand-mist/60 transition-colors">
                   <td className="px-5 py-3">
                     <div className="flex items-center gap-2.5">
-                      <div className="w-7 h-7 rounded-lg bg-amber-50 flex items-center justify-center text-xs font-bold text-amber-600 shrink-0">
+                      <div className="w-7 h-7 rounded-lg bg-brand-teal/20 flex items-center justify-center text-xs font-bold text-brand-pine shrink-0">
                         {(f.nome_fantasia || f.razao_social).charAt(0).toUpperCase()}
                       </div>
                       <span className="font-medium text-slate-800">{f.nome_fantasia || f.razao_social}</span>
@@ -360,7 +360,7 @@ export default function EmpresasPage() {
                     <div className="flex items-center justify-end gap-1">
                       <button
                         onClick={() => abrirEdicao(f)}
-                        className="p-1.5 text-slate-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
+                        className="p-1.5 text-slate-400 hover:text-brand-pine hover:bg-brand-teal/10 rounded-lg transition-colors"
                         title="Editar"
                       >
                         <Pencil size={14} />
@@ -381,7 +381,7 @@ export default function EmpresasPage() {
               ))}
             </tbody>
           </table>
-          <div className="px-5 py-2.5 border-t border-slate-100 bg-slate-50">
+          <div className="px-5 py-2.5 border-t border-slate-100 bg-brand-mist">
             <p className="text-xs text-slate-400">{filtrados.length} franquia(s)</p>
           </div>
         </div>

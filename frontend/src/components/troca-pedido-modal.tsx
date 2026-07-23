@@ -24,12 +24,12 @@ const statusLabels: Record<string, string> = {
 }
 
 const statusColors: Record<string, string> = {
-  aberto: 'bg-blue-100 text-blue-700',
-  aguardando_comercial: 'bg-orange-100 text-orange-700',
-  aguardando_faturamento: 'bg-teal-100 text-teal-700',
-  aguardando_financeiro: 'bg-amber-100 text-amber-700',
-  aguardando_ti: 'bg-purple-100 text-purple-700',
-  fechado: 'bg-green-100 text-green-700',
+  aberto: 'bg-brand-khaki/20 text-brand-umber',
+  aguardando_comercial: 'bg-brand-olive/20 text-brand-forest',
+  aguardando_faturamento: 'bg-brand-teal/25 text-brand-pine',
+  aguardando_financeiro: 'bg-brand-pine/15 text-brand-pine',
+  aguardando_ti: 'bg-brand-forest/10 text-brand-forest',
+  fechado: 'bg-brand-lime/25 text-brand-forest',
 }
 
 const STATUS_PORTAL_OPCOES = [
@@ -154,7 +154,7 @@ export function TrocaPedidoModal({ troca, onClose, modo }: TrocaPedidoModalProps
     try { await reenviarMutation.mutateAsync() } finally { setEnviando(false) }
   }
 
-  const inputClass = "w-full border border-slate-200 rounded-xl px-4 py-3 text-sm text-slate-700 focus:outline-none focus:ring-2 focus:ring-slate-300 transition-all"
+  const inputClass = "w-full border border-slate-200 rounded-xl px-4 py-3 text-sm text-slate-700 focus:outline-none focus:ring-2 focus:ring-brand-teal/60 transition-all"
   const labelClass = "block text-xs font-semibold text-slate-500 uppercase tracking-wider mb-2"
 
   return (
@@ -168,7 +168,7 @@ export function TrocaPedidoModal({ troca, onClose, modo }: TrocaPedidoModalProps
           <div>
             <h3 className="text-lg font-semibold text-slate-800">
               Troca {troca.numero_pedido_cancelar}
-              {editando && <span className="text-sm font-normal text-amber-600 ml-2">— Editando</span>}
+              {editando && <span className="text-sm font-normal text-brand-umber ml-2">— Editando</span>}
             </h3>
             <span className={`inline-block mt-1 text-xs font-medium px-2.5 py-1 rounded-full ${statusColors[troca.status] || 'bg-slate-100 text-slate-600'}`}>
               {statusLabels[troca.status] || troca.status}
@@ -183,9 +183,9 @@ export function TrocaPedidoModal({ troca, onClose, modo }: TrocaPedidoModalProps
         <div className="px-6 py-5 space-y-4">
           {/* Justificativa de reprovacao */}
           {troca.justificativa_reprovacao && (
-            <div className="bg-red-50 border border-red-100 rounded-xl px-4 py-3">
-              <p className="text-xs font-medium text-red-600 mb-1">Motivo da Reprovacao</p>
-              <p className="text-sm text-red-700">{troca.justificativa_reprovacao}</p>
+            <div className="bg-brand-khaki/10 border border-brand-khaki/30 rounded-xl px-4 py-3">
+              <p className="text-xs font-medium text-brand-umber mb-1">Motivo da Reprovacao</p>
+              <p className="text-sm text-brand-umber">{troca.justificativa_reprovacao}</p>
             </div>
           )}
 
@@ -308,8 +308,8 @@ export function TrocaPedidoModal({ troca, onClose, modo }: TrocaPedidoModalProps
                 {novosArquivos.length > 0 && (
                   <div className="mt-2 space-y-1">
                     {novosArquivos.map((arq, i) => (
-                      <div key={i} className="flex items-center gap-2 text-sm text-slate-600 bg-green-50 rounded-lg px-3 py-2">
-                        <span className="text-xs text-green-600 font-medium">NOVO</span>
+                      <div key={i} className="flex items-center gap-2 text-sm text-slate-600 bg-brand-olive/10 rounded-lg px-3 py-2">
+                        <span className="text-xs text-brand-pine font-medium">NOVO</span>
                         <span className="flex-1 truncate">{arq.name}</span>
                         <button type="button" onClick={() => setNovosArquivos(prev => prev.filter((_, idx) => idx !== i))} className="text-slate-400 hover:text-red-500">
                           <X size={14} />
@@ -362,7 +362,7 @@ export function TrocaPedidoModal({ troca, onClose, modo }: TrocaPedidoModalProps
                       const isImage = /\.(jpg|jpeg|png|gif|webp)$/i.test(anexo)
                       return (
                         <a key={i} href={anexo} target="_blank" rel="noopener noreferrer"
-                          className="block border border-slate-200 rounded-lg overflow-hidden hover:border-blue-300 hover:shadow-md transition-all cursor-pointer group"
+                          className="block border border-slate-200 rounded-lg overflow-hidden hover:border-brand-teal hover:shadow-md transition-all cursor-pointer group"
                         >
                           {isImage ? (
                             <div className="relative">
@@ -374,7 +374,7 @@ export function TrocaPedidoModal({ troca, onClose, modo }: TrocaPedidoModalProps
                               </div>
                             </div>
                           ) : (
-                            <div className="flex items-center gap-2 px-3 py-2 text-sm text-blue-600 hover:bg-blue-50 transition-colors">
+                            <div className="flex items-center gap-2 px-3 py-2 text-sm text-brand-pine hover:bg-brand-teal/10 transition-colors">
                               <FileText size={16} />
                               {anexo.split('/').pop()}
                             </div>
@@ -388,8 +388,8 @@ export function TrocaPedidoModal({ troca, onClose, modo }: TrocaPedidoModalProps
 
               {/* Destino — só comercial */}
               {podeAprovarReprovar && modo === 'comercial' && !mostrarReprovar && (
-                <div className="bg-amber-50 border border-amber-100 rounded-xl px-4 py-3 space-y-3">
-                  <p className="text-xs font-medium text-amber-700 uppercase tracking-wider">Enviar para</p>
+                <div className="bg-brand-olive/10 border border-brand-olive/30 rounded-xl px-4 py-3 space-y-3">
+                  <p className="text-xs font-medium text-brand-forest uppercase tracking-wider">Enviar para</p>
                   <div className="flex gap-2">
                     {DESTINOS.map(d => (
                       <button
@@ -398,8 +398,8 @@ export function TrocaPedidoModal({ troca, onClose, modo }: TrocaPedidoModalProps
                         onClick={() => setDestino(d.value)}
                         className={`flex-1 py-2 px-3 rounded-lg text-sm font-medium border transition-colors ${
                           destino === d.value
-                            ? 'bg-slate-800 text-white border-slate-800'
-                            : 'text-slate-600 border-slate-200 bg-white hover:bg-slate-50'
+                            ? 'bg-brand-pine text-white border-brand-pine'
+                            : 'text-slate-600 border-slate-200 bg-white hover:bg-brand-mist'
                         }`}
                       >
                         {d.label}
@@ -410,7 +410,7 @@ export function TrocaPedidoModal({ troca, onClose, modo }: TrocaPedidoModalProps
                     value={observacao}
                     onChange={(e) => setObservacao(e.target.value)}
                     placeholder="Motivo ou informação (opcional)..."
-                    className="w-full border border-amber-200 rounded-xl px-4 py-3 text-sm text-slate-700 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-amber-300 transition-all resize-none bg-white"
+                    className="w-full border border-brand-olive/30 rounded-xl px-4 py-3 text-sm text-slate-700 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-brand-olive/40 transition-all resize-none bg-white"
                     rows={2}
                   />
                 </div>
@@ -439,7 +439,7 @@ export function TrocaPedidoModal({ troca, onClose, modo }: TrocaPedidoModalProps
                     <div className="mt-2 space-y-1">
                       {arquivosAprovacao.map((arq, i) => (
                         <div key={i} className="flex items-center gap-2 text-sm text-slate-600 bg-slate-50 rounded-lg px-3 py-2">
-                          <ImageIcon size={14} className="text-green-500 shrink-0" />
+                          <ImageIcon size={14} className="text-brand-pine shrink-0" />
                           <span className="flex-1 truncate">{arq.name}</span>
                           <button type="button" onClick={() => setArquivosAprovacao(prev => prev.filter((_, idx) => idx !== i))} className="text-slate-400 hover:text-red-500">
                             <X size={14} />
@@ -481,7 +481,7 @@ export function TrocaPedidoModal({ troca, onClose, modo }: TrocaPedidoModalProps
               <button
                 onClick={handleReenviar}
                 disabled={enviando || !formNomeVendedor.trim() || !formNumeroPedidoCancelar.trim() || !formDataPedidoCancelar || !formStatusPortal}
-                className="flex-1 py-2.5 px-4 rounded-xl text-sm font-medium text-white bg-blue-500 hover:bg-blue-600 transition-colors disabled:opacity-50 flex items-center justify-center gap-2"
+                className="flex-1 py-2.5 px-4 rounded-xl text-sm font-medium text-white bg-brand-pine hover:bg-brand-forest transition-colors disabled:opacity-50 flex items-center justify-center gap-2"
               >
                 <Send size={16} />
                 {enviando ? 'Reenviando...' : 'Reenviar Solicitação'}
@@ -518,7 +518,7 @@ export function TrocaPedidoModal({ troca, onClose, modo }: TrocaPedidoModalProps
                   <button
                     onClick={handleAprovar}
                     disabled={enviando}
-                    className="flex-1 py-2.5 px-4 rounded-xl text-sm font-medium text-white bg-green-500 hover:bg-green-600 transition-colors disabled:opacity-50 flex items-center justify-center gap-2"
+                    className="flex-1 py-2.5 px-4 rounded-xl text-sm font-medium text-white bg-brand-pine hover:bg-brand-forest transition-colors disabled:opacity-50 flex items-center justify-center gap-2"
                   >
                     <Check size={16} />
                     {enviando ? 'Aprovando...' : 'Aprovar'}
@@ -529,7 +529,7 @@ export function TrocaPedidoModal({ troca, onClose, modo }: TrocaPedidoModalProps
           ) : podeEditar ? (
             <button
               onClick={() => setEditando(true)}
-              className="w-full py-2.5 px-4 rounded-xl text-sm font-medium text-white bg-amber-500 hover:bg-amber-600 transition-colors flex items-center justify-center gap-2"
+              className="w-full py-2.5 px-4 rounded-xl text-sm font-medium text-white bg-brand-khaki hover:bg-brand-umber transition-colors flex items-center justify-center gap-2"
             >
               <Pencil size={16} />
               Editar e Reenviar

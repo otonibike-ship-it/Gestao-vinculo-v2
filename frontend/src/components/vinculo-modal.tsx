@@ -22,11 +22,11 @@ const statusLabels: Record<string, string> = {
 }
 
 const statusColors: Record<string, string> = {
-  aberto: 'bg-blue-100 text-blue-700',
-  validacao_comercial: 'bg-orange-100 text-orange-700',
-  validacao_financeiro: 'bg-amber-100 text-amber-700',
-  tarefa_ti: 'bg-purple-100 text-purple-700',
-  fechado: 'bg-green-100 text-green-700',
+  aberto: 'bg-brand-khaki/20 text-brand-umber',
+  validacao_comercial: 'bg-brand-olive/20 text-brand-forest',
+  validacao_financeiro: 'bg-brand-pine/15 text-brand-pine',
+  tarefa_ti: 'bg-brand-forest/10 text-brand-forest',
+  fechado: 'bg-brand-lime/25 text-brand-forest',
 }
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || ''
@@ -163,7 +163,7 @@ export function VinculoModal({ vinculo, onClose, modo }: VinculoModalProps) {
       .replace(/(\d{3})\.(\d{3})\.(\d{3})(\d)/, '$1.$2.$3-$4')
   }
 
-  const inputClass = "w-full border border-slate-200 rounded-xl px-4 py-3 text-sm text-slate-700 focus:outline-none focus:ring-2 focus:ring-slate-300 transition-all"
+  const inputClass = "w-full border border-slate-200 rounded-xl px-4 py-3 text-sm text-slate-700 focus:outline-none focus:ring-2 focus:ring-brand-teal/60 transition-all"
   const labelClass = "block text-xs font-semibold text-slate-500 uppercase tracking-wider mb-2"
 
   return (
@@ -177,7 +177,7 @@ export function VinculoModal({ vinculo, onClose, modo }: VinculoModalProps) {
           <div>
             <h3 className="text-lg font-semibold text-slate-800">
               Pedido {vinculo.numero_pedido}
-              {editando && <span className="text-sm font-normal text-amber-600 ml-2">— Editando</span>}
+              {editando && <span className="text-sm font-normal text-brand-umber ml-2">— Editando</span>}
             </h3>
             <span className={`inline-block mt-1 text-xs font-medium px-2.5 py-1 rounded-full ${statusColors[vinculo.status] || 'bg-slate-100 text-slate-600'}`}>
               {statusLabels[vinculo.status] || vinculo.status}
@@ -192,9 +192,9 @@ export function VinculoModal({ vinculo, onClose, modo }: VinculoModalProps) {
         <div className="px-6 py-5 space-y-4">
           {/* Justificativa de reprovacao */}
           {vinculo.justificativa_reprovacao && (
-            <div className="bg-red-50 border border-red-100 rounded-xl px-4 py-3">
-              <p className="text-xs font-medium text-red-600 mb-1">Motivo da Reprovacao</p>
-              <p className="text-sm text-red-700">{vinculo.justificativa_reprovacao}</p>
+            <div className="bg-brand-khaki/10 border border-brand-khaki/30 rounded-xl px-4 py-3">
+              <p className="text-xs font-medium text-brand-umber mb-1">Motivo da Reprovacao</p>
+              <p className="text-sm text-brand-umber">{vinculo.justificativa_reprovacao}</p>
             </div>
           )}
 
@@ -301,7 +301,7 @@ export function VinculoModal({ vinculo, onClose, modo }: VinculoModalProps) {
                               next[i] = e.target.value
                               setFormValoresCupons(next)
                             }}
-                            className="w-full border border-slate-200 rounded-lg pl-10 pr-3 py-2 text-sm text-slate-700 bg-white focus:outline-none focus:ring-2 focus:ring-slate-300 transition-all"
+                            className="w-full border border-slate-200 rounded-lg pl-10 pr-3 py-2 text-sm text-slate-700 bg-white focus:outline-none focus:ring-2 focus:ring-brand-teal/60 transition-all"
                             placeholder="0,00"
                           />
                         </div>
@@ -309,7 +309,7 @@ export function VinculoModal({ vinculo, onClose, modo }: VinculoModalProps) {
                     ))}
                     <div className={`flex items-center justify-between px-3 py-2 rounded-lg text-sm font-medium ${
                       !valorTotalForm ? 'bg-slate-100 text-slate-500' :
-                      cuponsValidos ? 'bg-green-50 text-green-700 border border-green-200' :
+                      cuponsValidos ? 'bg-brand-olive/10 text-brand-forest border border-brand-olive/30' :
                       'bg-red-50 text-red-700 border border-red-200'
                     }`}>
                       <span>Soma dos comprovantes:</span>
@@ -333,7 +333,7 @@ export function VinculoModal({ vinculo, onClose, modo }: VinculoModalProps) {
                     id="edit-validacao"
                     checked={formValidacao}
                     onChange={(e) => setFormValidacao(e.target.checked)}
-                    className="w-4 h-4 rounded border-slate-300 text-slate-600 focus:ring-slate-300"
+                    className="w-4 h-4 rounded border-slate-300 text-brand-pine focus:ring-brand-teal/50"
                   />
                   <label htmlFor="edit-validacao" className="text-sm text-slate-700">
                     Necessario validacao do Financeiro
@@ -383,8 +383,8 @@ export function VinculoModal({ vinculo, onClose, modo }: VinculoModalProps) {
                 {novosArquivos.length > 0 && (
                   <div className="mt-2 space-y-1">
                     {novosArquivos.map((arq, i) => (
-                      <div key={i} className="flex items-center gap-2 text-sm text-slate-600 bg-green-50 rounded-lg px-3 py-2">
-                        <span className="text-xs text-green-600 font-medium">NOVO</span>
+                      <div key={i} className="flex items-center gap-2 text-sm text-slate-600 bg-brand-olive/10 rounded-lg px-3 py-2">
+                        <span className="text-xs text-brand-pine font-medium">NOVO</span>
                         <span className="flex-1 truncate">{arq.name}</span>
                         <button type="button" onClick={() => setNovosArquivos(prev => prev.filter((_, idx) => idx !== i))} className="text-slate-400 hover:text-red-500">
                           <X size={14} />
@@ -441,7 +441,7 @@ export function VinculoModal({ vinculo, onClose, modo }: VinculoModalProps) {
                       const url = `${API_URL}${anexo}`
                       return (
                         <a key={i} href={url} target="_blank" rel="noopener noreferrer"
-                          className="block border border-slate-200 rounded-lg overflow-hidden hover:border-blue-300 hover:shadow-md transition-all cursor-pointer group"
+                          className="block border border-slate-200 rounded-lg overflow-hidden hover:border-brand-teal hover:shadow-md transition-all cursor-pointer group"
                         >
                           {isImage ? (
                             <div className="relative">
@@ -453,7 +453,7 @@ export function VinculoModal({ vinculo, onClose, modo }: VinculoModalProps) {
                               </div>
                             </div>
                           ) : (
-                            <div className="flex items-center gap-2 px-3 py-2 text-sm text-blue-600 hover:bg-blue-50 transition-colors">
+                            <div className="flex items-center gap-2 px-3 py-2 text-sm text-brand-pine hover:bg-brand-teal/10 transition-colors">
                               <FileText size={16} />
                               {anexo.split('/').pop()}
                             </div>
@@ -467,20 +467,20 @@ export function VinculoModal({ vinculo, onClose, modo }: VinculoModalProps) {
 
               {/* Toggle necessario_financeiro — só para comercial */}
               {podeAprovarReprovar && modo === 'comercial' && !mostrarReprovar && (
-                <div className="bg-amber-50 border border-amber-100 rounded-xl px-4 py-3">
+                <div className="bg-brand-khaki/10 border border-brand-khaki/30 rounded-xl px-4 py-3">
                   <div className="flex items-center gap-3">
                     <input
                       type="checkbox"
                       id="necessario-financeiro"
                       checked={necessarioFinanceiro}
                       onChange={(e) => setNecessarioFinanceiro(e.target.checked)}
-                      className="w-4 h-4 rounded border-slate-300 text-amber-600 focus:ring-amber-300"
+                      className="w-4 h-4 rounded border-slate-300 text-brand-pine focus:ring-brand-teal/50"
                     />
-                    <label htmlFor="necessario-financeiro" className="text-sm text-amber-800 font-medium">
+                    <label htmlFor="necessario-financeiro" className="text-sm text-brand-umber font-medium">
                       Enviar para validação do Financeiro antes do TI
                     </label>
                   </div>
-                  <p className="text-xs text-amber-600 mt-1 ml-7">
+                  <p className="text-xs text-brand-umber/80 mt-1 ml-7">
                     {necessarioFinanceiro ? 'Irá para Financeiro → TI' : 'Irá direto para TI'}
                   </p>
                 </div>
@@ -509,7 +509,7 @@ export function VinculoModal({ vinculo, onClose, modo }: VinculoModalProps) {
                     <div className="mt-2 space-y-1">
                       {arquivosAprovacao.map((arq, i) => (
                         <div key={i} className="flex items-center gap-2 text-sm text-slate-600 bg-slate-50 rounded-lg px-3 py-2">
-                          <ImageIcon size={14} className="text-green-500 shrink-0" />
+                          <ImageIcon size={14} className="text-brand-pine shrink-0" />
                           <span className="flex-1 truncate">{arq.name}</span>
                           <button type="button" onClick={() => setArquivosAprovacao(prev => prev.filter((_, idx) => idx !== i))} className="text-slate-400 hover:text-red-500">
                             <X size={14} />
@@ -536,7 +536,7 @@ export function VinculoModal({ vinculo, onClose, modo }: VinculoModalProps) {
                             onClick={() => setDestinoReprovacao(d)}
                             className={`flex-1 py-2 px-3 rounded-lg text-sm font-medium border transition-colors ${
                               destinoReprovacao === d
-                                ? 'bg-slate-800 text-white border-slate-800'
+                                ? 'bg-brand-pine text-white border-brand-pine'
                                 : 'text-slate-600 border-slate-200 hover:bg-slate-50'
                             }`}
                           >
@@ -559,7 +559,7 @@ export function VinculoModal({ vinculo, onClose, modo }: VinculoModalProps) {
                             onClick={() => setDestinoReprovacao(d)}
                             className={`flex-1 py-2 px-3 rounded-lg text-sm font-medium border transition-colors ${
                               destinoReprovacao === d
-                                ? 'bg-slate-800 text-white border-slate-800'
+                                ? 'bg-brand-pine text-white border-brand-pine'
                                 : 'text-slate-600 border-slate-200 hover:bg-slate-50'
                             }`}
                           >
@@ -599,7 +599,7 @@ export function VinculoModal({ vinculo, onClose, modo }: VinculoModalProps) {
               <button
                 onClick={handleReenviar}
                 disabled={enviando || !formCliente.trim() || !formValor || !formData || !cuponsValidos}
-                className="flex-1 py-2.5 px-4 rounded-xl text-sm font-medium text-white bg-blue-500 hover:bg-blue-600 transition-colors disabled:opacity-50 flex items-center justify-center gap-2"
+                className="flex-1 py-2.5 px-4 rounded-xl text-sm font-medium text-white bg-brand-pine hover:bg-brand-forest transition-colors disabled:opacity-50 flex items-center justify-center gap-2"
               >
                 <Send size={16} />
                 {enviando ? 'Reenviando...' : 'Reenviar Pedido'}
@@ -636,7 +636,7 @@ export function VinculoModal({ vinculo, onClose, modo }: VinculoModalProps) {
                   <button
                     onClick={handleAprovar}
                     disabled={enviando}
-                    className="flex-1 py-2.5 px-4 rounded-xl text-sm font-medium text-white bg-green-500 hover:bg-green-600 transition-colors disabled:opacity-50 flex items-center justify-center gap-2"
+                    className="flex-1 py-2.5 px-4 rounded-xl text-sm font-medium text-white bg-brand-pine hover:bg-brand-forest transition-colors disabled:opacity-50 flex items-center justify-center gap-2"
                   >
                     <Check size={16} />
                     {enviando ? 'Aprovando...' : 'Aprovar'}
@@ -647,7 +647,7 @@ export function VinculoModal({ vinculo, onClose, modo }: VinculoModalProps) {
           ) : podeEditar ? (
             <button
               onClick={() => setEditando(true)}
-              className="w-full py-2.5 px-4 rounded-xl text-sm font-medium text-white bg-amber-500 hover:bg-amber-600 transition-colors flex items-center justify-center gap-2"
+              className="w-full py-2.5 px-4 rounded-xl text-sm font-medium text-white bg-brand-khaki hover:bg-brand-umber transition-colors flex items-center justify-center gap-2"
             >
               <Pencil size={16} />
               Editar e Reenviar

@@ -19,12 +19,12 @@ const statusTrocaLabels: Record<string, string> = {
 }
 
 const statusTrocaColors: Record<string, string> = {
-  aberto: 'bg-red-100 text-red-700',
-  aguardando_comercial: 'bg-orange-100 text-orange-700',
-  aguardando_faturamento: 'bg-teal-100 text-teal-700',
-  aguardando_financeiro: 'bg-amber-100 text-amber-700',
-  aguardando_ti: 'bg-purple-100 text-purple-700',
-  fechado: 'bg-green-100 text-green-700',
+  aberto: 'bg-brand-khaki/20 text-brand-umber',
+  aguardando_comercial: 'bg-brand-olive/20 text-brand-forest',
+  aguardando_faturamento: 'bg-brand-teal/25 text-brand-pine',
+  aguardando_financeiro: 'bg-brand-pine/15 text-brand-pine',
+  aguardando_ti: 'bg-brand-forest/10 text-brand-forest',
+  fechado: 'bg-brand-lime/25 text-brand-forest',
 }
 
 const statusLabels: Record<string, string> = {
@@ -36,11 +36,11 @@ const statusLabels: Record<string, string> = {
 }
 
 const statusColors: Record<string, string> = {
-  aberto: 'bg-red-100 text-red-700',
-  validacao_comercial: 'bg-orange-100 text-orange-700',
-  validacao_financeiro: 'bg-amber-100 text-amber-700',
-  tarefa_ti: 'bg-purple-100 text-purple-700',
-  fechado: 'bg-green-100 text-green-700',
+  aberto: 'bg-brand-khaki/20 text-brand-umber',
+  validacao_comercial: 'bg-brand-olive/20 text-brand-forest',
+  validacao_financeiro: 'bg-brand-pine/15 text-brand-pine',
+  tarefa_ti: 'bg-brand-forest/10 text-brand-forest',
+  fechado: 'bg-brand-lime/25 text-brand-forest',
 }
 
 export default function ComercialPage() {
@@ -88,20 +88,20 @@ export default function ComercialPage() {
             placeholder="Buscar pedido, cliente, franquia..."
             value={busca}
             onChange={(e) => setBusca(e.target.value)}
-            className="w-full pl-9 pr-3 py-2 rounded-lg border border-slate-200 bg-white text-sm placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-slate-300 focus:border-slate-300 transition-all"
+            className="w-full pl-9 pr-3 py-2 rounded-lg border border-slate-200 bg-white text-sm placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-brand-teal/60 focus:border-brand-teal transition-all"
           />
         </div>
         <div className="flex gap-2">
           <Link
             href="/comercial/novo"
-            className="flex items-center gap-2 bg-slate-800 hover:bg-slate-900 text-white text-sm font-medium px-4 py-2.5 rounded-lg transition-colors"
+            className="flex items-center gap-2 bg-brand-pine hover:bg-brand-forest text-white text-sm font-medium px-4 py-2.5 rounded-lg transition-colors"
           >
             <Plus size={16} />
             Novo Pedido
           </Link>
           <Link
             href="/comercial/nova-troca"
-            className="flex items-center gap-2 bg-white hover:bg-slate-50 text-slate-700 border border-slate-200 text-sm font-medium px-4 py-2.5 rounded-lg transition-colors"
+            className="flex items-center gap-2 bg-white hover:bg-brand-mist text-brand-pine border border-brand-pine/30 text-sm font-medium px-4 py-2.5 rounded-lg transition-colors"
           >
             <Repeat size={16} />
             Troca de Pedido
@@ -124,27 +124,24 @@ export default function ComercialPage() {
 
       {filtrados && filtrados.length > 0 && (
         <div className="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
-          <table className="w-full text-sm">
-            <thead>
-              <tr className="border-b border-slate-100 bg-slate-50">
-                <th className="text-left px-5 py-3 font-medium text-slate-500 text-xs uppercase tracking-wider">N. Pedido</th>
-                <th className="text-left px-5 py-3 font-medium text-slate-500 text-xs uppercase tracking-wider">Franquia</th>
-                <th className="text-left px-5 py-3 font-medium text-slate-500 text-xs uppercase tracking-wider">Cliente</th>
-                <th className="text-left px-5 py-3 font-medium text-slate-500 text-xs uppercase tracking-wider">Valor</th>
-                <th className="text-left px-5 py-3 font-medium text-slate-500 text-xs uppercase tracking-wider">Data</th>
-                <th className="text-left px-5 py-3 font-medium text-slate-500 text-xs uppercase tracking-wider">Valid.</th>
-                <th className="text-left px-5 py-3 font-medium text-slate-500 text-xs uppercase tracking-wider">Status</th>
-              </tr>
-            </thead>
-          </table>
-          <div className="max-h-[230px] overflow-y-auto">
+          <div className="max-h-[280px] overflow-y-auto">
             <table className="w-full text-sm">
+              <thead className="sticky top-0 z-10">
+                <tr className="border-b border-slate-100 bg-brand-mist">
+                  <th className="text-left px-5 py-3 font-medium text-slate-500 text-xs uppercase tracking-wider">N. Pedido</th>
+                  <th className="text-left px-5 py-3 font-medium text-slate-500 text-xs uppercase tracking-wider">Franquia</th>
+                  <th className="text-left px-5 py-3 font-medium text-slate-500 text-xs uppercase tracking-wider">Cliente</th>
+                  <th className="text-left px-5 py-3 font-medium text-slate-500 text-xs uppercase tracking-wider">Valor</th>
+                  <th className="text-left px-5 py-3 font-medium text-slate-500 text-xs uppercase tracking-wider">Data</th>
+                  <th className="text-left px-5 py-3 font-medium text-slate-500 text-xs uppercase tracking-wider">Status</th>
+                </tr>
+              </thead>
               <tbody className="divide-y divide-slate-50">
                 {filtrados.map((v) => (
                   <tr
                     key={v.id}
                     onClick={() => setSelecionado(v)}
-                    className="hover:bg-slate-50 transition-colors cursor-pointer"
+                    className="hover:bg-brand-mist/60 transition-colors cursor-pointer"
                   >
                     <td className="px-5 py-3 font-medium text-slate-800">{v.numero_pedido}</td>
                     <td className="px-5 py-3 text-slate-600">{v.franquia_nome}</td>
@@ -156,11 +153,6 @@ export default function ComercialPage() {
                       {v.data_pedido ? new Date(v.data_pedido + 'T00:00:00').toLocaleDateString('pt-BR') : '—'}
                     </td>
                     <td className="px-5 py-3">
-                      <span className={`text-xs font-medium ${v.necessario_validacao ? 'text-amber-600' : 'text-slate-400'}`}>
-                        {v.necessario_validacao ? 'Sim' : 'Nao'}
-                      </span>
-                    </td>
-                    <td className="px-5 py-3">
                       <span className={`text-xs font-medium px-2.5 py-1 rounded-full ${statusColors[v.status] || 'bg-slate-100 text-slate-600'}`}>
                         {statusLabels[v.status] || v.status}
                       </span>
@@ -170,7 +162,7 @@ export default function ComercialPage() {
               </tbody>
             </table>
           </div>
-          <div className="px-5 py-2.5 border-t border-slate-100 bg-slate-50">
+          <div className="px-5 py-2.5 border-t border-slate-100 bg-brand-mist">
             <p className="text-xs text-slate-400">{filtrados.length} registro(s)</p>
           </div>
         </div>
@@ -182,9 +174,9 @@ export default function ComercialPage() {
           <p className="text-xs font-medium text-slate-500 uppercase tracking-wider mb-3">Pedidos com Justificativa de Reprovacao</p>
           <div className="space-y-2">
             {filtrados.filter(v => v.justificativa_reprovacao).map(v => (
-              <div key={v.id} className="flex items-start gap-3 bg-red-50 border border-red-100 rounded-lg px-4 py-3">
-                <span className="text-xs font-medium text-red-600 shrink-0">{v.numero_pedido}</span>
-                <p className="text-sm text-red-700">{v.justificativa_reprovacao}</p>
+              <div key={v.id} className="flex items-start gap-3 bg-brand-khaki/10 border border-brand-khaki/30 rounded-lg px-4 py-3">
+                <span className="text-xs font-medium text-brand-umber shrink-0">{v.numero_pedido}</span>
+                <p className="text-sm text-brand-umber">{v.justificativa_reprovacao}</p>
               </div>
             ))}
           </div>
@@ -209,25 +201,23 @@ export default function ComercialPage() {
 
         {trocasFiltradas && trocasFiltradas.length > 0 && (
           <div className="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
-            <table className="w-full text-sm">
-              <thead>
-                <tr className="border-b border-slate-100 bg-slate-50">
-                  <th className="text-left px-5 py-3 font-medium text-slate-500 text-xs uppercase tracking-wider">N. Pedido a Cancelar</th>
-                  <th className="text-left px-5 py-3 font-medium text-slate-500 text-xs uppercase tracking-wider">Franquia</th>
-                  <th className="text-left px-5 py-3 font-medium text-slate-500 text-xs uppercase tracking-wider">Vendedor</th>
-                  <th className="text-left px-5 py-3 font-medium text-slate-500 text-xs uppercase tracking-wider">Novo Pedido</th>
-                  <th className="text-left px-5 py-3 font-medium text-slate-500 text-xs uppercase tracking-wider">Status</th>
-                </tr>
-              </thead>
-            </table>
-            <div className="max-h-[230px] overflow-y-auto">
+            <div className="max-h-[280px] overflow-y-auto">
               <table className="w-full text-sm">
+                <thead className="sticky top-0 z-10">
+                  <tr className="border-b border-slate-100 bg-brand-mist">
+                    <th className="text-left px-5 py-3 font-medium text-slate-500 text-xs uppercase tracking-wider">N. Pedido a Cancelar</th>
+                    <th className="text-left px-5 py-3 font-medium text-slate-500 text-xs uppercase tracking-wider">Franquia</th>
+                    <th className="text-left px-5 py-3 font-medium text-slate-500 text-xs uppercase tracking-wider">Vendedor</th>
+                    <th className="text-left px-5 py-3 font-medium text-slate-500 text-xs uppercase tracking-wider">Novo Pedido</th>
+                    <th className="text-left px-5 py-3 font-medium text-slate-500 text-xs uppercase tracking-wider">Status</th>
+                  </tr>
+                </thead>
                 <tbody className="divide-y divide-slate-50">
                   {trocasFiltradas.map((t) => (
                     <tr
                       key={t.id}
                       onClick={() => setSelecionadoTroca(t)}
-                      className="hover:bg-slate-50 transition-colors cursor-pointer"
+                      className="hover:bg-brand-mist/60 transition-colors cursor-pointer"
                     >
                       <td className="px-5 py-3 font-medium text-slate-800">{t.numero_pedido_cancelar}</td>
                       <td className="px-5 py-3 text-slate-600">{t.franquia_nome}</td>
@@ -243,7 +233,7 @@ export default function ComercialPage() {
                 </tbody>
               </table>
             </div>
-            <div className="px-5 py-2.5 border-t border-slate-100 bg-slate-50">
+            <div className="px-5 py-2.5 border-t border-slate-100 bg-brand-mist">
               <p className="text-xs text-slate-400">{trocasFiltradas.length} registro(s)</p>
             </div>
           </div>

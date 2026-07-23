@@ -25,10 +25,10 @@ const perfilLabels: Record<string, string> = {
 }
 
 const perfilColors: Record<string, string> = {
-  comercial: 'bg-blue-100 text-blue-700',
-  faturamento: 'bg-teal-100 text-teal-700',
-  financeiro: 'bg-amber-100 text-amber-700',
-  ti: 'bg-purple-100 text-purple-700',
+  comercial: 'bg-brand-pine/15 text-brand-pine',
+  faturamento: 'bg-brand-teal/25 text-brand-forest',
+  financeiro: 'bg-brand-khaki/20 text-brand-umber',
+  ti: 'bg-brand-forest/10 text-brand-forest',
   admin: 'bg-red-100 text-red-700',
 }
 
@@ -41,11 +41,11 @@ const statusLabels: Record<string, string> = {
 }
 
 const statusColors: Record<string, string> = {
-  aberto: 'bg-red-100 text-red-700',
-  validacao_comercial: 'bg-orange-100 text-orange-700',
-  validacao_financeiro: 'bg-amber-100 text-amber-700',
-  tarefa_ti: 'bg-purple-100 text-purple-700',
-  fechado: 'bg-green-100 text-green-700',
+  aberto: 'bg-brand-khaki/20 text-brand-umber',
+  validacao_comercial: 'bg-brand-olive/20 text-brand-forest',
+  validacao_financeiro: 'bg-brand-pine/15 text-brand-pine',
+  tarefa_ti: 'bg-brand-forest/10 text-brand-forest',
+  fechado: 'bg-brand-lime/25 text-brand-forest',
 }
 
 const formatCnpj = (value: string) => {
@@ -294,7 +294,7 @@ export default function AdminPage() {
     return v.numero_pedido.toLowerCase().includes(t) || v.nome_cliente.toLowerCase().includes(t) || v.franquia_nome.toLowerCase().includes(t)
   })
 
-  const inputCls = "border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-slate-300 w-full"
+  const inputCls = "border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand-teal/60 w-full"
 
   return (
     <div className="space-y-6">
@@ -311,18 +311,18 @@ export default function AdminPage() {
             <div className="relative">
               <Search size={14} className="absolute left-2.5 top-1/2 -translate-y-1/2 text-slate-400" />
               <input type="text" placeholder="Buscar..." value={buscaUser} onChange={(e) => setBuscaUser(e.target.value)}
-                className="pl-8 pr-3 py-1.5 rounded-lg border border-slate-200 bg-white text-xs placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-slate-300 w-48"
+                className="pl-8 pr-3 py-1.5 rounded-lg border border-slate-200 bg-white text-xs placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-brand-teal/60 w-48"
               />
             </div>
             <button onClick={() => { resetFormUser(); setShowFormUser(true) }}
-              className="flex items-center gap-1.5 bg-slate-800 hover:bg-slate-900 text-white text-xs font-medium px-3 py-1.5 rounded-lg transition-colors">
+              className="flex items-center gap-1.5 bg-brand-pine hover:bg-brand-forest text-white text-xs font-medium px-3 py-1.5 rounded-lg transition-colors">
               <Plus size={14} /> Novo
             </button>
           </div>
         </div>
 
         {showFormUser && (
-          <div className="px-5 py-4 border-b border-slate-100 bg-slate-50">
+          <div className="px-5 py-4 border-b border-slate-100 bg-brand-mist">
             <div className="flex items-center justify-between mb-3">
               <p className="text-xs font-semibold text-slate-600">{editUser ? 'Editar Usuário' : 'Novo Usuário'}</p>
               <button onClick={resetFormUser} className="text-slate-400 hover:text-slate-600"><X size={16} /></button>
@@ -334,7 +334,7 @@ export default function AdminPage() {
                 placeholder={editUser ? 'Nova senha (opcional)' : 'Senha'} className={inputCls} />
               <div className="flex gap-2">
                 <select value={formPerfil} onChange={(e) => setFormPerfil(e.target.value)}
-                  className="flex-1 border border-slate-200 rounded-lg px-3 py-2 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-slate-300">
+                  className="flex-1 border border-slate-200 rounded-lg px-3 py-2 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-brand-teal/60">
                   <option value="comercial">Comercial</option>
                   <option value="faturamento">Faturamento</option>
                   <option value="financeiro">Financeiro</option>
@@ -342,7 +342,7 @@ export default function AdminPage() {
                   <option value="admin">Admin</option>
                 </select>
                 <button onClick={handleSubmitUser}
-                  className="bg-slate-800 hover:bg-slate-900 text-white text-xs font-medium px-4 rounded-lg transition-colors">
+                  className="bg-brand-pine hover:bg-brand-forest text-white text-xs font-medium px-4 rounded-lg transition-colors">
                   {editUser ? 'Salvar' : 'Criar'}
                 </button>
               </div>
@@ -351,22 +351,20 @@ export default function AdminPage() {
           </div>
         )}
 
-        <table className="w-full text-sm">
-          <thead>
-            <tr className="border-b border-slate-100 bg-slate-50">
-              <th className="text-left px-5 py-2.5 font-medium text-slate-500 text-xs uppercase tracking-wider">Nome</th>
-              <th className="text-left px-5 py-2.5 font-medium text-slate-500 text-xs uppercase tracking-wider">Email</th>
-              <th className="text-left px-5 py-2.5 font-medium text-slate-500 text-xs uppercase tracking-wider">Perfil</th>
-              <th className="text-right px-5 py-2.5 font-medium text-slate-500 text-xs uppercase tracking-wider w-24">Ações</th>
-            </tr>
-          </thead>
-        </table>
-        <div className="max-h-[200px] overflow-y-auto">
+        <div className="max-h-[240px] overflow-y-auto">
           <table className="w-full text-sm">
+            <thead className="sticky top-0 z-10">
+              <tr className="border-b border-slate-100 bg-brand-mist">
+                <th className="text-left px-5 py-2.5 font-medium text-slate-500 text-xs uppercase tracking-wider">Nome</th>
+                <th className="text-left px-5 py-2.5 font-medium text-slate-500 text-xs uppercase tracking-wider">Email</th>
+                <th className="text-left px-5 py-2.5 font-medium text-slate-500 text-xs uppercase tracking-wider">Perfil</th>
+                <th className="text-right px-5 py-2.5 font-medium text-slate-500 text-xs uppercase tracking-wider w-24">Ações</th>
+              </tr>
+            </thead>
             <tbody className="divide-y divide-slate-50">
               {loadingUsers && <tr><td colSpan={4} className="px-5 py-6 text-center text-xs text-slate-400">Carregando...</td></tr>}
               {filteredUsers?.map(u => (
-                <tr key={u.id} className="hover:bg-slate-50 transition-colors">
+                <tr key={u.id} className="hover:bg-brand-mist/60 transition-colors">
                   <td className="px-5 py-2.5 font-medium text-slate-800">{u.nome}</td>
                   <td className="px-5 py-2.5 text-slate-600">{u.email}</td>
                   <td className="px-5 py-2.5">
@@ -376,7 +374,7 @@ export default function AdminPage() {
                   </td>
                   <td className="px-5 py-2.5 text-right">
                     <div className="flex items-center justify-end gap-1">
-                      <button onClick={() => openEditUser(u)} className="p-1.5 text-slate-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors" title="Editar">
+                      <button onClick={() => openEditUser(u)} className="p-1.5 text-slate-400 hover:text-brand-pine hover:bg-brand-teal/10 rounded-lg transition-colors" title="Editar">
                         <Pencil size={14} />
                       </button>
                       <button onClick={() => { if (confirm(`Deletar "${u.nome}"?`)) deletarUserMutation.mutate(u.id) }}
@@ -391,7 +389,7 @@ export default function AdminPage() {
             </tbody>
           </table>
         </div>
-        <div className="px-5 py-2 border-t border-slate-100 bg-slate-50">
+        <div className="px-5 py-2 border-t border-slate-100 bg-brand-mist">
           <p className="text-xs text-slate-400">{filteredUsers?.length || 0} usuário(s)</p>
         </div>
       </div>
@@ -408,18 +406,18 @@ export default function AdminPage() {
             <div className="relative">
               <Search size={14} className="absolute left-2.5 top-1/2 -translate-y-1/2 text-slate-400" />
               <input type="text" placeholder="Buscar..." value={buscaFranq} onChange={(e) => setBuscaFranq(e.target.value)}
-                className="pl-8 pr-3 py-1.5 rounded-lg border border-slate-200 bg-white text-xs placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-slate-300 w-48"
+                className="pl-8 pr-3 py-1.5 rounded-lg border border-slate-200 bg-white text-xs placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-brand-teal/60 w-48"
               />
             </div>
             <button onClick={() => { resetFormFranq(); setShowFormFranq(true) }}
-              className="flex items-center gap-1.5 bg-slate-800 hover:bg-slate-900 text-white text-xs font-medium px-3 py-1.5 rounded-lg transition-colors">
+              className="flex items-center gap-1.5 bg-brand-pine hover:bg-brand-forest text-white text-xs font-medium px-3 py-1.5 rounded-lg transition-colors">
               <Plus size={14} /> Nova Franquia
             </button>
           </div>
         </div>
 
         {showFormFranq && (
-          <div className="px-5 py-4 border-b border-slate-100 bg-slate-50">
+          <div className="px-5 py-4 border-b border-slate-100 bg-brand-mist">
             <div className="flex items-center justify-between mb-3">
               <p className="text-xs font-semibold text-slate-600">{editFranq ? 'Editar Franquia' : 'Nova Franquia'}</p>
               <button onClick={resetFormFranq} className="text-slate-400 hover:text-slate-600"><X size={16} /></button>
@@ -431,9 +429,9 @@ export default function AdminPage() {
               <div className="flex gap-2">
                 <input type="password" value={fSenha} onChange={(e) => setFSenha(e.target.value)}
                   placeholder={editFranq ? 'Nova senha (opcional)' : 'Senha de acesso'}
-                  className="flex-1 border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-slate-300" />
+                  className="flex-1 border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand-teal/60" />
                 <button onClick={handleSubmitFranq} disabled={criarFranqMutation.isPending || editarFranqMutation.isPending}
-                  className="bg-slate-800 hover:bg-slate-900 text-white text-xs font-medium px-4 rounded-lg transition-colors disabled:opacity-50 whitespace-nowrap">
+                  className="bg-brand-pine hover:bg-brand-forest text-white text-xs font-medium px-4 rounded-lg transition-colors disabled:opacity-50 whitespace-nowrap">
                   {criarFranqMutation.isPending || editarFranqMutation.isPending ? 'Salvando...' : editFranq ? 'Salvar' : 'Criar'}
                 </button>
               </div>
@@ -454,28 +452,26 @@ export default function AdminPage() {
           </div>
         )}
 
-        <table className="w-full text-sm">
-          <thead>
-            <tr className="border-b border-slate-100 bg-slate-50">
-              <th className="text-left px-5 py-2.5 font-medium text-slate-500 text-xs uppercase tracking-wider">Nome</th>
-              <th className="text-left px-5 py-2.5 font-medium text-slate-500 text-xs uppercase tracking-wider">CNPJ</th>
-              <th className="text-left px-5 py-2.5 font-medium text-slate-500 text-xs uppercase tracking-wider">E-mail / Login</th>
-              <th className="text-left px-5 py-2.5 font-medium text-slate-500 text-xs uppercase tracking-wider">Acesso</th>
-              <th className="text-right px-5 py-2.5 font-medium text-slate-500 text-xs uppercase tracking-wider w-24">Ações</th>
-            </tr>
-          </thead>
-        </table>
-        <div className="max-h-[220px] overflow-y-auto">
+        <div className="max-h-[260px] overflow-y-auto">
           <table className="w-full text-sm">
+            <thead className="sticky top-0 z-10">
+              <tr className="border-b border-slate-100 bg-brand-mist">
+                <th className="text-left px-5 py-2.5 font-medium text-slate-500 text-xs uppercase tracking-wider">Nome</th>
+                <th className="text-left px-5 py-2.5 font-medium text-slate-500 text-xs uppercase tracking-wider">CNPJ</th>
+                <th className="text-left px-5 py-2.5 font-medium text-slate-500 text-xs uppercase tracking-wider">E-mail / Login</th>
+                <th className="text-left px-5 py-2.5 font-medium text-slate-500 text-xs uppercase tracking-wider">Acesso</th>
+                <th className="text-right px-5 py-2.5 font-medium text-slate-500 text-xs uppercase tracking-wider w-24">Ações</th>
+              </tr>
+            </thead>
             <tbody className="divide-y divide-slate-50">
               {loadingFranq && <tr><td colSpan={5} className="px-5 py-6 text-center text-xs text-slate-400">Carregando...</td></tr>}
               {filteredFranq?.map(f => {
                 const userVinculado = usuariosFranquia?.find(u => u.franquia_id === f.id)
                 return (
-                  <tr key={f.id} className="hover:bg-slate-50 transition-colors">
+                  <tr key={f.id} className="hover:bg-brand-mist/60 transition-colors">
                     <td className="px-5 py-2.5 font-medium text-slate-800">
                       <div className="flex items-center gap-2">
-                        <div className="w-6 h-6 rounded-md bg-green-100 flex items-center justify-center text-xs font-bold text-green-700 shrink-0">
+                        <div className="w-6 h-6 rounded-md bg-brand-pine/10 flex items-center justify-center text-xs font-bold text-brand-pine shrink-0">
                           {(f.nome_fantasia || f.razao_social).charAt(0).toUpperCase()}
                         </div>
                         {f.nome_fantasia || f.razao_social}
@@ -485,18 +481,18 @@ export default function AdminPage() {
                     <td className="px-5 py-2.5 text-slate-600 text-xs">{f.email || '—'}</td>
                     <td className="px-5 py-2.5">
                       {userVinculado ? (
-                        <span className="text-xs text-green-600 font-medium bg-green-50 px-2 py-0.5 rounded-full">
+                        <span className="text-xs text-brand-pine font-medium bg-brand-olive/10 px-2 py-0.5 rounded-full">
                           Login ativo
                         </span>
                       ) : (
-                        <span className="text-xs text-amber-600 font-medium bg-amber-50 px-2 py-0.5 rounded-full">
+                        <span className="text-xs text-brand-umber font-medium bg-brand-khaki/15 px-2 py-0.5 rounded-full">
                           Sem login
                         </span>
                       )}
                     </td>
                     <td className="px-5 py-2.5 text-right">
                       <div className="flex items-center justify-end gap-1">
-                        <button onClick={() => openEditFranq(f)} className="p-1.5 text-slate-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors" title="Editar">
+                        <button onClick={() => openEditFranq(f)} className="p-1.5 text-slate-400 hover:text-brand-pine hover:bg-brand-teal/10 rounded-lg transition-colors" title="Editar">
                           <Pencil size={14} />
                         </button>
                         <button
@@ -516,7 +512,7 @@ export default function AdminPage() {
             </tbody>
           </table>
         </div>
-        <div className="px-5 py-2 border-t border-slate-100 bg-slate-50">
+        <div className="px-5 py-2 border-t border-slate-100 bg-brand-mist">
           <p className="text-xs text-slate-400">{filteredFranq?.length || 0} franquia(s)</p>
         </div>
       </div>
@@ -531,30 +527,28 @@ export default function AdminPage() {
           <div className="relative">
             <Search size={14} className="absolute left-2.5 top-1/2 -translate-y-1/2 text-slate-400" />
             <input type="text" placeholder="Buscar pedido..." value={buscaVinc} onChange={(e) => setBuscaVinc(e.target.value)}
-              className="pl-8 pr-3 py-1.5 rounded-lg border border-slate-200 bg-white text-xs placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-slate-300 w-48"
+              className="pl-8 pr-3 py-1.5 rounded-lg border border-slate-200 bg-white text-xs placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-brand-teal/60 w-48"
             />
           </div>
         </div>
 
-        <table className="w-full text-sm">
-          <thead>
-            <tr className="border-b border-slate-100 bg-slate-50">
-              <th className="text-left px-5 py-2.5 font-medium text-slate-500 text-xs uppercase tracking-wider">N. Pedido</th>
-              <th className="text-left px-5 py-2.5 font-medium text-slate-500 text-xs uppercase tracking-wider">Franquia</th>
-              <th className="text-left px-5 py-2.5 font-medium text-slate-500 text-xs uppercase tracking-wider">Cliente</th>
-              <th className="text-left px-5 py-2.5 font-medium text-slate-500 text-xs uppercase tracking-wider">Valor</th>
-              <th className="text-left px-5 py-2.5 font-medium text-slate-500 text-xs uppercase tracking-wider">Status</th>
-              <th className="text-right px-5 py-2.5 font-medium text-slate-500 text-xs uppercase tracking-wider w-20">Ações</th>
-            </tr>
-          </thead>
-        </table>
-        <div className="max-h-[230px] overflow-y-auto">
+        <div className="max-h-[280px] overflow-y-auto">
           <table className="w-full text-sm">
+            <thead className="sticky top-0 z-10">
+              <tr className="border-b border-slate-100 bg-brand-mist">
+                <th className="text-left px-5 py-2.5 font-medium text-slate-500 text-xs uppercase tracking-wider">N. Pedido</th>
+                <th className="text-left px-5 py-2.5 font-medium text-slate-500 text-xs uppercase tracking-wider">Franquia</th>
+                <th className="text-left px-5 py-2.5 font-medium text-slate-500 text-xs uppercase tracking-wider">Cliente</th>
+                <th className="text-left px-5 py-2.5 font-medium text-slate-500 text-xs uppercase tracking-wider">Valor</th>
+                <th className="text-left px-5 py-2.5 font-medium text-slate-500 text-xs uppercase tracking-wider">Status</th>
+                <th className="text-right px-5 py-2.5 font-medium text-slate-500 text-xs uppercase tracking-wider w-20">Ações</th>
+              </tr>
+            </thead>
             <tbody className="divide-y divide-slate-50">
               {loadingVinc && <tr><td colSpan={6} className="px-5 py-6 text-center text-xs text-slate-400">Carregando...</td></tr>}
               {filteredVinc?.map(v => (
-                <tr key={v.id} className="hover:bg-slate-50 transition-colors">
-                  <td className="px-5 py-2.5 font-medium text-slate-800 cursor-pointer hover:text-blue-600" onClick={() => setSelecionado(v)}>
+                <tr key={v.id} className="hover:bg-brand-mist/60 transition-colors">
+                  <td className="px-5 py-2.5 font-medium text-slate-800 cursor-pointer hover:text-brand-pine" onClick={() => setSelecionado(v)}>
                     {v.numero_pedido}
                   </td>
                   <td className="px-5 py-2.5 text-slate-600">{v.franquia_nome}</td>
@@ -583,7 +577,7 @@ export default function AdminPage() {
             </tbody>
           </table>
         </div>
-        <div className="px-5 py-2 border-t border-slate-100 bg-slate-50">
+        <div className="px-5 py-2 border-t border-slate-100 bg-brand-mist">
           <p className="text-xs text-slate-400">{filteredVinc?.length || 0} registro(s)</p>
         </div>
       </div>

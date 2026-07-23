@@ -63,7 +63,7 @@ export default function ConfiguracoesPage() {
     }
   }
 
-  const inputClass = "w-full border border-slate-200 rounded-lg px-3 py-2 text-sm text-slate-700 focus:outline-none focus:ring-2 focus:ring-slate-300 transition-all"
+  const inputClass = "w-full border border-slate-200 rounded-lg px-3 py-2 text-sm text-slate-700 focus:outline-none focus:ring-2 focus:ring-brand-teal/60 transition-all"
   const labelClass = "block text-xs font-semibold text-slate-500 uppercase tracking-wider mb-1.5"
   const sectionClass = "bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden"
 
@@ -81,7 +81,7 @@ export default function ConfiguracoesPage() {
 
       {/* Sistema */}
       <div className={sectionClass}>
-        <div className="px-5 py-3.5 border-b border-slate-100 bg-slate-50 flex items-center gap-2">
+        <div className="px-5 py-3.5 border-b border-slate-100 bg-brand-mist flex items-center gap-2">
           <Globe size={15} className="text-slate-500" />
           <p className="text-xs font-semibold text-slate-600 uppercase tracking-wider">Sistema</p>
         </div>
@@ -103,7 +103,7 @@ export default function ConfiguracoesPage() {
 
       {/* SMTP */}
       <div className={sectionClass}>
-        <div className="px-5 py-3.5 border-b border-slate-100 bg-slate-50 flex items-center gap-2">
+        <div className="px-5 py-3.5 border-b border-slate-100 bg-brand-mist flex items-center gap-2">
           <Mail size={15} className="text-slate-500" />
           <p className="text-xs font-semibold text-slate-600 uppercase tracking-wider">Configuração Gmail (SMTP)</p>
         </div>
@@ -148,14 +148,14 @@ export default function ConfiguracoesPage() {
               <button
                 type="button"
                 onClick={handleTestar}
-                className="flex items-center gap-1.5 px-4 py-2 bg-slate-800 hover:bg-slate-900 text-white text-sm font-medium rounded-lg transition-colors shrink-0"
+                className="flex items-center gap-1.5 px-4 py-2 bg-brand-pine hover:bg-brand-forest text-white text-sm font-medium rounded-lg transition-colors shrink-0"
               >
                 <Send size={14} />
                 Testar
               </button>
             </div>
             {testeStatus === 'ok' && (
-              <p className="mt-2 text-xs text-green-600 flex items-center gap-1"><CheckCircle size={13} />{testeMensagem}</p>
+              <p className="mt-2 text-xs text-brand-pine flex items-center gap-1"><CheckCircle size={13} />{testeMensagem}</p>
             )}
             {testeStatus === 'erro' && (
               <p className="mt-2 text-xs text-red-600 flex items-center gap-1"><AlertTriangle size={13} />{testeMensagem}</p>
@@ -166,7 +166,7 @@ export default function ConfiguracoesPage() {
 
       {/* Destinatários */}
       <div className={sectionClass}>
-        <div className="px-5 py-3.5 border-b border-slate-100 bg-slate-50 flex items-center gap-2">
+        <div className="px-5 py-3.5 border-b border-slate-100 bg-brand-mist flex items-center gap-2">
           <Mail size={15} className="text-slate-500" />
           <p className="text-xs font-semibold text-slate-600 uppercase tracking-wider">Destinatários</p>
         </div>
@@ -192,7 +192,7 @@ export default function ConfiguracoesPage() {
 
       {/* Templates */}
       <div className={sectionClass}>
-        <div className="px-5 py-3.5 border-b border-slate-100 bg-slate-50 flex items-center gap-2">
+        <div className="px-5 py-3.5 border-b border-slate-100 bg-brand-mist flex items-center gap-2">
           <Mail size={15} className="text-slate-500" />
           <p className="text-xs font-semibold text-slate-600 uppercase tracking-wider">Templates de Email</p>
         </div>
@@ -215,14 +215,14 @@ export default function ConfiguracoesPage() {
       {/* Salvar */}
       <div className="flex justify-end gap-3">
         {salvou && (
-          <span className="flex items-center gap-1.5 text-sm text-green-600">
+          <span className="flex items-center gap-1.5 text-sm text-brand-pine">
             <CheckCircle size={15} /> Configurações salvas
           </span>
         )}
         <button
           onClick={() => salvarMutation.mutate()}
           disabled={salvarMutation.isPending || Object.keys(form).length === 0}
-          className="flex items-center gap-2 px-5 py-2.5 bg-slate-800 hover:bg-slate-900 text-white text-sm font-medium rounded-lg transition-colors disabled:opacity-50"
+          className="flex items-center gap-2 px-5 py-2.5 bg-brand-pine hover:bg-brand-forest text-white text-sm font-medium rounded-lg transition-colors disabled:opacity-50"
         >
           <Save size={15} />
           {salvarMutation.isPending ? 'Salvando...' : 'Salvar Configurações'}

@@ -16,10 +16,10 @@ const loginSchema = z.object({
 type LoginForm = z.infer<typeof loginSchema>
 
 const dashboards = [
-  { perfil: 'Comercial', cor: 'bg-blue-50 text-blue-700 border-blue-100' },
-  { perfil: 'Financeiro', cor: 'bg-amber-50 text-amber-700 border-amber-100' },
-  { perfil: 'TI', cor: 'bg-purple-50 text-purple-700 border-purple-100' },
-  { perfil: 'Admin', cor: 'bg-red-50 text-red-700 border-red-100' },
+  { perfil: 'Comercial', cor: 'bg-brand-pine/10 text-brand-pine border-brand-pine/20' },
+  { perfil: 'Faturamento', cor: 'bg-brand-teal/15 text-brand-forest border-brand-teal/30' },
+  { perfil: 'Financeiro', cor: 'bg-brand-khaki/15 text-brand-umber border-brand-khaki/30' },
+  { perfil: 'TI', cor: 'bg-brand-olive/15 text-brand-forest border-brand-olive/30' },
 ]
 
 export default function LoginPage() {
@@ -45,7 +45,7 @@ export default function LoginPage() {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-slate-800 via-slate-900 to-slate-950">
+    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-brand-forest via-brand-forest to-black">
       <div className="w-full max-w-md mx-4">
         <div className="bg-white rounded-2xl shadow-2xl p-10">
           {/* Titulo */}
@@ -65,7 +65,7 @@ export default function LoginPage() {
               <input
                 type="email"
                 {...register('email')}
-                className="w-full border border-slate-200 rounded-xl px-4 py-3 text-sm text-slate-700 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-slate-400/50 focus:border-slate-400 transition-all"
+                className="w-full border border-slate-200 rounded-xl px-4 py-3 text-sm text-slate-700 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-brand-teal/60 focus:border-brand-teal transition-all"
                 placeholder="seu.email@sensebike.com.br"
               />
               {errors.email && <p className="text-red-500 text-xs mt-1.5">{errors.email.message}</p>}
@@ -79,7 +79,7 @@ export default function LoginPage() {
               <input
                 type="password"
                 {...register('senha')}
-                className="w-full border border-slate-200 rounded-xl px-4 py-3 text-sm text-slate-700 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-slate-400/50 focus:border-slate-400 transition-all"
+                className="w-full border border-slate-200 rounded-xl px-4 py-3 text-sm text-slate-700 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-brand-teal/60 focus:border-brand-teal transition-all"
                 placeholder="Digite sua senha"
               />
               {errors.senha && <p className="text-red-500 text-xs mt-1.5">{errors.senha.message}</p>}
@@ -103,7 +103,7 @@ export default function LoginPage() {
             <button
               type="submit"
               disabled={carregando}
-              className="w-full bg-gradient-to-r from-slate-600 to-slate-700 hover:from-slate-700 hover:to-slate-800 text-white font-semibold py-3.5 px-4 rounded-xl text-sm uppercase tracking-wider transition-all shadow-lg shadow-slate-300/30 disabled:opacity-60"
+              className="w-full bg-gradient-to-r from-brand-pine to-brand-forest hover:from-brand-forest hover:to-brand-forest text-white font-semibold py-3.5 px-4 rounded-xl text-sm uppercase tracking-wider transition-all shadow-lg shadow-brand-pine/30 disabled:opacity-60"
             >
               {carregando ? 'Entrando...' : 'Entrar'}
             </button>

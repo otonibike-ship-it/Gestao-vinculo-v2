@@ -27,14 +27,14 @@ export default function EsqueciSenhaPage() {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-slate-800 via-slate-900 to-slate-950">
+    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-brand-forest via-brand-forest to-black">
       <div className="w-full max-w-md mx-4">
         <div className="bg-white rounded-2xl shadow-2xl p-10">
           {enviado ? (
             <div className="text-center space-y-4">
               <div className="flex justify-center">
-                <div className="w-14 h-14 bg-green-100 rounded-full flex items-center justify-center">
-                  <CheckCircle size={28} className="text-green-600" />
+                <div className="w-14 h-14 bg-brand-olive/15 rounded-full flex items-center justify-center">
+                  <CheckCircle size={28} className="text-brand-pine" />
                 </div>
               </div>
               <h2 className="text-xl font-bold text-slate-800">E-mail enviado!</h2>
@@ -74,7 +74,7 @@ export default function EsqueciSenhaPage() {
                       type="email"
                       value={email}
                       onChange={e => setEmail(e.target.value)}
-                      className="w-full pl-10 pr-4 py-3 border border-slate-200 rounded-xl text-sm text-slate-700 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-slate-400/50 focus:border-slate-400 transition-all"
+                      className="w-full pl-10 pr-4 py-3 border border-slate-200 rounded-xl text-sm text-slate-700 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-brand-teal/60 focus:border-brand-teal transition-all"
                       placeholder="seu.email@sensebike.com.br"
                       autoFocus
                     />
@@ -90,7 +90,7 @@ export default function EsqueciSenhaPage() {
                 <button
                   type="submit"
                   disabled={enviando}
-                  className="w-full bg-gradient-to-r from-slate-600 to-slate-700 hover:from-slate-700 hover:to-slate-800 text-white font-semibold py-3.5 px-4 rounded-xl text-sm uppercase tracking-wider transition-all shadow-lg shadow-slate-300/30 disabled:opacity-60"
+                  className="w-full bg-gradient-to-r from-brand-pine to-brand-forest hover:from-brand-forest hover:to-brand-forest text-white font-semibold py-3.5 px-4 rounded-xl text-sm uppercase tracking-wider transition-all shadow-lg shadow-brand-pine/30 disabled:opacity-60"
                 >
                   {enviando ? 'Enviando...' : 'Enviar link de redefinição'}
                 </button>

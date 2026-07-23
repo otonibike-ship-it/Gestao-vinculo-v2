@@ -45,8 +45,8 @@ export default function FinanceiroPage() {
 
   return (
     <div className="space-y-4">
-      <div className="bg-amber-50 border border-amber-100 rounded-xl px-5 py-3">
-        <p className="text-sm text-amber-700">
+      <div className="bg-brand-khaki/10 border border-brand-khaki/30 rounded-xl px-5 py-3">
+        <p className="text-sm text-brand-umber">
           Pedidos aguardando sua validacao financeira. Clique em um pedido para aprovar ou reprovar.
         </p>
       </div>
@@ -58,7 +58,7 @@ export default function FinanceiroPage() {
           placeholder="Buscar pedido..."
           value={busca}
           onChange={(e) => setBusca(e.target.value)}
-          className="w-full pl-9 pr-3 py-2 rounded-lg border border-slate-200 bg-white text-sm placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-slate-300 focus:border-slate-300 transition-all"
+          className="w-full pl-9 pr-3 py-2 rounded-lg border border-slate-200 bg-white text-sm placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-brand-teal/60 focus:border-brand-teal transition-all"
         />
       </div>
 
@@ -77,26 +77,24 @@ export default function FinanceiroPage() {
 
       {filtrados && filtrados.length > 0 && (
         <div className="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
-          <table className="w-full text-sm">
-            <thead>
-              <tr className="border-b border-slate-100 bg-slate-50">
-                <th className="text-left px-5 py-3 font-medium text-slate-500 text-xs uppercase tracking-wider">N. Pedido</th>
-                <th className="text-left px-5 py-3 font-medium text-slate-500 text-xs uppercase tracking-wider">Franquia</th>
-                <th className="text-left px-5 py-3 font-medium text-slate-500 text-xs uppercase tracking-wider">Cliente</th>
-                <th className="text-left px-5 py-3 font-medium text-slate-500 text-xs uppercase tracking-wider">Valor</th>
-                <th className="text-left px-5 py-3 font-medium text-slate-500 text-xs uppercase tracking-wider">Data</th>
-                <th className="text-left px-5 py-3 font-medium text-slate-500 text-xs uppercase tracking-wider">Anexos</th>
-              </tr>
-            </thead>
-          </table>
-          <div className="max-h-[230px] overflow-y-auto">
+          <div className="max-h-[280px] overflow-y-auto">
             <table className="w-full text-sm">
+              <thead className="sticky top-0 z-10">
+                <tr className="border-b border-slate-100 bg-brand-mist">
+                  <th className="text-left px-5 py-3 font-medium text-slate-500 text-xs uppercase tracking-wider">N. Pedido</th>
+                  <th className="text-left px-5 py-3 font-medium text-slate-500 text-xs uppercase tracking-wider">Franquia</th>
+                  <th className="text-left px-5 py-3 font-medium text-slate-500 text-xs uppercase tracking-wider">Cliente</th>
+                  <th className="text-left px-5 py-3 font-medium text-slate-500 text-xs uppercase tracking-wider">Valor</th>
+                  <th className="text-left px-5 py-3 font-medium text-slate-500 text-xs uppercase tracking-wider">Data</th>
+                  <th className="text-left px-5 py-3 font-medium text-slate-500 text-xs uppercase tracking-wider">Anexos</th>
+                </tr>
+              </thead>
               <tbody className="divide-y divide-slate-50">
                 {filtrados.map((v) => (
                   <tr
                     key={v.id}
                     onClick={() => setSelecionado(v)}
-                    className="hover:bg-amber-50/50 transition-colors cursor-pointer"
+                    className="hover:bg-brand-khaki/10 transition-colors cursor-pointer"
                   >
                     <td className="px-5 py-3 font-medium text-slate-800">{v.numero_pedido}</td>
                     <td className="px-5 py-3 text-slate-600">{v.franquia_nome}</td>
@@ -115,7 +113,7 @@ export default function FinanceiroPage() {
               </tbody>
             </table>
           </div>
-          <div className="px-5 py-2.5 border-t border-slate-100 bg-slate-50">
+          <div className="px-5 py-2.5 border-t border-slate-100 bg-brand-mist">
             <p className="text-xs text-slate-400">{filtrados.length} pedido(s) pendente(s)</p>
           </div>
         </div>
@@ -140,25 +138,23 @@ export default function FinanceiroPage() {
 
         {trocasFiltradas && trocasFiltradas.length > 0 && (
           <div className="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
-            <table className="w-full text-sm">
-              <thead>
-                <tr className="border-b border-slate-100 bg-slate-50">
-                  <th className="text-left px-5 py-3 font-medium text-slate-500 text-xs uppercase tracking-wider">N. Pedido a Cancelar</th>
-                  <th className="text-left px-5 py-3 font-medium text-slate-500 text-xs uppercase tracking-wider">Franquia</th>
-                  <th className="text-left px-5 py-3 font-medium text-slate-500 text-xs uppercase tracking-wider">Vendedor</th>
-                  <th className="text-left px-5 py-3 font-medium text-slate-500 text-xs uppercase tracking-wider">Novo Pedido</th>
-                  <th className="text-left px-5 py-3 font-medium text-slate-500 text-xs uppercase tracking-wider">Anexos</th>
-                </tr>
-              </thead>
-            </table>
-            <div className="max-h-[230px] overflow-y-auto">
+            <div className="max-h-[280px] overflow-y-auto">
               <table className="w-full text-sm">
+                <thead className="sticky top-0 z-10">
+                  <tr className="border-b border-slate-100 bg-brand-mist">
+                    <th className="text-left px-5 py-3 font-medium text-slate-500 text-xs uppercase tracking-wider">N. Pedido a Cancelar</th>
+                    <th className="text-left px-5 py-3 font-medium text-slate-500 text-xs uppercase tracking-wider">Franquia</th>
+                    <th className="text-left px-5 py-3 font-medium text-slate-500 text-xs uppercase tracking-wider">Vendedor</th>
+                    <th className="text-left px-5 py-3 font-medium text-slate-500 text-xs uppercase tracking-wider">Novo Pedido</th>
+                    <th className="text-left px-5 py-3 font-medium text-slate-500 text-xs uppercase tracking-wider">Anexos</th>
+                  </tr>
+                </thead>
                 <tbody className="divide-y divide-slate-50">
                   {trocasFiltradas.map((t) => (
                     <tr
                       key={t.id}
                       onClick={() => setSelecionadoTroca(t)}
-                      className="hover:bg-amber-50/50 transition-colors cursor-pointer"
+                      className="hover:bg-brand-khaki/10 transition-colors cursor-pointer"
                     >
                       <td className="px-5 py-3 font-medium text-slate-800">{t.numero_pedido_cancelar}</td>
                       <td className="px-5 py-3 text-slate-600">{t.franquia_nome}</td>
@@ -172,7 +168,7 @@ export default function FinanceiroPage() {
                 </tbody>
               </table>
             </div>
-            <div className="px-5 py-2.5 border-t border-slate-100 bg-slate-50">
+            <div className="px-5 py-2.5 border-t border-slate-100 bg-brand-mist">
               <p className="text-xs text-slate-400">{trocasFiltradas.length} troca(s) pendente(s)</p>
             </div>
           </div>

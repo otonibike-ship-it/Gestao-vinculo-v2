@@ -27,8 +27,8 @@ export default function FaturamentoPage() {
 
   return (
     <div className="space-y-4">
-      <div className="bg-teal-50 border border-teal-100 rounded-xl px-5 py-3">
-        <p className="text-sm text-teal-700">
+      <div className="bg-brand-teal/15 border border-brand-teal/30 rounded-xl px-5 py-3">
+        <p className="text-sm text-brand-pine">
           Trocas de pedido aguardando sua análise. Clique em uma solicitação para aprovar ou reprovar.
         </p>
       </div>
@@ -40,7 +40,7 @@ export default function FaturamentoPage() {
           placeholder="Buscar troca..."
           value={busca}
           onChange={(e) => setBusca(e.target.value)}
-          className="w-full pl-9 pr-3 py-2 rounded-lg border border-slate-200 bg-white text-sm placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-slate-300 focus:border-slate-300 transition-all"
+          className="w-full pl-9 pr-3 py-2 rounded-lg border border-slate-200 bg-white text-sm placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-brand-teal/60 focus:border-brand-teal transition-all"
         />
       </div>
 
@@ -59,25 +59,23 @@ export default function FaturamentoPage() {
 
       {filtrados && filtrados.length > 0 && (
         <div className="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
-          <table className="w-full text-sm">
-            <thead>
-              <tr className="border-b border-slate-100 bg-slate-50">
-                <th className="text-left px-5 py-3 font-medium text-slate-500 text-xs uppercase tracking-wider">N. Pedido a Cancelar</th>
-                <th className="text-left px-5 py-3 font-medium text-slate-500 text-xs uppercase tracking-wider">Franquia</th>
-                <th className="text-left px-5 py-3 font-medium text-slate-500 text-xs uppercase tracking-wider">Vendedor</th>
-                <th className="text-left px-5 py-3 font-medium text-slate-500 text-xs uppercase tracking-wider">Novo Pedido</th>
-                <th className="text-left px-5 py-3 font-medium text-slate-500 text-xs uppercase tracking-wider">Anexos</th>
-              </tr>
-            </thead>
-          </table>
-          <div className="max-h-[230px] overflow-y-auto">
+          <div className="max-h-[280px] overflow-y-auto">
             <table className="w-full text-sm">
+              <thead className="sticky top-0 z-10">
+                <tr className="border-b border-slate-100 bg-brand-mist">
+                  <th className="text-left px-5 py-3 font-medium text-slate-500 text-xs uppercase tracking-wider">N. Pedido a Cancelar</th>
+                  <th className="text-left px-5 py-3 font-medium text-slate-500 text-xs uppercase tracking-wider">Franquia</th>
+                  <th className="text-left px-5 py-3 font-medium text-slate-500 text-xs uppercase tracking-wider">Vendedor</th>
+                  <th className="text-left px-5 py-3 font-medium text-slate-500 text-xs uppercase tracking-wider">Novo Pedido</th>
+                  <th className="text-left px-5 py-3 font-medium text-slate-500 text-xs uppercase tracking-wider">Anexos</th>
+                </tr>
+              </thead>
               <tbody className="divide-y divide-slate-50">
                 {filtrados.map((t) => (
                   <tr
                     key={t.id}
                     onClick={() => setSelecionado(t)}
-                    className="hover:bg-teal-50/50 transition-colors cursor-pointer"
+                    className="hover:bg-brand-teal/10 transition-colors cursor-pointer"
                   >
                     <td className="px-5 py-3 font-medium text-slate-800">{t.numero_pedido_cancelar}</td>
                     <td className="px-5 py-3 text-slate-600">{t.franquia_nome}</td>
@@ -91,7 +89,7 @@ export default function FaturamentoPage() {
               </tbody>
             </table>
           </div>
-          <div className="px-5 py-2.5 border-t border-slate-100 bg-slate-50">
+          <div className="px-5 py-2.5 border-t border-slate-100 bg-brand-mist">
             <p className="text-xs text-slate-400">{filtrados.length} troca(s) pendente(s)</p>
           </div>
         </div>

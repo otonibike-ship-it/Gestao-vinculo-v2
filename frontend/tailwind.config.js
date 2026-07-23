@@ -8,23 +8,21 @@ module.exports = {
   theme: {
     extend: {
       colors: {
-        primary: {
-          50:  '#eef2ff',
-          100: '#e0e7ff',
-          200: '#c7d2fe',
-          300: '#a5b4fc',
-          400: '#818cf8',
-          500: '#6366f1',
-          600: '#4f46e5',
-          700: '#4338ca',
-          800: '#3730a3',
-          900: '#312e81',
-          950: '#1e1b4b',
+        // Paleta de marca SenseBike
+        brand: {
+          forest: '#18301A',   // verde quase preto — sidebar, texto de maior contraste
+          pine:   '#26745E',   // verde-azulado escuro — cor primária (botões, ações, links)
+          teal:   '#64BFB6',   // verde-azulado claro — status secundário, hover, foco
+          olive:  '#91AF35',   // verde-oliva — sucesso/aprovação, destaques
+          lime:   '#B8FF01',   // verde-limão vibrante — realces pontuais (nunca em área grande)
+          khaki:  '#948540',   // caqui — aguardando/atenção
+          umber:  '#5B5127',   // caqui escuro — texto sobre fundo caqui
+          mist:   '#EBF0F3',   // quase-branco — fundo de página
         },
         sidebar: {
-          DEFAULT: '#1e1b4b',
-          hover: '#2d2a5e',
-          active: '#3730a3',
+          DEFAULT: '#18301A',
+          hover: '#26745E',
+          active: '#26745E',
         },
       },
       boxShadow: {

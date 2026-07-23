@@ -73,8 +73,8 @@ export default function TIPage() {
 
   return (
     <div className="space-y-4">
-      <div className="bg-purple-50 border border-purple-100 rounded-xl px-5 py-3">
-        <p className="text-sm text-purple-700">
+      <div className="bg-brand-forest/10 border border-brand-forest/20 rounded-xl px-5 py-3">
+        <p className="text-sm text-brand-forest">
           Pedidos aguardando execucao de TI. Clique em um pedido para aprovar ou reprovar.
         </p>
       </div>
@@ -86,7 +86,7 @@ export default function TIPage() {
           placeholder="Buscar pedido..."
           value={busca}
           onChange={(e) => setBusca(e.target.value)}
-          className="w-full pl-9 pr-3 py-2 rounded-lg border border-slate-200 bg-white text-sm placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-slate-300 focus:border-slate-300 transition-all"
+          className="w-full pl-9 pr-3 py-2 rounded-lg border border-slate-200 bg-white text-sm placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-brand-teal/60 focus:border-brand-teal transition-all"
         />
       </div>
 
@@ -105,27 +105,25 @@ export default function TIPage() {
 
       {filtrados && filtrados.length > 0 && (
         <div className="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
-          <table className="w-full text-sm">
-            <thead>
-              <tr className="border-b border-slate-100 bg-slate-50">
-                <th className="text-left px-5 py-3 font-medium text-slate-500 text-xs uppercase tracking-wider">N. Pedido</th>
-                <th className="text-left px-5 py-3 font-medium text-slate-500 text-xs uppercase tracking-wider">Franquia</th>
-                <th className="text-left px-5 py-3 font-medium text-slate-500 text-xs uppercase tracking-wider">Cliente</th>
-                <th className="text-left px-5 py-3 font-medium text-slate-500 text-xs uppercase tracking-wider">Valor</th>
-                <th className="text-left px-5 py-3 font-medium text-slate-500 text-xs uppercase tracking-wider">Data</th>
-                <th className="text-left px-5 py-3 font-medium text-slate-500 text-xs uppercase tracking-wider">Validacao</th>
-                <th className="text-left px-5 py-3 font-medium text-slate-500 text-xs uppercase tracking-wider">Anexos</th>
-              </tr>
-            </thead>
-          </table>
-          <div className="max-h-[230px] overflow-y-auto">
+          <div className="max-h-[280px] overflow-y-auto">
             <table className="w-full text-sm">
+              <thead className="sticky top-0 z-10">
+                <tr className="border-b border-slate-100 bg-brand-mist">
+                  <th className="text-left px-5 py-3 font-medium text-slate-500 text-xs uppercase tracking-wider">N. Pedido</th>
+                  <th className="text-left px-5 py-3 font-medium text-slate-500 text-xs uppercase tracking-wider">Franquia</th>
+                  <th className="text-left px-5 py-3 font-medium text-slate-500 text-xs uppercase tracking-wider">Cliente</th>
+                  <th className="text-left px-5 py-3 font-medium text-slate-500 text-xs uppercase tracking-wider">Valor</th>
+                  <th className="text-left px-5 py-3 font-medium text-slate-500 text-xs uppercase tracking-wider">Data</th>
+                  <th className="text-left px-5 py-3 font-medium text-slate-500 text-xs uppercase tracking-wider">Validacao</th>
+                  <th className="text-left px-5 py-3 font-medium text-slate-500 text-xs uppercase tracking-wider">Anexos</th>
+                </tr>
+              </thead>
               <tbody className="divide-y divide-slate-50">
                 {filtrados.map((v) => (
                   <tr
                     key={v.id}
                     onClick={() => setSelecionado(v)}
-                    className="hover:bg-purple-50/50 transition-colors cursor-pointer"
+                    className="hover:bg-brand-forest/5 transition-colors cursor-pointer"
                   >
                     <td className="px-5 py-3 font-medium text-slate-800">{v.numero_pedido}</td>
                     <td className="px-5 py-3 text-slate-600">{v.franquia_nome}</td>
@@ -137,7 +135,7 @@ export default function TIPage() {
                       {v.data_pedido ? new Date(v.data_pedido + 'T00:00:00').toLocaleDateString('pt-BR') : '—'}
                     </td>
                     <td className="px-5 py-3">
-                      <span className={`text-xs font-medium ${v.necessario_validacao ? 'text-amber-600' : 'text-slate-400'}`}>
+                      <span className={`text-xs font-medium ${v.necessario_validacao ? 'text-brand-umber' : 'text-slate-400'}`}>
                         {v.necessario_validacao ? 'Sim' : 'Nao'}
                       </span>
                     </td>
@@ -149,7 +147,7 @@ export default function TIPage() {
               </tbody>
             </table>
           </div>
-          <div className="px-5 py-2.5 border-t border-slate-100 bg-slate-50">
+          <div className="px-5 py-2.5 border-t border-slate-100 bg-brand-mist">
             <p className="text-xs text-slate-400">{filtrados.length} tarefa(s) pendente(s)</p>
           </div>
         </div>
@@ -174,25 +172,23 @@ export default function TIPage() {
 
         {trocasFiltradas && trocasFiltradas.length > 0 && (
           <div className="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
-            <table className="w-full text-sm">
-              <thead>
-                <tr className="border-b border-slate-100 bg-slate-50">
-                  <th className="text-left px-5 py-3 font-medium text-slate-500 text-xs uppercase tracking-wider">N. Pedido a Cancelar</th>
-                  <th className="text-left px-5 py-3 font-medium text-slate-500 text-xs uppercase tracking-wider">Franquia</th>
-                  <th className="text-left px-5 py-3 font-medium text-slate-500 text-xs uppercase tracking-wider">Vendedor</th>
-                  <th className="text-left px-5 py-3 font-medium text-slate-500 text-xs uppercase tracking-wider">Novo Pedido</th>
-                  <th className="text-left px-5 py-3 font-medium text-slate-500 text-xs uppercase tracking-wider">Anexos</th>
-                </tr>
-              </thead>
-            </table>
-            <div className="max-h-[230px] overflow-y-auto">
+            <div className="max-h-[280px] overflow-y-auto">
               <table className="w-full text-sm">
+                <thead className="sticky top-0 z-10">
+                  <tr className="border-b border-slate-100 bg-brand-mist">
+                    <th className="text-left px-5 py-3 font-medium text-slate-500 text-xs uppercase tracking-wider">N. Pedido a Cancelar</th>
+                    <th className="text-left px-5 py-3 font-medium text-slate-500 text-xs uppercase tracking-wider">Franquia</th>
+                    <th className="text-left px-5 py-3 font-medium text-slate-500 text-xs uppercase tracking-wider">Vendedor</th>
+                    <th className="text-left px-5 py-3 font-medium text-slate-500 text-xs uppercase tracking-wider">Novo Pedido</th>
+                    <th className="text-left px-5 py-3 font-medium text-slate-500 text-xs uppercase tracking-wider">Anexos</th>
+                  </tr>
+                </thead>
                 <tbody className="divide-y divide-slate-50">
                   {trocasFiltradas.map((t) => (
                     <tr
                       key={t.id}
                       onClick={() => setSelecionadoTroca(t)}
-                      className="hover:bg-purple-50/50 transition-colors cursor-pointer"
+                      className="hover:bg-brand-forest/5 transition-colors cursor-pointer"
                     >
                       <td className="px-5 py-3 font-medium text-slate-800">{t.numero_pedido_cancelar}</td>
                       <td className="px-5 py-3 text-slate-600">{t.franquia_nome}</td>
@@ -206,7 +202,7 @@ export default function TIPage() {
                 </tbody>
               </table>
             </div>
-            <div className="px-5 py-2.5 border-t border-slate-100 bg-slate-50">
+            <div className="px-5 py-2.5 border-t border-slate-100 bg-brand-mist">
               <p className="text-xs text-slate-400">{trocasFiltradas.length} troca(s) pendente(s)</p>
             </div>
           </div>
@@ -215,9 +211,9 @@ export default function TIPage() {
 
       {/* Lista de Franquias */}
       <div className="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
-        <div className="px-5 py-3 border-b border-slate-100 bg-slate-50 flex items-center justify-between gap-4">
+        <div className="px-5 py-3 border-b border-slate-100 bg-brand-mist flex items-center justify-between gap-4">
           <div className="flex items-center gap-2">
-            <Store size={16} className="text-slate-500" />
+            <Store size={16} className="text-brand-pine" />
             <p className="text-xs font-semibold text-slate-600 uppercase tracking-wider">Franquias Cadastradas</p>
           </div>
           <div className="relative max-w-xs flex-1">
@@ -227,7 +223,7 @@ export default function TIPage() {
               placeholder="Buscar franquia..."
               value={buscaFranquia}
               onChange={(e) => setBuscaFranquia(e.target.value)}
-              className="w-full pl-8 pr-3 py-1.5 rounded-lg border border-slate-200 bg-white text-xs placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-slate-300 transition-all"
+              className="w-full pl-8 pr-3 py-1.5 rounded-lg border border-slate-200 bg-white text-xs placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-brand-teal/60 transition-all"
             />
           </div>
         </div>
@@ -236,20 +232,18 @@ export default function TIPage() {
           <div className="px-5 py-8 text-center text-sm text-slate-400">Carregando...</div>
         ) : franquiasFiltradas && franquiasFiltradas.length > 0 ? (
           <>
-            <table className="w-full text-sm">
-              <thead>
-                <tr className="border-b border-slate-100 bg-slate-50/50">
-                  <th className="text-left px-5 py-2.5 font-medium text-slate-500 text-xs uppercase tracking-wider">Nome</th>
-                  <th className="text-left px-5 py-2.5 font-medium text-slate-500 text-xs uppercase tracking-wider">CNPJ</th>
-                  <th className="text-left px-5 py-2.5 font-medium text-slate-500 text-xs uppercase tracking-wider">E-mail</th>
-                </tr>
-              </thead>
-            </table>
-            <div className="max-h-[200px] overflow-y-auto">
+            <div className="max-h-[220px] overflow-y-auto">
               <table className="w-full text-sm">
+                <thead className="sticky top-0 z-10">
+                  <tr className="border-b border-slate-100 bg-brand-mist/60">
+                    <th className="text-left px-5 py-2.5 font-medium text-slate-500 text-xs uppercase tracking-wider">Nome</th>
+                    <th className="text-left px-5 py-2.5 font-medium text-slate-500 text-xs uppercase tracking-wider">CNPJ</th>
+                    <th className="text-left px-5 py-2.5 font-medium text-slate-500 text-xs uppercase tracking-wider">E-mail</th>
+                  </tr>
+                </thead>
                 <tbody className="divide-y divide-slate-50">
                   {franquiasFiltradas.map((f) => (
-                    <tr key={f.id} className="hover:bg-slate-50 transition-colors">
+                    <tr key={f.id} className="hover:bg-brand-mist/60 transition-colors">
                       <td className="px-5 py-3 font-medium text-slate-800">
                         {f.nome_fantasia || f.razao_social}
                       </td>
@@ -264,7 +258,7 @@ export default function TIPage() {
                 </tbody>
               </table>
             </div>
-            <div className="px-5 py-2.5 border-t border-slate-100 bg-slate-50">
+            <div className="px-5 py-2.5 border-t border-slate-100 bg-brand-mist">
               <p className="text-xs text-slate-400">{franquiasFiltradas.length} franquia(s)</p>
             </div>
           </>

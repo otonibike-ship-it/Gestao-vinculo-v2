@@ -20,12 +20,12 @@ const statusTrocaLabels: Record<string, string> = {
 }
 
 const statusTrocaColors: Record<string, string> = {
-  aberto: 'bg-blue-100 text-blue-700',
-  aguardando_comercial: 'bg-orange-100 text-orange-700',
-  aguardando_faturamento: 'bg-teal-100 text-teal-700',
-  aguardando_financeiro: 'bg-amber-100 text-amber-700',
-  aguardando_ti: 'bg-purple-100 text-purple-700',
-  fechado: 'bg-green-100 text-green-700',
+  aberto: 'bg-brand-khaki/20 text-brand-umber',
+  aguardando_comercial: 'bg-brand-olive/20 text-brand-forest',
+  aguardando_faturamento: 'bg-brand-teal/25 text-brand-pine',
+  aguardando_financeiro: 'bg-brand-pine/15 text-brand-pine',
+  aguardando_ti: 'bg-brand-forest/10 text-brand-forest',
+  fechado: 'bg-brand-lime/25 text-brand-forest',
 }
 
 const statusLabels: Record<string, string> = {
@@ -37,11 +37,11 @@ const statusLabels: Record<string, string> = {
 }
 
 const statusColors: Record<string, string> = {
-  aberto: 'bg-blue-100 text-blue-700',
-  validacao_comercial: 'bg-orange-100 text-orange-700',
-  validacao_financeiro: 'bg-amber-100 text-amber-700',
-  tarefa_ti: 'bg-purple-100 text-purple-700',
-  fechado: 'bg-green-100 text-green-700',
+  aberto: 'bg-brand-khaki/20 text-brand-umber',
+  validacao_comercial: 'bg-brand-olive/20 text-brand-forest',
+  validacao_financeiro: 'bg-brand-pine/15 text-brand-pine',
+  tarefa_ti: 'bg-brand-forest/10 text-brand-forest',
+  fechado: 'bg-brand-lime/25 text-brand-forest',
 }
 
 export default function FranquiaPage() {
@@ -100,12 +100,21 @@ export default function FranquiaPage() {
       <>
         <div className="max-h-[260px] overflow-y-auto">
           <table className="w-full text-sm">
+            <thead className="sticky top-0 z-10">
+              <tr className="border-b border-slate-100 bg-white">
+                <th className="text-left px-5 py-2.5 font-medium text-slate-500 text-xs uppercase tracking-wider">N. Pedido</th>
+                <th className="text-left px-5 py-2.5 font-medium text-slate-500 text-xs uppercase tracking-wider">Cliente</th>
+                <th className="text-left px-5 py-2.5 font-medium text-slate-500 text-xs uppercase tracking-wider">Valor</th>
+                <th className="text-left px-5 py-2.5 font-medium text-slate-500 text-xs uppercase tracking-wider">Data</th>
+                <th className="text-left px-5 py-2.5 font-medium text-slate-500 text-xs uppercase tracking-wider">Status</th>
+              </tr>
+            </thead>
             <tbody className="divide-y divide-slate-50">
               {vinculos.map((v) => (
                 <tr
                   key={v.id}
                   onClick={() => setSelecionado(v)}
-                  className="hover:bg-slate-50 transition-colors cursor-pointer"
+                  className="hover:bg-brand-mist/60 transition-colors cursor-pointer"
                 >
                   <td className="px-5 py-3 font-medium text-slate-800">{v.numero_pedido}</td>
                   <td className="px-5 py-3 text-slate-600">{v.nome_cliente}</td>
@@ -125,7 +134,7 @@ export default function FranquiaPage() {
             </tbody>
           </table>
         </div>
-        <div className="px-5 py-2.5 border-t border-slate-100 bg-slate-50">
+        <div className="px-5 py-2.5 border-t border-slate-100 bg-brand-mist">
           <p className="text-xs text-slate-400">{vinculos.length} pedido(s)</p>
         </div>
       </>
@@ -143,20 +152,20 @@ export default function FranquiaPage() {
             placeholder="Buscar pedido..."
             value={busca}
             onChange={(e) => setBusca(e.target.value)}
-            className="w-full pl-9 pr-3 py-2 rounded-lg border border-slate-200 bg-white text-sm placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-slate-300 transition-all"
+            className="w-full pl-9 pr-3 py-2 rounded-lg border border-slate-200 bg-white text-sm placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-brand-teal/60 transition-all"
           />
         </div>
         <div className="flex gap-2">
           <Link
             href="/franquia/novo"
-            className="flex items-center gap-2 bg-slate-800 hover:bg-slate-900 text-white text-sm font-medium px-4 py-2.5 rounded-lg transition-colors"
+            className="flex items-center gap-2 bg-brand-pine hover:bg-brand-forest text-white text-sm font-medium px-4 py-2.5 rounded-lg transition-colors"
           >
             <Plus size={16} />
             Novo Pedido
           </Link>
           <Link
             href="/franquia/nova-troca"
-            className="flex items-center gap-2 bg-white hover:bg-slate-50 text-slate-700 border border-slate-200 text-sm font-medium px-4 py-2.5 rounded-lg transition-colors"
+            className="flex items-center gap-2 bg-white hover:bg-brand-mist text-brand-pine border border-brand-pine/30 text-sm font-medium px-4 py-2.5 rounded-lg transition-colors"
           >
             <Repeat size={16} />
             Troca de Pedido
@@ -171,7 +180,7 @@ export default function FranquiaPage() {
       )}
 
       {!franquiaId && (
-        <div className="bg-amber-50 border border-amber-200 rounded-xl px-5 py-4 text-amber-700 text-sm">
+        <div className="bg-brand-khaki/10 border border-brand-khaki/30 rounded-xl px-5 py-4 text-brand-umber text-sm">
           Sua conta não está vinculada a uma franquia. Contate o administrador.
         </div>
       )}
@@ -179,51 +188,38 @@ export default function FranquiaPage() {
       {/* Lista de pedidos ativos */}
       {!isLoading && (
         <div className="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
-          <div className="px-5 py-3 border-b border-slate-100 bg-slate-50 flex items-center gap-2">
-            <Store size={16} className="text-slate-500" />
+          <div className="px-5 py-3 border-b border-slate-100 bg-brand-mist flex items-center gap-2">
+            <Store size={16} className="text-brand-pine" />
             <p className="text-xs font-semibold text-slate-600 uppercase tracking-wider">Meus Pedidos</p>
           </div>
-          <table className="w-full text-sm">
-            <thead>
-              <tr className="border-b border-slate-100">
-                <th className="text-left px-5 py-2.5 font-medium text-slate-500 text-xs uppercase tracking-wider">N. Pedido</th>
-                <th className="text-left px-5 py-2.5 font-medium text-slate-500 text-xs uppercase tracking-wider">Cliente</th>
-                <th className="text-left px-5 py-2.5 font-medium text-slate-500 text-xs uppercase tracking-wider">Valor</th>
-                <th className="text-left px-5 py-2.5 font-medium text-slate-500 text-xs uppercase tracking-wider">Data</th>
-                <th className="text-left px-5 py-2.5 font-medium text-slate-500 text-xs uppercase tracking-wider">Status</th>
-              </tr>
-            </thead>
-          </table>
           <TabelaVinculos vinculos={ativos} vazio="Nenhum pedido em andamento" />
         </div>
       )}
 
       {/* Lista de pedidos reprovados */}
       {reprovados.length > 0 && (
-        <div className="bg-white rounded-xl border border-red-100 shadow-sm overflow-hidden">
-          <div className="px-5 py-3 border-b border-red-100 bg-red-50 flex items-center gap-2">
-            <AlertCircle size={16} className="text-red-500" />
-            <p className="text-xs font-semibold text-red-600 uppercase tracking-wider">Pedidos Reprovados — Ação Necessária</p>
+        <div className="bg-white rounded-xl border border-brand-khaki/30 shadow-sm overflow-hidden">
+          <div className="px-5 py-3 border-b border-brand-khaki/30 bg-brand-khaki/10 flex items-center gap-2">
+            <AlertCircle size={16} className="text-brand-umber" />
+            <p className="text-xs font-semibold text-brand-umber uppercase tracking-wider">Pedidos Reprovados — Ação Necessária</p>
           </div>
-          <table className="w-full text-sm">
-            <thead>
-              <tr className="border-b border-red-50">
-                <th className="text-left px-5 py-2.5 font-medium text-slate-500 text-xs uppercase tracking-wider">N. Pedido</th>
-                <th className="text-left px-5 py-2.5 font-medium text-slate-500 text-xs uppercase tracking-wider">Cliente</th>
-                <th className="text-left px-5 py-2.5 font-medium text-slate-500 text-xs uppercase tracking-wider">Valor</th>
-                <th className="text-left px-5 py-2.5 font-medium text-slate-500 text-xs uppercase tracking-wider">Data</th>
-                <th className="text-left px-5 py-2.5 font-medium text-slate-500 text-xs uppercase tracking-wider">Status</th>
-              </tr>
-            </thead>
-          </table>
           <div className="max-h-[260px] overflow-y-auto">
             <table className="w-full text-sm">
-              <tbody className="divide-y divide-red-50">
+              <thead className="sticky top-0 z-10">
+                <tr className="border-b border-brand-khaki/20 bg-white">
+                  <th className="text-left px-5 py-2.5 font-medium text-slate-500 text-xs uppercase tracking-wider">N. Pedido</th>
+                  <th className="text-left px-5 py-2.5 font-medium text-slate-500 text-xs uppercase tracking-wider">Cliente</th>
+                  <th className="text-left px-5 py-2.5 font-medium text-slate-500 text-xs uppercase tracking-wider">Valor</th>
+                  <th className="text-left px-5 py-2.5 font-medium text-slate-500 text-xs uppercase tracking-wider">Data</th>
+                  <th className="text-left px-5 py-2.5 font-medium text-slate-500 text-xs uppercase tracking-wider">Status</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-brand-khaki/10">
                 {reprovados.map((v) => (
                   <tr
                     key={v.id}
                     onClick={() => setSelecionado(v)}
-                    className="hover:bg-red-50/50 transition-colors cursor-pointer"
+                    className="hover:bg-brand-khaki/10 transition-colors cursor-pointer"
                   >
                     <td className="px-5 py-3 font-medium text-slate-800">{v.numero_pedido}</td>
                     <td className="px-5 py-3 text-slate-600">{v.nome_cliente}</td>
@@ -234,7 +230,7 @@ export default function FranquiaPage() {
                       {v.data_pedido ? new Date(v.data_pedido + 'T00:00:00').toLocaleDateString('pt-BR') : '—'}
                     </td>
                     <td className="px-5 py-3">
-                      <span className="text-xs font-medium px-2.5 py-1 rounded-full bg-blue-100 text-blue-700">
+                      <span className="text-xs font-medium px-2.5 py-1 rounded-full bg-brand-khaki/20 text-brand-umber">
                         Novo Pedido
                       </span>
                     </td>
@@ -243,8 +239,8 @@ export default function FranquiaPage() {
               </tbody>
             </table>
           </div>
-          <div className="px-5 py-2.5 border-t border-red-100 bg-red-50">
-            <p className="text-xs text-red-500">{reprovados.length} pedido(s) aguardando revisão — clique para editar e reenviar</p>
+          <div className="px-5 py-2.5 border-t border-brand-khaki/20 bg-brand-khaki/10">
+            <p className="text-xs text-brand-umber">{reprovados.length} pedido(s) aguardando revisão — clique para editar e reenviar</p>
           </div>
         </div>
       )}
@@ -252,8 +248,8 @@ export default function FranquiaPage() {
       {/* Trocas de Pedido ativas */}
       {!isLoadingTrocas && (
         <div className="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
-          <div className="px-5 py-3 border-b border-slate-100 bg-slate-50 flex items-center gap-2">
-            <Repeat size={16} className="text-slate-500" />
+          <div className="px-5 py-3 border-b border-slate-100 bg-brand-mist flex items-center gap-2">
+            <Repeat size={16} className="text-brand-pine" />
             <p className="text-xs font-semibold text-slate-600 uppercase tracking-wider">Minhas Trocas de Pedido</p>
           </div>
           {trocasAtivas.length === 0 ? (
@@ -269,7 +265,7 @@ export default function FranquiaPage() {
                       <tr
                         key={t.id}
                         onClick={() => setSelecionadoTroca(t)}
-                        className="hover:bg-slate-50 transition-colors cursor-pointer"
+                        className="hover:bg-brand-mist/60 transition-colors cursor-pointer"
                       >
                         <td className="px-5 py-3 font-medium text-slate-800">{t.numero_pedido_cancelar}</td>
                         <td className="px-5 py-3 text-slate-600">{t.nome_vendedor}</td>
@@ -284,7 +280,7 @@ export default function FranquiaPage() {
                   </tbody>
                 </table>
               </div>
-              <div className="px-5 py-2.5 border-t border-slate-100 bg-slate-50">
+              <div className="px-5 py-2.5 border-t border-slate-100 bg-brand-mist">
                 <p className="text-xs text-slate-400">{trocasAtivas.length} troca(s)</p>
               </div>
             </>
@@ -294,25 +290,25 @@ export default function FranquiaPage() {
 
       {/* Trocas de Pedido reprovadas */}
       {trocasReprovadas.length > 0 && (
-        <div className="bg-white rounded-xl border border-red-100 shadow-sm overflow-hidden">
-          <div className="px-5 py-3 border-b border-red-100 bg-red-50 flex items-center gap-2">
-            <AlertCircle size={16} className="text-red-500" />
-            <p className="text-xs font-semibold text-red-600 uppercase tracking-wider">Trocas Reprovadas — Ação Necessária</p>
+        <div className="bg-white rounded-xl border border-brand-khaki/30 shadow-sm overflow-hidden">
+          <div className="px-5 py-3 border-b border-brand-khaki/30 bg-brand-khaki/10 flex items-center gap-2">
+            <AlertCircle size={16} className="text-brand-umber" />
+            <p className="text-xs font-semibold text-brand-umber uppercase tracking-wider">Trocas Reprovadas — Ação Necessária</p>
           </div>
           <div className="max-h-[260px] overflow-y-auto">
             <table className="w-full text-sm">
-              <tbody className="divide-y divide-red-50">
+              <tbody className="divide-y divide-brand-khaki/10">
                 {trocasReprovadas.map((t) => (
                   <tr
                     key={t.id}
                     onClick={() => setSelecionadoTroca(t)}
-                    className="hover:bg-red-50/50 transition-colors cursor-pointer"
+                    className="hover:bg-brand-khaki/10 transition-colors cursor-pointer"
                   >
                     <td className="px-5 py-3 font-medium text-slate-800">{t.numero_pedido_cancelar}</td>
                     <td className="px-5 py-3 text-slate-600">{t.nome_vendedor}</td>
                     <td className="px-5 py-3 text-slate-600">{t.numero_novo_pedido}</td>
                     <td className="px-5 py-3">
-                      <span className="text-xs font-medium px-2.5 py-1 rounded-full bg-blue-100 text-blue-700">
+                      <span className="text-xs font-medium px-2.5 py-1 rounded-full bg-brand-khaki/20 text-brand-umber">
                         Novo Pedido
                       </span>
                     </td>
@@ -321,8 +317,8 @@ export default function FranquiaPage() {
               </tbody>
             </table>
           </div>
-          <div className="px-5 py-2.5 border-t border-red-100 bg-red-50">
-            <p className="text-xs text-red-500">{trocasReprovadas.length} troca(s) aguardando revisão — clique para editar e reenviar</p>
+          <div className="px-5 py-2.5 border-t border-brand-khaki/20 bg-brand-khaki/10">
+            <p className="text-xs text-brand-umber">{trocasReprovadas.length} troca(s) aguardando revisão — clique para editar e reenviar</p>
           </div>
         </div>
       )}
