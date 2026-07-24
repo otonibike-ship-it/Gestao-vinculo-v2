@@ -150,6 +150,90 @@ async def notificar_concluido_link(numero_pedido: str, vendedor: str, email_fran
     _send(cfg, email_franquia, f"Link de pagamento concluído: {numero_pedido}", corpo)
 
 
+async def notificar_novo_pedido_carta(numero_pedido: str, nome_cliente: str, franquia_nome: str):
+    cfg = await _get_configs()
+    destinatario = cfg.get("email_comercial", "")
+    if not destinatario:
+        return
+    corpo = _render(cfg.get("tpl_novo_pedido_carta", "Nova carta de correção solicitada: {numero_pedido}"),
+                    numero_pedido=numero_pedido, nome_cliente=nome_cliente, franquia_nome=franquia_nome)
+    _send(cfg, destinatario, f"Nova carta de correção para análise: {numero_pedido}", corpo)
+
+
+async def notificar_triagem_carta(numero_pedido: str, nome_cliente: str, franquia_nome: str, email_destino: str):
+    cfg = await _get_configs()
+    if not email_destino:
+        return
+    corpo = _render(cfg.get("tpl_triagem_carta", "Carta de correção para análise: {numero_pedido}"),
+                    numero_pedido=numero_pedido, nome_cliente=nome_cliente, franquia_nome=franquia_nome)
+    _send(cfg, email_destino, f"Carta de correção para análise: {numero_pedido}", corpo)
+
+
+async def notificar_concluido_carta(numero_pedido: str, nome_cliente: str, email_franquia: str):
+    cfg = await _get_configs()
+    if not email_franquia:
+        return
+    corpo = _render(cfg.get("tpl_concluido_carta", "Sua carta de correção foi concluída: {numero_pedido}"),
+                    numero_pedido=numero_pedido, nome_cliente=nome_cliente)
+    _send(cfg, email_franquia, f"Carta de correção concluída: {numero_pedido}", corpo)
+
+
+async def notificar_novo_pedido_estorno(numero_pedido: str, vendedor: str, franquia_nome: str):
+    cfg = await _get_configs()
+    destinatario = cfg.get("email_comercial", "")
+    if not destinatario:
+        return
+    corpo = _render(cfg.get("tpl_novo_pedido_estorno", "Nova solicitação de estorno: {numero_pedido}"),
+                    numero_pedido=numero_pedido, vendedor=vendedor, franquia_nome=franquia_nome)
+    _send(cfg, destinatario, f"Nova solicitação de estorno para análise: {numero_pedido}", corpo)
+
+
+async def notificar_triagem_estorno(numero_pedido: str, vendedor: str, franquia_nome: str, email_destino: str):
+    cfg = await _get_configs()
+    if not email_destino:
+        return
+    corpo = _render(cfg.get("tpl_triagem_estorno", "Solicitação de estorno para análise: {numero_pedido}"),
+                    numero_pedido=numero_pedido, vendedor=vendedor, franquia_nome=franquia_nome)
+    _send(cfg, email_destino, f"Solicitação de estorno para análise: {numero_pedido}", corpo)
+
+
+async def notificar_concluido_estorno(numero_pedido: str, vendedor: str, email_franquia: str):
+    cfg = await _get_configs()
+    if not email_franquia:
+        return
+    corpo = _render(cfg.get("tpl_concluido_estorno", "Sua solicitação de estorno foi concluída: {numero_pedido}"),
+                    numero_pedido=numero_pedido, vendedor=vendedor)
+    _send(cfg, email_franquia, f"Solicitação de estorno concluída: {numero_pedido}", corpo)
+
+
+async def notificar_novo_pedido_cancelamento(numero_pedido: str, vendedor: str, franquia_nome: str):
+    cfg = await _get_configs()
+    destinatario = cfg.get("email_comercial", "")
+    if not destinatario:
+        return
+    corpo = _render(cfg.get("tpl_novo_pedido_cancelamento", "Novo cancelamento de venda solicitado: {numero_pedido}"),
+                    numero_pedido=numero_pedido, vendedor=vendedor, franquia_nome=franquia_nome)
+    _send(cfg, destinatario, f"Novo cancelamento de venda para análise: {numero_pedido}", corpo)
+
+
+async def notificar_triagem_cancelamento(numero_pedido: str, vendedor: str, franquia_nome: str, email_destino: str):
+    cfg = await _get_configs()
+    if not email_destino:
+        return
+    corpo = _render(cfg.get("tpl_triagem_cancelamento", "Cancelamento de venda para análise: {numero_pedido}"),
+                    numero_pedido=numero_pedido, vendedor=vendedor, franquia_nome=franquia_nome)
+    _send(cfg, email_destino, f"Cancelamento de venda para análise: {numero_pedido}", corpo)
+
+
+async def notificar_concluido_cancelamento(numero_pedido: str, vendedor: str, email_franquia: str):
+    cfg = await _get_configs()
+    if not email_franquia:
+        return
+    corpo = _render(cfg.get("tpl_concluido_cancelamento", "Seu cancelamento de venda foi concluído: {numero_pedido}"),
+                    numero_pedido=numero_pedido, vendedor=vendedor)
+    _send(cfg, email_franquia, f"Cancelamento de venda concluído: {numero_pedido}", corpo)
+
+
 async def notificar_reset_senha(email_destino: str, nome: str, link: str):
     cfg = await _get_configs()
     if not email_destino:

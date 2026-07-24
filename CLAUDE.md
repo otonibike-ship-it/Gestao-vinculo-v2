@@ -63,21 +63,23 @@ Franquia/Comercial submits → aguardando_comercial
   Comercial reprova → aberto (returned to franquia)
 ```
 
-Unlike Vinculo, reprovação at any stage always returns to the franquia (no destino picker on reject). This is the template for form types added after Vinculo — **Troca de Pedido** and **Link de Pagamento** so far, with **Checklist Bike Shop**, **Carta de Correção**, and **Solicitação de Estorno** still to come. Each gets its own dedicated table/endpoint/modal following this same pattern, not a shared polymorphic model.
+Unlike Vinculo, reprovação at any stage always returns to the franquia (no destino picker on reject). This is the template used by every form type added after Vinculo. There is **no Checklist Bike Shop** — it was deliberately dropped (too rarely used) in favor of **Cancelamento de Venda**. The six live forms are: Vinculo, **Troca de Pedido**, **Link de Pagamento**, **Carta de Correção**, **Solicitação de Estorno**, **Cancelamento de Venda**. Each gets its own dedicated table/endpoint/modal following this same pattern, not a shared polymorphic model — copy the closest existing form (model + schema + endpoint + email functions + migration + service + form + modal + dashboard wiring in all 5 dashboards) rather than generalizing early.
 
-**Link de Pagamento** (`links_pagamento` table, `app/models/link_pagamento.py`, endpoints at `/links-pagamento`) is a second implementation of the identical 3-way triage state machine, just with its own field set (motivo, valor do pedido/link, parcelas 1x-18x, dados do cliente com CPF/telefone mascarados). When adding the next form type, copy this pattern (model + schema + endpoint + email functions + migration + service + form + modal + dashboard wiring) rather than generalizing early.
+Two things worth knowing before adding a 7th form:
+- **Dropdown "motivo" fields** store the full option text as the value (see `frontend/src/components/carta-correcao-selects.tsx` for the two-select pattern), matching `MotivoSelect`/`TrocaMotivoSelect` — not a coded enum.
+- **`CancelamentoVenda` has two independent attachment arrays** (`anexos_evidencias_uso`, `anexos_portal_comprovante`) instead of the single `anexos` every other form uses — its `AprovarCancelamentoRequest.anexos` payload merges into `anexos_portal_comprovante` on approve. Its modal also skips the inline "Editar e Reenviar" flow (too many fields split across two attachment types); a reprovado record just tells the franquia to submit a new one. The `/reenviar` endpoint still exists for API consistency but the frontend doesn't call it.
 
 ### User Profiles & Routing
 
 `PerfilUsuario` enum: `comercial`, `financeiro`, `ti`, `admin`, `franquia`, `faturamento`
 
 Each profile lands on a different dashboard after login:
-- comercial → `/comercial` (sees all vinculos, trocas de pedido and links de pagamento, creates new ones)
-- faturamento → `/faturamento` (sees trocas/links with `aguardando_faturamento`)
-- financeiro → `/financeiro` (sees `validacao_financeiro` vinculos + `aguardando_financeiro` trocas/links)
-- ti → `/ti` (sees `tarefa_ti` vinculos + `aguardando_ti` trocas/links)
+- comercial → `/comercial` (sees everything across all 6 forms, creates new ones)
+- faturamento → `/faturamento` (sees every form's `aguardando_faturamento` queue)
+- financeiro → `/financeiro` (sees `validacao_financeiro` vinculos + every other form's `aguardando_financeiro` queue)
+- ti → `/ti` (sees `tarefa_ti` vinculos + every other form's `aguardando_ti` queue)
 - admin → `/comercial` (full access)
-- franquia → `/franquia` (sees only their own franquia's vinculos, trocas de pedido and links de pagamento)
+- franquia → `/franquia` (sees only their own franquia's records across all 6 forms)
 
 `franquia` profile users have `franquia_id` set on their `Usuario` record; this is stored in `localStorage` at login and used to pre-fill and filter forms.
 
@@ -115,16 +117,22 @@ Uploads go **directly from the browser to Cloudinary** using an unsigned preset 
 | `app/models/vinculo.py` | `Vinculo` model + `StatusVinculo` enum |
 | `app/models/troca_pedido.py` | `TrocaPedido` model + `StatusTrocaPedido` enum |
 | `app/models/link_pagamento.py` | `LinkPagamento` model + `StatusLinkPagamento` enum |
+| `app/models/carta_correcao.py` | `CartaCorrecao` model + `StatusCartaCorrecao` enum |
+| `app/models/solicitacao_estorno.py` | `SolicitacaoEstorno` model + `StatusSolicitacaoEstorno` enum |
+| `app/models/cancelamento_venda.py` | `CancelamentoVenda` model (2 anexo arrays) + `StatusCancelamentoVenda` enum |
 | `app/models/usuario.py` | `Usuario` model + `PerfilUsuario` enum |
 | `app/models/configuracao.py` | Key/value config store (SMTP, templates) |
 | `app/api/v1/endpoints/vinculo.py` | All vinculo CRUD + approve/reject logic |
 | `app/api/v1/endpoints/troca_pedido.py` | All troca de pedido CRUD + 3-way triage logic |
 | `app/api/v1/endpoints/link_pagamento.py` | All link de pagamento CRUD + 3-way triage logic |
+| `app/api/v1/endpoints/carta_correcao.py` | All carta de correção CRUD + 3-way triage logic |
+| `app/api/v1/endpoints/solicitacao_estorno.py` | All solicitação de estorno CRUD + 3-way triage logic |
+| `app/api/v1/endpoints/cancelamento_venda.py` | All cancelamento de venda CRUD + 3-way triage logic |
 | `app/api/v1/endpoints/configuracoes.py` | SMTP config + email template management |
 | `app/services/email.py` | Email sending (creates own DB session) |
 | `app/services/auth_service.py` | JWT generation + password validation |
 | `app/core/database.py` | Async engine, `get_db` dependency, `AsyncSessionLocal` |
-| `alembic/versions/` | 8 migrations; latest is `0008_link_pagamento.py` |
+| `alembic/versions/` | 11 migrations; latest is `0011_cancelamento_venda.py` |
 
 ### Key Frontend Files
 
@@ -136,12 +144,21 @@ Uploads go **directly from the browser to Cloudinary** using an unsigned preset 
 | `src/services/vinculo.ts` | Vinculo API calls + Cloudinary upload (`uploadService`, reused by other forms) |
 | `src/services/troca-pedido.ts` | Troca de Pedido API calls |
 | `src/services/link-pagamento.ts` | Link de Pagamento API calls |
+| `src/services/carta-correcao.ts` | Carta de Correção API calls |
+| `src/services/solicitacao-estorno.ts` | Solicitação de Estorno API calls |
+| `src/services/cancelamento-venda.ts` | Cancelamento de Venda API calls |
 | `src/components/vinculo-modal.tsx` | Approve/reject modal (Financeiro and TI dashboards) |
 | `src/components/troca-pedido-modal.tsx` | Approve/reject modal (Comercial/Faturamento/Financeiro/TI) |
 | `src/components/link-pagamento-modal.tsx` | Approve/reject modal (Comercial/Faturamento/Financeiro/TI) |
+| `src/components/carta-correcao-modal.tsx` | Approve/reject modal (Comercial/Faturamento/Financeiro/TI) |
+| `src/components/solicitacao-estorno-modal.tsx` | Approve/reject modal (Comercial/Faturamento/Financeiro/TI) |
+| `src/components/cancelamento-venda-modal.tsx` | Approve/reject modal — no inline edit/resend (see note above) |
 | `src/components/novo-pedido-form.tsx` | New order form (Comercial) |
 | `src/components/troca-pedido-form.tsx` | New troca de pedido form |
 | `src/components/link-pagamento-form.tsx` | New link de pagamento form (CPF/telefone masks) |
+| `src/components/carta-correcao-form.tsx` | New carta de correção form |
+| `src/components/solicitacao-estorno-form.tsx` | New solicitação de estorno form (CPF mask) |
+| `src/components/cancelamento-venda-form.tsx` | New cancelamento de venda form (2 anexo fields, CPF mask) |
 | `src/app/(dashboard)/configuracoes/page.tsx` | SMTP + email template settings (admin only) |
 
 ## Test Credentials (seed)
