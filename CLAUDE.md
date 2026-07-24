@@ -63,19 +63,21 @@ Franquia/Comercial submits → aguardando_comercial
   Comercial reprova → aberto (returned to franquia)
 ```
 
-Unlike Vinculo, reprovação at any stage always returns to the franquia (no destino picker on reject). This is the template for future form types (Link de Pagamento, Checklist Bike Shop, Carta de Correção, Solicitação de Estorno) — each gets its own dedicated table/endpoint/modal following this same pattern, not a shared polymorphic model.
+Unlike Vinculo, reprovação at any stage always returns to the franquia (no destino picker on reject). This is the template for form types added after Vinculo — **Troca de Pedido** and **Link de Pagamento** so far, with **Checklist Bike Shop**, **Carta de Correção**, and **Solicitação de Estorno** still to come. Each gets its own dedicated table/endpoint/modal following this same pattern, not a shared polymorphic model.
+
+**Link de Pagamento** (`links_pagamento` table, `app/models/link_pagamento.py`, endpoints at `/links-pagamento`) is a second implementation of the identical 3-way triage state machine, just with its own field set (motivo, valor do pedido/link, parcelas 1x-18x, dados do cliente com CPF/telefone mascarados). When adding the next form type, copy this pattern (model + schema + endpoint + email functions + migration + service + form + modal + dashboard wiring) rather than generalizing early.
 
 ### User Profiles & Routing
 
 `PerfilUsuario` enum: `comercial`, `financeiro`, `ti`, `admin`, `franquia`, `faturamento`
 
 Each profile lands on a different dashboard after login:
-- comercial → `/comercial` (sees all vinculos and trocas de pedido, creates new ones)
-- faturamento → `/faturamento` (sees only troca de pedido with `aguardando_faturamento`)
-- financeiro → `/financeiro` (sees `validacao_financeiro` vinculos + `aguardando_financeiro` trocas)
-- ti → `/ti` (sees `tarefa_ti` vinculos + `aguardando_ti` trocas)
+- comercial → `/comercial` (sees all vinculos, trocas de pedido and links de pagamento, creates new ones)
+- faturamento → `/faturamento` (sees trocas/links with `aguardando_faturamento`)
+- financeiro → `/financeiro` (sees `validacao_financeiro` vinculos + `aguardando_financeiro` trocas/links)
+- ti → `/ti` (sees `tarefa_ti` vinculos + `aguardando_ti` trocas/links)
 - admin → `/comercial` (full access)
-- franquia → `/franquia` (sees only their own franquia's vinculos and trocas de pedido)
+- franquia → `/franquia` (sees only their own franquia's vinculos, trocas de pedido and links de pagamento)
 
 `franquia` profile users have `franquia_id` set on their `Usuario` record; this is stored in `localStorage` at login and used to pre-fill and filter forms.
 
@@ -112,15 +114,17 @@ Uploads go **directly from the browser to Cloudinary** using an unsigned preset 
 |---|---|
 | `app/models/vinculo.py` | `Vinculo` model + `StatusVinculo` enum |
 | `app/models/troca_pedido.py` | `TrocaPedido` model + `StatusTrocaPedido` enum |
+| `app/models/link_pagamento.py` | `LinkPagamento` model + `StatusLinkPagamento` enum |
 | `app/models/usuario.py` | `Usuario` model + `PerfilUsuario` enum |
 | `app/models/configuracao.py` | Key/value config store (SMTP, templates) |
 | `app/api/v1/endpoints/vinculo.py` | All vinculo CRUD + approve/reject logic |
 | `app/api/v1/endpoints/troca_pedido.py` | All troca de pedido CRUD + 3-way triage logic |
+| `app/api/v1/endpoints/link_pagamento.py` | All link de pagamento CRUD + 3-way triage logic |
 | `app/api/v1/endpoints/configuracoes.py` | SMTP config + email template management |
 | `app/services/email.py` | Email sending (creates own DB session) |
 | `app/services/auth_service.py` | JWT generation + password validation |
 | `app/core/database.py` | Async engine, `get_db` dependency, `AsyncSessionLocal` |
-| `alembic/versions/` | 7 migrations; latest is `0007_troca_pedido.py` |
+| `alembic/versions/` | 8 migrations; latest is `0008_link_pagamento.py` |
 
 ### Key Frontend Files
 
@@ -131,10 +135,13 @@ Uploads go **directly from the browser to Cloudinary** using an unsigned preset 
 | `src/services/auth.ts` | Login/logout, localStorage, in-memory token cache |
 | `src/services/vinculo.ts` | Vinculo API calls + Cloudinary upload (`uploadService`, reused by other forms) |
 | `src/services/troca-pedido.ts` | Troca de Pedido API calls |
+| `src/services/link-pagamento.ts` | Link de Pagamento API calls |
 | `src/components/vinculo-modal.tsx` | Approve/reject modal (Financeiro and TI dashboards) |
 | `src/components/troca-pedido-modal.tsx` | Approve/reject modal (Comercial/Faturamento/Financeiro/TI) |
+| `src/components/link-pagamento-modal.tsx` | Approve/reject modal (Comercial/Faturamento/Financeiro/TI) |
 | `src/components/novo-pedido-form.tsx` | New order form (Comercial) |
 | `src/components/troca-pedido-form.tsx` | New troca de pedido form |
+| `src/components/link-pagamento-form.tsx` | New link de pagamento form (CPF/telefone masks) |
 | `src/app/(dashboard)/configuracoes/page.tsx` | SMTP + email template settings (admin only) |
 
 ## Test Credentials (seed)

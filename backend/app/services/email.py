@@ -122,6 +122,34 @@ async def notificar_concluido_troca(numero_pedido_cancelar: str, nome_vendedor: 
     _send(cfg, email_franquia, f"Troca de pedido concluída: {numero_pedido_cancelar}", corpo)
 
 
+async def notificar_novo_pedido_link(numero_pedido: str, vendedor: str, franquia_nome: str):
+    cfg = await _get_configs()
+    destinatario = cfg.get("email_comercial", "")
+    if not destinatario:
+        return
+    corpo = _render(cfg.get("tpl_novo_pedido_link", "Novo link de pagamento solicitado: {numero_pedido}"),
+                    numero_pedido=numero_pedido, vendedor=vendedor, franquia_nome=franquia_nome)
+    _send(cfg, destinatario, f"Novo link de pagamento para análise: {numero_pedido}", corpo)
+
+
+async def notificar_triagem_link(numero_pedido: str, vendedor: str, franquia_nome: str, email_destino: str):
+    cfg = await _get_configs()
+    if not email_destino:
+        return
+    corpo = _render(cfg.get("tpl_triagem_link", "Link de pagamento para análise: {numero_pedido}"),
+                    numero_pedido=numero_pedido, vendedor=vendedor, franquia_nome=franquia_nome)
+    _send(cfg, email_destino, f"Link de pagamento para análise: {numero_pedido}", corpo)
+
+
+async def notificar_concluido_link(numero_pedido: str, vendedor: str, email_franquia: str):
+    cfg = await _get_configs()
+    if not email_franquia:
+        return
+    corpo = _render(cfg.get("tpl_concluido_link", "Link de pagamento concluído: {numero_pedido}"),
+                    numero_pedido=numero_pedido, vendedor=vendedor)
+    _send(cfg, email_franquia, f"Link de pagamento concluído: {numero_pedido}", corpo)
+
+
 async def notificar_reset_senha(email_destino: str, nome: str, link: str):
     cfg = await _get_configs()
     if not email_destino:

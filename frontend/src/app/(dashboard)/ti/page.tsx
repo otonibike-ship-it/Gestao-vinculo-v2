@@ -2,11 +2,13 @@
 
 import { useState } from 'react'
 import { useQuery } from '@tanstack/react-query'
-import { Search, Monitor, Store, Repeat } from 'lucide-react'
+import { Search, Monitor, Store, Repeat, Link2 } from 'lucide-react'
 import { vinculoService, VinculoData } from '@/services/vinculo'
 import { VinculoModal } from '@/components/vinculo-modal'
 import { trocaPedidoService, TrocaPedidoData } from '@/services/troca-pedido'
 import { TrocaPedidoModal } from '@/components/troca-pedido-modal'
+import { linkPagamentoService, LinkPagamentoData } from '@/services/link-pagamento'
+import { LinkPagamentoModal } from '@/components/link-pagamento-modal'
 import api from '@/lib/api'
 
 interface Franquia {
@@ -21,6 +23,7 @@ export default function TIPage() {
   const [busca, setBusca] = useState('')
   const [selecionado, setSelecionado] = useState<VinculoData | null>(null)
   const [selecionadoTroca, setSelecionadoTroca] = useState<TrocaPedidoData | null>(null)
+  const [selecionadoLink, setSelecionadoLink] = useState<LinkPagamentoData | null>(null)
   const [buscaFranquia, setBuscaFranquia] = useState('')
 
   const { data, isLoading } = useQuery({
@@ -31,6 +34,11 @@ export default function TIPage() {
   const { data: trocas, isLoading: isLoadingTrocas } = useQuery({
     queryKey: ['trocas-pedido', 'aguardando_ti'],
     queryFn: () => trocaPedidoService.listar('aguardando_ti'),
+  })
+
+  const { data: links, isLoading: isLoadingLinks } = useQuery({
+    queryKey: ['links-pagamento', 'aguardando_ti'],
+    queryFn: () => linkPagamentoService.listar('aguardando_ti'),
   })
 
   const { data: franquias, isLoading: loadingFranquias } = useQuery({
@@ -58,6 +66,16 @@ export default function TIPage() {
       t.numero_pedido_cancelar.toLowerCase().includes(termo) ||
       t.nome_vendedor.toLowerCase().includes(termo) ||
       t.franquia_nome.toLowerCase().includes(termo)
+    )
+  })
+
+  const linksFiltrados = links?.filter((l) => {
+    if (!busca) return true
+    const termo = busca.toLowerCase()
+    return (
+      l.numero_pedido.toLowerCase().includes(termo) ||
+      l.nome_cliente.toLowerCase().includes(termo) ||
+      l.franquia_nome.toLowerCase().includes(termo)
     )
   })
 
@@ -209,6 +227,64 @@ export default function TIPage() {
         )}
       </div>
 
+      {/* Links de Pagamento */}
+      <div className="pt-2">
+        <p className="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-2">Links de Pagamento</p>
+
+        {isLoadingLinks && (
+          <div className="bg-white rounded-xl border border-slate-200 shadow-sm p-12 text-center text-sm text-slate-400">
+            Carregando...
+          </div>
+        )}
+
+        {linksFiltrados && linksFiltrados.length === 0 && (
+          <div className="bg-white rounded-xl border border-slate-200 shadow-sm p-8 text-center">
+            <Link2 size={20} className="text-slate-300 mx-auto mb-2" />
+            <p className="text-sm text-slate-500">Nenhum link de pagamento pendente</p>
+          </div>
+        )}
+
+        {linksFiltrados && linksFiltrados.length > 0 && (
+          <div className="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
+            <div className="max-h-[280px] overflow-y-auto">
+              <table className="w-full text-sm">
+                <thead className="sticky top-0 z-10">
+                  <tr className="border-b border-slate-100 bg-brand-mist">
+                    <th className="text-left px-5 py-3 font-medium text-slate-500 text-xs uppercase tracking-wider">N. Pedido</th>
+                    <th className="text-left px-5 py-3 font-medium text-slate-500 text-xs uppercase tracking-wider">Franquia</th>
+                    <th className="text-left px-5 py-3 font-medium text-slate-500 text-xs uppercase tracking-wider">Cliente</th>
+                    <th className="text-left px-5 py-3 font-medium text-slate-500 text-xs uppercase tracking-wider">Valor do Link</th>
+                    <th className="text-left px-5 py-3 font-medium text-slate-500 text-xs uppercase tracking-wider">Anexos</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-slate-50">
+                  {linksFiltrados.map((l) => (
+                    <tr
+                      key={l.id}
+                      onClick={() => setSelecionadoLink(l)}
+                      className="hover:bg-brand-forest/5 transition-colors cursor-pointer"
+                    >
+                      <td className="px-5 py-3 font-medium text-slate-800">{l.numero_pedido}</td>
+                      <td className="px-5 py-3 text-slate-600">{l.franquia_nome}</td>
+                      <td className="px-5 py-3 text-slate-600">{l.nome_cliente}</td>
+                      <td className="px-5 py-3 text-slate-600">
+                        R$ {Number(l.valor_link).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
+                      </td>
+                      <td className="px-5 py-3 text-slate-400 text-xs">
+                        {l.anexos?.length || 0} arquivo(s)
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+            <div className="px-5 py-2.5 border-t border-slate-100 bg-brand-mist">
+              <p className="text-xs text-slate-400">{linksFiltrados.length} link(s) pendente(s)</p>
+            </div>
+          </div>
+        )}
+      </div>
+
       {/* Lista de Franquias */}
       <div className="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
         <div className="px-5 py-3 border-b border-slate-100 bg-brand-mist flex items-center justify-between gap-4">
@@ -281,6 +357,14 @@ export default function TIPage() {
         <TrocaPedidoModal
           troca={selecionadoTroca}
           onClose={() => setSelecionadoTroca(null)}
+          modo="ti"
+        />
+      )}
+
+      {selecionadoLink && (
+        <LinkPagamentoModal
+          link={selecionadoLink}
+          onClose={() => setSelecionadoLink(null)}
           modo="ti"
         />
       )}

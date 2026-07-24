@@ -1,5 +1,5 @@
 from fastapi import APIRouter
-from app.api.v1.endpoints import vinculo, auth, empresas, dashboard, upload, usuarios, configuracoes, troca_pedido
+from app.api.v1.endpoints import vinculo, auth, empresas, dashboard, upload, usuarios, configuracoes, troca_pedido, link_pagamento
 
 api_router = APIRouter()
 
@@ -11,3 +11,4 @@ api_router.include_router(upload.router, prefix="/upload", tags=["upload"])
 api_router.include_router(usuarios.router, prefix="/usuarios", tags=["usuarios"])
 api_router.include_router(configuracoes.router, prefix="/configuracoes", tags=["configuracoes"])
 api_router.include_router(troca_pedido.router, prefix="/trocas-pedido", tags=["trocas-pedido"])
+api_router.include_router(link_pagamento.router, prefix="/links-pagamento", tags=["links-pagamento"])

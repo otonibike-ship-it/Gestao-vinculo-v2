@@ -2,13 +2,33 @@
 
 import { useState, useEffect } from 'react'
 import { useQuery, useQueryClient } from '@tanstack/react-query'
-import { Search, Plus, Store, AlertCircle, Repeat } from 'lucide-react'
+import { Search, Plus, Store, AlertCircle, Repeat, Link2 } from 'lucide-react'
 import { vinculoService, VinculoData } from '@/services/vinculo'
 import { authService } from '@/services/auth'
 import { VinculoModal } from '@/components/vinculo-modal'
 import { trocaPedidoService, TrocaPedidoData } from '@/services/troca-pedido'
 import { TrocaPedidoModal } from '@/components/troca-pedido-modal'
+import { linkPagamentoService, LinkPagamentoData } from '@/services/link-pagamento'
+import { LinkPagamentoModal } from '@/components/link-pagamento-modal'
 import Link from 'next/link'
+
+const statusLinkLabels: Record<string, string> = {
+  aberto: 'Novo Pedido',
+  aguardando_comercial: 'Aguard. Comercial',
+  aguardando_faturamento: 'Aguard. Faturamento',
+  aguardando_financeiro: 'Aguard. Financeiro',
+  aguardando_ti: 'Aguard. TI',
+  fechado: 'Concluído',
+}
+
+const statusLinkColors: Record<string, string> = {
+  aberto: 'bg-brand-khaki/20 text-brand-umber',
+  aguardando_comercial: 'bg-brand-olive/20 text-brand-forest',
+  aguardando_faturamento: 'bg-brand-teal/25 text-brand-pine',
+  aguardando_financeiro: 'bg-brand-pine/15 text-brand-pine',
+  aguardando_ti: 'bg-brand-forest/10 text-brand-forest',
+  fechado: 'bg-brand-lime/25 text-brand-forest',
+}
 
 const statusTrocaLabels: Record<string, string> = {
   aberto: 'Novo Pedido',
@@ -48,6 +68,7 @@ export default function FranquiaPage() {
   const [busca, setBusca] = useState('')
   const [selecionado, setSelecionado] = useState<VinculoData | null>(null)
   const [selecionadoTroca, setSelecionadoTroca] = useState<TrocaPedidoData | null>(null)
+  const [selecionadoLink, setSelecionadoLink] = useState<LinkPagamentoData | null>(null)
   const [franquiaId, setFranquiaId] = useState<number | null>(null)
 
   // Lê o franquiaId apenas no cliente (localStorage não existe no servidor)
@@ -64,6 +85,12 @@ export default function FranquiaPage() {
   const { data: trocas, isLoading: isLoadingTrocas } = useQuery({
     queryKey: ['trocas-pedido', 'franquia', franquiaId],
     queryFn: () => trocaPedidoService.listar(undefined, franquiaId!),
+    enabled: franquiaId !== null,
+  })
+
+  const { data: links, isLoading: isLoadingLinks } = useQuery({
+    queryKey: ['links-pagamento', 'franquia', franquiaId],
+    queryFn: () => linkPagamentoService.listar(undefined, franquiaId!),
     enabled: franquiaId !== null,
   })
 
@@ -90,6 +117,18 @@ export default function FranquiaPage() {
 
   const trocasAtivas = trocasFiltradas?.filter(t => t.status !== 'aberto') ?? []
   const trocasReprovadas = trocasFiltradas?.filter(t => t.status === 'aberto') ?? []
+
+  const linksFiltrados = links?.filter((l) => {
+    if (!busca) return true
+    const t = busca.toLowerCase()
+    return (
+      l.numero_pedido.toLowerCase().includes(t) ||
+      l.nome_cliente.toLowerCase().includes(t)
+    )
+  })
+
+  const linksAtivos = linksFiltrados?.filter(l => l.status !== 'aberto') ?? []
+  const linksReprovados = linksFiltrados?.filter(l => l.status === 'aberto') ?? []
 
   const TabelaVinculos = ({ vinculos, vazio }: { vinculos: VinculoData[]; vazio: string }) => (
     vinculos.length === 0 ? (
@@ -169,6 +208,13 @@ export default function FranquiaPage() {
           >
             <Repeat size={16} className="shrink-0" />
             <span>Troca de<br />Pedido</span>
+          </Link>
+          <Link
+            href="/franquia/novo-link"
+            className="flex items-center justify-center gap-2 w-32 text-center leading-tight bg-white hover:bg-brand-mist text-brand-pine border border-brand-pine/30 text-sm font-medium px-3 py-2 rounded-lg transition-colors"
+          >
+            <Link2 size={16} className="shrink-0" />
+            <span>Link de<br />Pagamento</span>
           </Link>
         </div>
       </div>
@@ -323,6 +369,88 @@ export default function FranquiaPage() {
         </div>
       )}
 
+      {/* Links de Pagamento ativos */}
+      {!isLoadingLinks && (
+        <div className="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
+          <div className="px-5 py-3 border-b border-slate-100 bg-brand-mist flex items-center gap-2">
+            <Link2 size={16} className="text-brand-pine" />
+            <p className="text-xs font-semibold text-slate-600 uppercase tracking-wider">Meus Links de Pagamento</p>
+          </div>
+          {linksAtivos.length === 0 ? (
+            <div className="px-5 py-8 text-center">
+              <p className="text-sm text-slate-400">Nenhum link de pagamento em andamento</p>
+            </div>
+          ) : (
+            <>
+              <div className="max-h-[260px] overflow-y-auto">
+                <table className="w-full text-sm">
+                  <tbody className="divide-y divide-slate-50">
+                    {linksAtivos.map((l) => (
+                      <tr
+                        key={l.id}
+                        onClick={() => setSelecionadoLink(l)}
+                        className="hover:bg-brand-mist/60 transition-colors cursor-pointer"
+                      >
+                        <td className="px-5 py-3 font-medium text-slate-800">{l.numero_pedido}</td>
+                        <td className="px-5 py-3 text-slate-600">{l.nome_cliente}</td>
+                        <td className="px-5 py-3 text-slate-600">
+                          R$ {Number(l.valor_link).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
+                        </td>
+                        <td className="px-5 py-3">
+                          <span className={`text-xs font-medium px-2.5 py-1 rounded-full ${statusLinkColors[l.status] || 'bg-slate-100 text-slate-600'}`}>
+                            {statusLinkLabels[l.status] || l.status}
+                          </span>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+              <div className="px-5 py-2.5 border-t border-slate-100 bg-brand-mist">
+                <p className="text-xs text-slate-400">{linksAtivos.length} link(s)</p>
+              </div>
+            </>
+          )}
+        </div>
+      )}
+
+      {/* Links de Pagamento reprovados */}
+      {linksReprovados.length > 0 && (
+        <div className="bg-white rounded-xl border border-brand-khaki/30 shadow-sm overflow-hidden">
+          <div className="px-5 py-3 border-b border-brand-khaki/30 bg-brand-khaki/10 flex items-center gap-2">
+            <AlertCircle size={16} className="text-brand-umber" />
+            <p className="text-xs font-semibold text-brand-umber uppercase tracking-wider">Links Reprovados — Ação Necessária</p>
+          </div>
+          <div className="max-h-[260px] overflow-y-auto">
+            <table className="w-full text-sm">
+              <tbody className="divide-y divide-brand-khaki/10">
+                {linksReprovados.map((l) => (
+                  <tr
+                    key={l.id}
+                    onClick={() => setSelecionadoLink(l)}
+                    className="hover:bg-brand-khaki/10 transition-colors cursor-pointer"
+                  >
+                    <td className="px-5 py-3 font-medium text-slate-800">{l.numero_pedido}</td>
+                    <td className="px-5 py-3 text-slate-600">{l.nome_cliente}</td>
+                    <td className="px-5 py-3 text-slate-600">
+                      R$ {Number(l.valor_link).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
+                    </td>
+                    <td className="px-5 py-3">
+                      <span className="text-xs font-medium px-2.5 py-1 rounded-full bg-brand-khaki/20 text-brand-umber">
+                        Novo Pedido
+                      </span>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+          <div className="px-5 py-2.5 border-t border-brand-khaki/20 bg-brand-khaki/10">
+            <p className="text-xs text-brand-umber">{linksReprovados.length} link(s) aguardando revisão — clique para editar e reenviar</p>
+          </div>
+        </div>
+      )}
+
       {selecionado && (
         <VinculoModal
           vinculo={selecionado}
@@ -335,6 +463,14 @@ export default function FranquiaPage() {
         <TrocaPedidoModal
           troca={selecionadoTroca}
           onClose={() => setSelecionadoTroca(null)}
+          modo="franquia"
+        />
+      )}
+
+      {selecionadoLink && (
+        <LinkPagamentoModal
+          link={selecionadoLink}
+          onClose={() => setSelecionadoLink(null)}
           modo="franquia"
         />
       )}
