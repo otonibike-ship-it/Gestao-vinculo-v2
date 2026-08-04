@@ -33,6 +33,6 @@ class SolicitacaoEstorno(Base):
     anexos = Column(JSON, default=list)
     observacao_comercial = Column(Text, nullable=True)
     justificativa_reprovacao = Column(Text, nullable=True)
-    destino_reprovacao = Column(String(50), nullable=True)  # sempre "franquia"
+    destino_reprovacao = Column(String(50), nullable=True)  # franquia | comercial
     criado_em = Column(DateTime(timezone=True), server_default=func.now())
     atualizado_em = Column(DateTime(timezone=True), server_default=func.now(), onupdate=func.now())

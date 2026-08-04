@@ -45,6 +45,7 @@ class TrocaPedidoResponse(BaseModel):
     status: StatusTrocaPedido
     anexos: list[str] = []
     observacao_comercial: Optional[str] = None
+    observacao_faturamento: Optional[str] = None
     justificativa_reprovacao: Optional[str] = None
     destino_reprovacao: Optional[str] = None
     criado_em: datetime
@@ -55,13 +56,13 @@ class TrocaPedidoResponse(BaseModel):
 
 
 class AprovarTrocaRequest(BaseModel):
-    destino: Optional[Literal["faturamento", "financeiro", "ti"]] = None  # obrigatorio na etapa comercial
     observacao: Optional[str] = None
     anexos: list[str] = []
 
 
 class ReprovarTrocaRequest(BaseModel):
-    justificativa: str
+    justificativa: Optional[str] = None
+    destino: Optional[Literal["comercial", "franquia"]] = None
 
 
 class ReenviarTrocaRequest(BaseModel):

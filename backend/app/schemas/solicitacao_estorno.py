@@ -56,13 +56,13 @@ class SolicitacaoEstornoResponse(BaseModel):
 
 
 class AprovarEstornoRequest(BaseModel):
-    destino: Optional[Literal["faturamento", "financeiro", "ti"]] = None
     observacao: Optional[str] = None
     anexos: list[str] = []
 
 
 class ReprovarEstornoRequest(BaseModel):
     justificativa: str
+    destino: Optional[Literal["comercial", "franquia"]] = None
 
 
 class ReenviarEstornoRequest(BaseModel):

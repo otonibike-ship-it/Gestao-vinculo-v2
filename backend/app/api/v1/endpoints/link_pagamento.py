@@ -21,18 +21,6 @@ logger = logging.getLogger(__name__)
 
 router = APIRouter()
 
-_DESTINO_STATUS = {
-    "faturamento": StatusLinkPagamento.aguardando_faturamento,
-    "financeiro": StatusLinkPagamento.aguardando_financeiro,
-    "ti": StatusLinkPagamento.aguardando_ti,
-}
-
-_DESTINO_EMAIL_CONFIG = {
-    "faturamento": "email_faturamento",
-    "financeiro": "email_financeiro",
-    "ti": "email_ti",
-}
-
 
 def _serialize(l: LinkPagamento, empresa: Empresa | None = None) -> dict:
     return {
@@ -56,6 +44,7 @@ def _serialize(l: LinkPagamento, empresa: Empresa | None = None) -> dict:
         "status": l.status.value if l.status else None,
         "anexos": l.anexos or [],
         "observacao_comercial": l.observacao_comercial,
+        "link_gerado": l.link_gerado,
         "justificativa_reprovacao": l.justificativa_reprovacao,
         "destino_reprovacao": l.destino_reprovacao,
         "criado_em": l.criado_em.isoformat() if l.criado_em else None,
@@ -149,19 +138,18 @@ async def aprovar_link(link_id: int, payload: AprovarLinkRequest, db: AsyncSessi
         raise HTTPException(status_code=404, detail="Link de pagamento não encontrado")
 
     if link.status == StatusLinkPagamento.aguardando_comercial:
-        if payload.destino not in _DESTINO_STATUS:
-            raise HTTPException(status_code=422, detail="destino deve ser faturamento, financeiro ou ti")
-        link.status = _DESTINO_STATUS[payload.destino]
+        if not payload.observacao or not payload.observacao.strip():
+            raise HTTPException(status_code=422, detail="observacao é obrigatória")
+        link.status = StatusLinkPagamento.aguardando_financeiro
         link.observacao_comercial = payload.observacao
 
-    elif link.status in (
-        StatusLinkPagamento.aguardando_faturamento,
-        StatusLinkPagamento.aguardando_financeiro,
-        StatusLinkPagamento.aguardando_ti,
-    ):
+    elif link.status == StatusLinkPagamento.aguardando_financeiro:
+        if not payload.link_gerado or not payload.link_gerado.strip():
+            raise HTTPException(status_code=422, detail="link_gerado é obrigatório")
+        link.status = StatusLinkPagamento.fechado
+        link.link_gerado = payload.link_gerado
         if payload.anexos:
             link.anexos = (link.anexos or []) + payload.anexos
-        link.status = StatusLinkPagamento.fechado
 
     else:
         raise HTTPException(status_code=400, detail=f"Não é possível aprovar com status '{link.status.value}'")
@@ -175,13 +163,12 @@ async def aprovar_link(link_id: int, payload: AprovarLinkRequest, db: AsyncSessi
     franquia_nome = result.get("franquia_nome", "")
     numero = link.numero_pedido
     vendedor = link.vendedor
-    if link.status in _DESTINO_STATUS.values():
-        destino = next(d for d, s in _DESTINO_STATUS.items() if s == link.status)
-        email_destino = await db.scalar(
-            select(Configuracao.valor).where(Configuracao.chave == _DESTINO_EMAIL_CONFIG[destino])
+    if link.status == StatusLinkPagamento.aguardando_financeiro:
+        email_financeiro = await db.scalar(
+            select(Configuracao.valor).where(Configuracao.chave == "email_financeiro")
         )
-        if email_destino:
-            asyncio.create_task(email_svc.notificar_triagem_link(numero, vendedor, franquia_nome, email_destino))
+        if email_financeiro:
+            asyncio.create_task(email_svc.notificar_triagem_link(numero, vendedor, franquia_nome, email_financeiro))
     elif link.status == StatusLinkPagamento.fechado:
         u = await db.scalar(select(Usuario).where(
             Usuario.franquia_id == link.franquia_id,
@@ -201,30 +188,40 @@ async def reprovar_link(link_id: int, payload: ReprovarLinkRequest, db: AsyncSes
     if not link:
         raise HTTPException(status_code=404, detail="Link de pagamento não encontrado")
 
-    if link.status not in (
-        StatusLinkPagamento.aguardando_comercial,
-        StatusLinkPagamento.aguardando_faturamento,
-        StatusLinkPagamento.aguardando_financeiro,
-        StatusLinkPagamento.aguardando_ti,
-    ):
+    if link.status == StatusLinkPagamento.aguardando_comercial:
+        destino = "franquia"
+        link.status = StatusLinkPagamento.aberto
+
+    elif link.status == StatusLinkPagamento.aguardando_financeiro:
+        destino = payload.destino or "franquia"
+        if destino not in ("comercial", "franquia"):
+            raise HTTPException(status_code=422, detail="destino deve ser comercial ou franquia")
+        link.status = StatusLinkPagamento.aguardando_comercial if destino == "comercial" else StatusLinkPagamento.aberto
+
+    else:
         raise HTTPException(status_code=400, detail=f"Não é possível reprovar com status '{link.status.value}'")
 
-    link.status = StatusLinkPagamento.aberto
     link.justificativa_reprovacao = payload.justificativa
-    link.destino_reprovacao = "franquia"
+    link.destino_reprovacao = destino
     await db.flush()
     await db.refresh(link)
     result = await _enrich(link, db)
 
-    u = await db.scalar(select(Usuario).where(
-        Usuario.franquia_id == link.franquia_id,
-        Usuario.perfil == PerfilUsuario.franquia,
-        Usuario.ativo == True,
-    ))
-    if u:
-        asyncio.create_task(email_svc.notificar_reprovado(
-            link.numero_pedido, payload.justificativa, u.email
+    numero = link.numero_pedido
+    if destino == "franquia":
+        u = await db.scalar(select(Usuario).where(
+            Usuario.franquia_id == link.franquia_id,
+            Usuario.perfil == PerfilUsuario.franquia,
+            Usuario.ativo == True,
         ))
+        if u:
+            asyncio.create_task(email_svc.notificar_reprovado(numero, payload.justificativa, u.email))
+    else:
+        email_comercial = await db.scalar(
+            select(Configuracao.valor).where(Configuracao.chave == "email_comercial")
+        )
+        if email_comercial:
+            asyncio.create_task(email_svc.notificar_reprovado(numero, payload.justificativa, email_comercial))
 
     return result
 

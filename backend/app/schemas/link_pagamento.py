@@ -54,6 +54,7 @@ class LinkPagamentoResponse(BaseModel):
     status: StatusLinkPagamento
     anexos: list[str] = []
     observacao_comercial: Optional[str] = None
+    link_gerado: Optional[str] = None
     justificativa_reprovacao: Optional[str] = None
     destino_reprovacao: Optional[str] = None
     criado_em: datetime
@@ -64,13 +65,14 @@ class LinkPagamentoResponse(BaseModel):
 
 
 class AprovarLinkRequest(BaseModel):
-    destino: Optional[Literal["faturamento", "financeiro", "ti"]] = None  # obrigatorio na etapa comercial
-    observacao: Optional[str] = None
+    observacao: Optional[str] = None  # obrigatorio na etapa comercial
+    link_gerado: Optional[str] = None  # obrigatorio na etapa financeiro
     anexos: list[str] = []
 
 
 class ReprovarLinkRequest(BaseModel):
     justificativa: str
+    destino: Optional[Literal["comercial", "franquia"]] = None
 
 
 class ReenviarLinkRequest(BaseModel):

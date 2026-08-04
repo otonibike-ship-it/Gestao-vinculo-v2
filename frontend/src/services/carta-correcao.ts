@@ -55,13 +55,13 @@ export const cartaCorrecaoService = {
     return data as CartaCorrecaoData
   },
 
-  async aprovar(id: number, opts: { destino?: string; observacao?: string; anexos?: string[] } = {}) {
+  async aprovar(id: number, opts: { observacao?: string; anexos?: string[] } = {}) {
     const { data } = await api.put(`/cartas-correcao/${id}/aprovar`, opts)
     return data as CartaCorrecaoData
   },
 
-  async reprovar(id: number, justificativa: string) {
-    const { data } = await api.put(`/cartas-correcao/${id}/reprovar`, { justificativa })
+  async reprovar(id: number, justificativa: string, destino?: 'comercial' | 'franquia') {
+    const { data } = await api.put(`/cartas-correcao/${id}/reprovar`, { justificativa, destino })
     return data as CartaCorrecaoData
   },
 

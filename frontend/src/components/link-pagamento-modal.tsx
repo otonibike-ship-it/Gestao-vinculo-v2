@@ -20,7 +20,7 @@ const statusLabels: Record<string, string> = {
   aguardando_faturamento: 'Aguard. Faturamento',
   aguardando_financeiro: 'Aguard. Financeiro',
   aguardando_ti: 'Aguard. TI',
-  fechado: 'Concluído',
+  fechado: 'Link Gerado',
 }
 
 const statusColors: Record<string, string> = {
@@ -33,12 +33,6 @@ const statusColors: Record<string, string> = {
 }
 
 const PARCELAS_OPCOES = Array.from({ length: 18 }, (_, i) => i + 1)
-
-const DESTINOS = [
-  { value: 'faturamento', label: 'Faturamento' },
-  { value: 'financeiro', label: 'Financeiro' },
-  { value: 'ti', label: 'TI' },
-] as const
 
 const formatCpf = (value: string) => {
   const digits = value.replace(/\D/g, '').slice(0, 11)
@@ -61,8 +55,9 @@ export function LinkPagamentoModal({ link, onClose, modo }: LinkPagamentoModalPr
   const [mostrarReprovar, setMostrarReprovar] = useState(false)
   const [arquivosAprovacao, setArquivosAprovacao] = useState<File[]>([])
   const [enviando, setEnviando] = useState(false)
-  const [destino, setDestino] = useState<'faturamento' | 'financeiro' | 'ti'>('faturamento')
+  const [destinoReprovacao, setDestinoReprovacao] = useState<'comercial' | 'franquia'>('comercial')
   const [observacao, setObservacao] = useState('')
+  const [linkGerado, setLinkGerado] = useState('')
 
   // Estado de edicao
   const [editando, setEditando] = useState(false)
@@ -107,11 +102,11 @@ export function LinkPagamentoModal({ link, onClose, modo }: LinkPagamentoModalPr
   const aprovarMutation = useMutation({
     mutationFn: async () => {
       if (modo === 'comercial') {
-        return linkPagamentoService.aprovar(link.id, { destino, observacao: observacao || undefined })
+        return linkPagamentoService.aprovar(link.id, { observacao })
       }
       const resultados = await Promise.all(arquivosAprovacao.map(arq => uploadService.upload(arq)))
       const anexoUrls = resultados.map(r => r.url)
-      return linkPagamentoService.aprovar(link.id, { anexos: anexoUrls })
+      return linkPagamentoService.aprovar(link.id, { link_gerado: linkGerado, anexos: anexoUrls })
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['links-pagamento'] })
@@ -120,7 +115,11 @@ export function LinkPagamentoModal({ link, onClose, modo }: LinkPagamentoModalPr
   })
 
   const reprovarMutation = useMutation({
-    mutationFn: () => linkPagamentoService.reprovar(link.id, justificativa),
+    mutationFn: () => linkPagamentoService.reprovar(
+      link.id,
+      justificativa,
+      modo === 'comercial' ? undefined : destinoReprovacao
+    ),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['links-pagamento'] })
       onClose()
@@ -157,6 +156,8 @@ export function LinkPagamentoModal({ link, onClose, modo }: LinkPagamentoModalPr
   })
 
   const handleAprovar = async () => {
+    if (modo === 'comercial' && !observacao.trim()) return
+    if (modo === 'financeiro' && !linkGerado.trim()) return
     setEnviando(true)
     try { await aprovarMutation.mutateAsync() } finally { setEnviando(false) }
   }
@@ -388,33 +389,39 @@ export function LinkPagamentoModal({ link, onClose, modo }: LinkPagamentoModalPr
                 <Campo label="Observação do Comercial" valor={link.observacao_comercial} />
               )}
 
+              {link.link_gerado && (
+                <div className="bg-brand-lime/10 border border-brand-lime/40 rounded-xl px-4 py-3">
+                  <p className="text-xs font-semibold text-brand-forest uppercase tracking-wider mb-2">Link de Pagamento Gerado</p>
+                  <p className="text-sm text-slate-700 whitespace-pre-wrap break-all">{link.link_gerado}</p>
+                </div>
+              )}
+
               <AnexosGrid anexos={link.anexos} />
 
+              {/* Observação obrigatória — só comercial (segue fixo pro Financeiro) */}
               {podeAprovarReprovar && modo === 'comercial' && !mostrarReprovar && (
-                <div className="bg-brand-olive/10 border border-brand-olive/30 rounded-xl px-4 py-3 space-y-3">
-                  <p className="text-xs font-medium text-brand-forest uppercase tracking-wider">Enviar para</p>
-                  <div className="flex gap-2">
-                    {DESTINOS.map(d => (
-                      <button
-                        key={d.value}
-                        type="button"
-                        onClick={() => setDestino(d.value)}
-                        className={`flex-1 py-2 px-3 rounded-lg text-sm font-medium border transition-colors ${
-                          destino === d.value
-                            ? 'bg-brand-pine text-white border-brand-pine'
-                            : 'text-slate-600 border-slate-200 bg-white hover:bg-brand-mist'
-                        }`}
-                      >
-                        {d.label}
-                      </button>
-                    ))}
-                  </div>
+                <div>
+                  <p className="text-xs font-medium text-slate-500 uppercase tracking-wider mb-2">Observação (obrigatória)</p>
                   <textarea
                     value={observacao}
                     onChange={(e) => setObservacao(e.target.value)}
-                    placeholder="Motivo ou informação (opcional)..."
-                    className="w-full border border-brand-olive/30 rounded-xl px-4 py-3 text-sm text-slate-700 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-brand-olive/40 transition-all resize-none bg-white"
+                    placeholder="Informação para o Financeiro gerar o link..."
+                    className="w-full border border-slate-200 rounded-xl px-4 py-3 text-sm text-slate-700 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-brand-teal/60 transition-all resize-none"
                     rows={2}
+                  />
+                </div>
+              )}
+
+              {/* Link gerado obrigatório — só financeiro */}
+              {podeAprovarReprovar && modo === 'financeiro' && !mostrarReprovar && (
+                <div>
+                  <p className="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-2">Link de Pagamento (obrigatório)</p>
+                  <textarea
+                    value={linkGerado}
+                    onChange={(e) => setLinkGerado(e.target.value)}
+                    placeholder="Cole aqui o link de pagamento gerado..."
+                    className="w-full border border-slate-200 rounded-xl px-4 py-3 text-sm text-slate-700 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-brand-teal/60 transition-all resize-none"
+                    rows={4}
                   />
                 </div>
               )}
@@ -454,15 +461,40 @@ export function LinkPagamentoModal({ link, onClose, modo }: LinkPagamentoModalPr
               )}
 
               {podeAprovarReprovar && mostrarReprovar && (
-                <div>
-                  <p className="text-xs font-medium text-slate-500 uppercase tracking-wider mb-2">Justificativa (volta para a Franquia)</p>
-                  <textarea
-                    value={justificativa}
-                    onChange={(e) => setJustificativa(e.target.value)}
-                    placeholder="Descreva o motivo da reprovacao..."
-                    className="w-full border border-slate-200 rounded-xl px-4 py-3 text-sm text-slate-700 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-red-300 focus:border-red-300 transition-all resize-none"
-                    rows={3}
-                  />
+                <div className="space-y-3">
+                  {modo !== 'comercial' && (
+                    <div>
+                      <p className="text-xs font-medium text-slate-500 uppercase tracking-wider mb-2">Enviar para</p>
+                      <div className="flex gap-2">
+                        {(['comercial', 'franquia'] as const).map(d => (
+                          <button
+                            key={d}
+                            type="button"
+                            onClick={() => setDestinoReprovacao(d)}
+                            className={`flex-1 py-2 px-3 rounded-lg text-sm font-medium border transition-colors ${
+                              destinoReprovacao === d
+                                ? 'bg-brand-pine text-white border-brand-pine'
+                                : 'text-slate-600 border-slate-200 hover:bg-slate-50'
+                            }`}
+                          >
+                            {d === 'comercial' ? 'Comercial' : 'Franquia'}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                  <div>
+                    <p className="text-xs font-medium text-slate-500 uppercase tracking-wider mb-2">
+                      Justificativa {modo === 'comercial' ? '(volta para a Franquia)' : ''}
+                    </p>
+                    <textarea
+                      value={justificativa}
+                      onChange={(e) => setJustificativa(e.target.value)}
+                      placeholder="Descreva o motivo da reprovacao..."
+                      className="w-full border border-slate-200 rounded-xl px-4 py-3 text-sm text-slate-700 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-red-300 focus:border-red-300 transition-all resize-none"
+                      rows={3}
+                    />
+                  </div>
                 </div>
               )}
             </>
@@ -518,7 +550,7 @@ export function LinkPagamentoModal({ link, onClose, modo }: LinkPagamentoModalPr
                   </button>
                   <button
                     onClick={handleAprovar}
-                    disabled={enviando}
+                    disabled={enviando || (modo === 'comercial' && !observacao.trim()) || (modo === 'financeiro' && !linkGerado.trim())}
                     className="flex-1 py-2.5 px-4 rounded-xl text-sm font-medium text-white bg-brand-pine hover:bg-brand-forest transition-colors disabled:opacity-50 flex items-center justify-center gap-2"
                   >
                     <Check size={16} />

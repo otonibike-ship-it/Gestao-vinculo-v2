@@ -17,6 +17,7 @@ export interface TrocaPedidoData {
   status: 'aberto' | 'aguardando_comercial' | 'aguardando_faturamento' | 'aguardando_financeiro' | 'aguardando_ti' | 'fechado'
   anexos: string[]
   observacao_comercial: string | null
+  observacao_faturamento: string | null
   justificativa_reprovacao: string | null
   destino_reprovacao: string | null
   criado_em: string
@@ -57,13 +58,13 @@ export const trocaPedidoService = {
     return data as TrocaPedidoData
   },
 
-  async aprovar(id: number, opts: { destino?: string; observacao?: string; anexos?: string[] } = {}) {
+  async aprovar(id: number, opts: { observacao?: string; anexos?: string[] } = {}) {
     const { data } = await api.put(`/trocas-pedido/${id}/aprovar`, opts)
     return data as TrocaPedidoData
   },
 
-  async reprovar(id: number, justificativa: string) {
-    const { data } = await api.put(`/trocas-pedido/${id}/reprovar`, { justificativa })
+  async reprovar(id: number, justificativa?: string, destino?: 'comercial' | 'franquia') {
+    const { data } = await api.put(`/trocas-pedido/${id}/reprovar`, { justificativa, destino })
     return data as TrocaPedidoData
   },
 

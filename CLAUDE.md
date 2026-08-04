@@ -53,17 +53,39 @@ Franquia submits → validacao_comercial → (if financeiro needed) validacao_fi
 
 Status enum lives in `backend/app/models/vinculo.py` (`StatusVinculo`). The approve/reject logic (which status transitions to which) is entirely in `backend/app/api/v1/endpoints/vinculo.py`.
 
-A second, independent form — **Troca de Pedido** — has its own table (`troca_pedidos`), model (`app/models/troca_pedido.py`), and endpoints (`app/api/v1/endpoints/troca_pedido.py`, prefix `/trocas-pedido`). It does **not** share the Vinculo pipeline; it uses a 3-way triage instead:
+Five other forms each have their own table, model, and endpoint (not a shared polymorphic model — copy the closest existing form: model + schema + endpoint + email functions + migration + service + form + modal + dashboard wiring rather than generalizing early). There is **no Checklist Bike Shop** — it was deliberately dropped (too rarely used) in favor of **Cancelamento de Venda**. The six live forms are: Vinculo, **Troca de Pedido**, **Link de Pagamento**, **Carta de Correção**, **Solicitação de Estorno**, **Cancelamento de Venda**.
+
+**Cancelamento de Venda** (`cancelamento_venda.py`) still uses the original generic template — a 3-way triage where Comercial picks the destino (Faturamento | Financeiro | TI) and any target-team reject always returns straight to the franquia. This was the shared pattern all five non-Vinculo forms used at first.
+
+**Troca de Pedido, Link de Pagamento, Carta de Correção and Solicitação de Estorno were reworked (2026-08-04) into distinct, fixed per-form pipelines** — Comercial no longer picks a destino; each form always routes to the same next team. Target-team rejection returns to **Comercial** (not the franquia) with a destino picker (`comercial` | `franquia`), mirroring the picker Vinculo's own `reprovar` endpoint already used. Comercial's own initial reject (from `aguardando_comercial`) always goes straight to the franquia, justificativa required, no picker:
 
 ```
-Franquia/Comercial submits → aguardando_comercial
-  Comercial aprova (escolhe destino: Faturamento | Financeiro | TI) → aguardando_{destino}
-    Equipe destino aprova → fechado
-    Equipe destino reprova → aberto (returned to franquia)
-  Comercial reprova → aberto (returned to franquia)
+Troca de Pedido (troca_pedido.py, /trocas-pedido):
+  Franquia/Comercial submits → aguardando_comercial
+    Comercial aprova (observação opcional) → aguardando_faturamento
+      Faturamento aprova (observação opcional) → aguardando_ti
+        TI aprova → fechado ("Finalizado")
+        TI reprova (destino comercial|franquia, justificativa opcional) → aguardando_comercial | aberto
+      Faturamento reprova (destino comercial|franquia, justificativa opcional) → aguardando_comercial | aberto
+    Comercial reprova (justificativa obrigatória) → aberto (volta pra franquia)
+
+Link de Pagamento (link_pagamento.py, /links-pagamento):
+  Franquia/Comercial submits → aguardando_comercial
+    Comercial aprova (observação OBRIGATÓRIA) → aguardando_financeiro
+      Financeiro aprova (preenche link_gerado, campo obrigatório) → fechado ("Link Gerado")
+      Financeiro reprova (destino comercial|franquia, justificativa obrigatória) → aguardando_comercial | aberto
+    Comercial reprova (justificativa obrigatória) → aberto (volta pra franquia)
+  franquia vê o link_gerado num pop-up de leitura no próprio modal.
+
+Carta de Correção (carta_correcao.py, /cartas-correcao) e Solicitação de Estorno (solicitacao_estorno.py, /solicitacoes-estorno):
+  Franquia/Comercial submits → aguardando_comercial
+    Comercial aprova (observação opcional) → aguardando_financeiro
+      Financeiro aprova (anexo opcional — carta usa isso pra anexar a NF corrigida em PDF) → fechado ("Carta Gerada" / "Estorno Realizado")
+      Financeiro reprova (destino comercial|franquia, justificativa obrigatória) → aguardando_comercial | aberto
+    Comercial reprova (justificativa obrigatória) → aberto (volta pra franquia)
 ```
 
-Unlike Vinculo, reprovação at any stage always returns to the franquia (no destino picker on reject). This is the template used by every form type added after Vinculo. There is **no Checklist Bike Shop** — it was deliberately dropped (too rarely used) in favor of **Cancelamento de Venda**. The six live forms are: Vinculo, **Troca de Pedido**, **Link de Pagamento**, **Carta de Correção**, **Solicitação de Estorno**, **Cancelamento de Venda**. Each gets its own dedicated table/endpoint/modal following this same pattern, not a shared polymorphic model — copy the closest existing form (model + schema + endpoint + email functions + migration + service + form + modal + dashboard wiring in all 5 dashboards) rather than generalizing early.
+`aguardando_faturamento`/`aguardando_ti` remain in the `StatusLinkPagamento`/`StatusCartaCorrecao`/`StatusSolicitacaoEstorno` enums (harmless — Alembic can't easily drop Postgres enum values) but are unreachable now that these three forms are fixed at Comercial→Financeiro. The Financeiro/Faturamento dashboard sections for these forms are still wired to query those dead statuses, so they render as permanently-empty sections rather than being removed — a known cosmetic gap, not a bug.
 
 Two things worth knowing before adding a 7th form:
 - **Dropdown "motivo" fields** store the full option text as the value (see `frontend/src/components/carta-correcao-selects.tsx` for the two-select pattern), matching `MotivoSelect`/`TrocaMotivoSelect` — not a coded enum.
@@ -123,10 +145,10 @@ Uploads go **directly from the browser to Cloudinary** using an unsigned preset 
 | `app/models/usuario.py` | `Usuario` model + `PerfilUsuario` enum |
 | `app/models/configuracao.py` | Key/value config store (SMTP, templates) |
 | `app/api/v1/endpoints/vinculo.py` | All vinculo CRUD + approve/reject logic |
-| `app/api/v1/endpoints/troca_pedido.py` | All troca de pedido CRUD + 3-way triage logic |
-| `app/api/v1/endpoints/link_pagamento.py` | All link de pagamento CRUD + 3-way triage logic |
-| `app/api/v1/endpoints/carta_correcao.py` | All carta de correção CRUD + 3-way triage logic |
-| `app/api/v1/endpoints/solicitacao_estorno.py` | All solicitação de estorno CRUD + 3-way triage logic |
+| `app/api/v1/endpoints/troca_pedido.py` | All troca de pedido CRUD + fixed Comercial→Faturamento→TI pipeline |
+| `app/api/v1/endpoints/link_pagamento.py` | All link de pagamento CRUD + fixed Comercial→Financeiro pipeline (`link_gerado`) |
+| `app/api/v1/endpoints/carta_correcao.py` | All carta de correção CRUD + fixed Comercial→Financeiro pipeline |
+| `app/api/v1/endpoints/solicitacao_estorno.py` | All solicitação de estorno CRUD + fixed Comercial→Financeiro pipeline |
 | `app/api/v1/endpoints/cancelamento_venda.py` | All cancelamento de venda CRUD + 3-way triage logic |
 | `app/api/v1/endpoints/configuracoes.py` | SMTP config + email template management |
 | `app/services/email.py` | Email sending (creates own DB session) |

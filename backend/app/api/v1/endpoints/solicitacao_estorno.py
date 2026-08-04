@@ -21,18 +21,6 @@ logger = logging.getLogger(__name__)
 
 router = APIRouter()
 
-_DESTINO_STATUS = {
-    "faturamento": StatusSolicitacaoEstorno.aguardando_faturamento,
-    "financeiro": StatusSolicitacaoEstorno.aguardando_financeiro,
-    "ti": StatusSolicitacaoEstorno.aguardando_ti,
-}
-
-_DESTINO_EMAIL_CONFIG = {
-    "faturamento": "email_faturamento",
-    "financeiro": "email_financeiro",
-    "ti": "email_ti",
-}
-
 
 def _serialize(s: SolicitacaoEstorno, empresa: Empresa | None = None) -> dict:
     return {
@@ -141,16 +129,10 @@ async def aprovar_estorno(estorno_id: int, payload: AprovarEstornoRequest, db: A
         raise HTTPException(status_code=404, detail="Solicitação de estorno não encontrada")
 
     if estorno.status == StatusSolicitacaoEstorno.aguardando_comercial:
-        if payload.destino not in _DESTINO_STATUS:
-            raise HTTPException(status_code=422, detail="destino deve ser faturamento, financeiro ou ti")
-        estorno.status = _DESTINO_STATUS[payload.destino]
+        estorno.status = StatusSolicitacaoEstorno.aguardando_financeiro
         estorno.observacao_comercial = payload.observacao
 
-    elif estorno.status in (
-        StatusSolicitacaoEstorno.aguardando_faturamento,
-        StatusSolicitacaoEstorno.aguardando_financeiro,
-        StatusSolicitacaoEstorno.aguardando_ti,
-    ):
+    elif estorno.status == StatusSolicitacaoEstorno.aguardando_financeiro:
         if payload.anexos:
             estorno.anexos = (estorno.anexos or []) + payload.anexos
         estorno.status = StatusSolicitacaoEstorno.fechado
@@ -167,13 +149,12 @@ async def aprovar_estorno(estorno_id: int, payload: AprovarEstornoRequest, db: A
     franquia_nome = result.get("franquia_nome", "")
     numero = estorno.numero_pedido
     vendedor = estorno.vendedor
-    if estorno.status in _DESTINO_STATUS.values():
-        destino = next(d for d, s in _DESTINO_STATUS.items() if s == estorno.status)
-        email_destino = await db.scalar(
-            select(Configuracao.valor).where(Configuracao.chave == _DESTINO_EMAIL_CONFIG[destino])
+    if estorno.status == StatusSolicitacaoEstorno.aguardando_financeiro:
+        email_financeiro = await db.scalar(
+            select(Configuracao.valor).where(Configuracao.chave == "email_financeiro")
         )
-        if email_destino:
-            asyncio.create_task(email_svc.notificar_triagem_estorno(numero, vendedor, franquia_nome, email_destino))
+        if email_financeiro:
+            asyncio.create_task(email_svc.notificar_triagem_estorno(numero, vendedor, franquia_nome, email_financeiro))
     elif estorno.status == StatusSolicitacaoEstorno.fechado:
         u = await db.scalar(select(Usuario).where(
             Usuario.franquia_id == estorno.franquia_id,
@@ -193,30 +174,43 @@ async def reprovar_estorno(estorno_id: int, payload: ReprovarEstornoRequest, db:
     if not estorno:
         raise HTTPException(status_code=404, detail="Solicitação de estorno não encontrada")
 
-    if estorno.status not in (
-        StatusSolicitacaoEstorno.aguardando_comercial,
-        StatusSolicitacaoEstorno.aguardando_faturamento,
-        StatusSolicitacaoEstorno.aguardando_financeiro,
-        StatusSolicitacaoEstorno.aguardando_ti,
-    ):
+    if not payload.justificativa or not payload.justificativa.strip():
+        raise HTTPException(status_code=422, detail="justificativa é obrigatória")
+
+    if estorno.status == StatusSolicitacaoEstorno.aguardando_comercial:
+        destino = "franquia"
+        estorno.status = StatusSolicitacaoEstorno.aberto
+
+    elif estorno.status == StatusSolicitacaoEstorno.aguardando_financeiro:
+        destino = payload.destino or "franquia"
+        if destino not in ("comercial", "franquia"):
+            raise HTTPException(status_code=422, detail="destino deve ser comercial ou franquia")
+        estorno.status = StatusSolicitacaoEstorno.aguardando_comercial if destino == "comercial" else StatusSolicitacaoEstorno.aberto
+
+    else:
         raise HTTPException(status_code=400, detail=f"Não é possível reprovar com status '{estorno.status.value}'")
 
-    estorno.status = StatusSolicitacaoEstorno.aberto
     estorno.justificativa_reprovacao = payload.justificativa
-    estorno.destino_reprovacao = "franquia"
+    estorno.destino_reprovacao = destino
     await db.flush()
     await db.refresh(estorno)
     result = await _enrich(estorno, db)
 
-    u = await db.scalar(select(Usuario).where(
-        Usuario.franquia_id == estorno.franquia_id,
-        Usuario.perfil == PerfilUsuario.franquia,
-        Usuario.ativo == True,
-    ))
-    if u:
-        asyncio.create_task(email_svc.notificar_reprovado(
-            estorno.numero_pedido, payload.justificativa, u.email
+    numero = estorno.numero_pedido
+    if destino == "franquia":
+        u = await db.scalar(select(Usuario).where(
+            Usuario.franquia_id == estorno.franquia_id,
+            Usuario.perfil == PerfilUsuario.franquia,
+            Usuario.ativo == True,
         ))
+        if u:
+            asyncio.create_task(email_svc.notificar_reprovado(numero, payload.justificativa, u.email))
+    else:
+        email_comercial = await db.scalar(
+            select(Configuracao.valor).where(Configuracao.chave == "email_comercial")
+        )
+        if email_comercial:
+            asyncio.create_task(email_svc.notificar_reprovado(numero, payload.justificativa, email_comercial))
 
     return result
 

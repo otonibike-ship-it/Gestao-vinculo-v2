@@ -21,18 +21,6 @@ logger = logging.getLogger(__name__)
 
 router = APIRouter()
 
-_DESTINO_STATUS = {
-    "faturamento": StatusCartaCorrecao.aguardando_faturamento,
-    "financeiro": StatusCartaCorrecao.aguardando_financeiro,
-    "ti": StatusCartaCorrecao.aguardando_ti,
-}
-
-_DESTINO_EMAIL_CONFIG = {
-    "faturamento": "email_faturamento",
-    "financeiro": "email_financeiro",
-    "ti": "email_ti",
-}
-
 
 def _serialize(c: CartaCorrecao, empresa: Empresa | None = None) -> dict:
     return {
@@ -139,16 +127,10 @@ async def aprovar_carta(carta_id: int, payload: AprovarCartaRequest, db: AsyncSe
         raise HTTPException(status_code=404, detail="Carta de correção não encontrada")
 
     if carta.status == StatusCartaCorrecao.aguardando_comercial:
-        if payload.destino not in _DESTINO_STATUS:
-            raise HTTPException(status_code=422, detail="destino deve ser faturamento, financeiro ou ti")
-        carta.status = _DESTINO_STATUS[payload.destino]
+        carta.status = StatusCartaCorrecao.aguardando_financeiro
         carta.observacao_comercial = payload.observacao
 
-    elif carta.status in (
-        StatusCartaCorrecao.aguardando_faturamento,
-        StatusCartaCorrecao.aguardando_financeiro,
-        StatusCartaCorrecao.aguardando_ti,
-    ):
+    elif carta.status == StatusCartaCorrecao.aguardando_financeiro:
         if payload.anexos:
             carta.anexos = (carta.anexos or []) + payload.anexos
         carta.status = StatusCartaCorrecao.fechado
@@ -165,13 +147,12 @@ async def aprovar_carta(carta_id: int, payload: AprovarCartaRequest, db: AsyncSe
     franquia_nome = result.get("franquia_nome", "")
     numero = carta.numero_pedido
     cliente = carta.nome_cliente_pedido
-    if carta.status in _DESTINO_STATUS.values():
-        destino = next(d for d, s in _DESTINO_STATUS.items() if s == carta.status)
-        email_destino = await db.scalar(
-            select(Configuracao.valor).where(Configuracao.chave == _DESTINO_EMAIL_CONFIG[destino])
+    if carta.status == StatusCartaCorrecao.aguardando_financeiro:
+        email_financeiro = await db.scalar(
+            select(Configuracao.valor).where(Configuracao.chave == "email_financeiro")
         )
-        if email_destino:
-            asyncio.create_task(email_svc.notificar_triagem_carta(numero, cliente, franquia_nome, email_destino))
+        if email_financeiro:
+            asyncio.create_task(email_svc.notificar_triagem_carta(numero, cliente, franquia_nome, email_financeiro))
     elif carta.status == StatusCartaCorrecao.fechado:
         u = await db.scalar(select(Usuario).where(
             Usuario.franquia_id == carta.franquia_id,
@@ -191,30 +172,40 @@ async def reprovar_carta(carta_id: int, payload: ReprovarCartaRequest, db: Async
     if not carta:
         raise HTTPException(status_code=404, detail="Carta de correção não encontrada")
 
-    if carta.status not in (
-        StatusCartaCorrecao.aguardando_comercial,
-        StatusCartaCorrecao.aguardando_faturamento,
-        StatusCartaCorrecao.aguardando_financeiro,
-        StatusCartaCorrecao.aguardando_ti,
-    ):
+    if carta.status == StatusCartaCorrecao.aguardando_comercial:
+        destino = "franquia"
+        carta.status = StatusCartaCorrecao.aberto
+
+    elif carta.status == StatusCartaCorrecao.aguardando_financeiro:
+        destino = payload.destino or "franquia"
+        if destino not in ("comercial", "franquia"):
+            raise HTTPException(status_code=422, detail="destino deve ser comercial ou franquia")
+        carta.status = StatusCartaCorrecao.aguardando_comercial if destino == "comercial" else StatusCartaCorrecao.aberto
+
+    else:
         raise HTTPException(status_code=400, detail=f"Não é possível reprovar com status '{carta.status.value}'")
 
-    carta.status = StatusCartaCorrecao.aberto
     carta.justificativa_reprovacao = payload.justificativa
-    carta.destino_reprovacao = "franquia"
+    carta.destino_reprovacao = destino
     await db.flush()
     await db.refresh(carta)
     result = await _enrich(carta, db)
 
-    u = await db.scalar(select(Usuario).where(
-        Usuario.franquia_id == carta.franquia_id,
-        Usuario.perfil == PerfilUsuario.franquia,
-        Usuario.ativo == True,
-    ))
-    if u:
-        asyncio.create_task(email_svc.notificar_reprovado(
-            carta.numero_pedido, payload.justificativa, u.email
+    numero = carta.numero_pedido
+    if destino == "franquia":
+        u = await db.scalar(select(Usuario).where(
+            Usuario.franquia_id == carta.franquia_id,
+            Usuario.perfil == PerfilUsuario.franquia,
+            Usuario.ativo == True,
         ))
+        if u:
+            asyncio.create_task(email_svc.notificar_reprovado(numero, payload.justificativa, u.email))
+    else:
+        email_comercial = await db.scalar(
+            select(Configuracao.valor).where(Configuracao.chave == "email_comercial")
+        )
+        if email_comercial:
+            asyncio.create_task(email_svc.notificar_reprovado(numero, payload.justificativa, email_comercial))
 
     return result
 

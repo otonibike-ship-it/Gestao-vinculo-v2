@@ -21,6 +21,7 @@ export interface LinkPagamentoData {
   status: 'aberto' | 'aguardando_comercial' | 'aguardando_faturamento' | 'aguardando_financeiro' | 'aguardando_ti' | 'fechado'
   anexos: string[]
   observacao_comercial: string | null
+  link_gerado: string | null
   justificativa_reprovacao: string | null
   destino_reprovacao: string | null
   criado_em: string
@@ -65,13 +66,13 @@ export const linkPagamentoService = {
     return data as LinkPagamentoData
   },
 
-  async aprovar(id: number, opts: { destino?: string; observacao?: string; anexos?: string[] } = {}) {
+  async aprovar(id: number, opts: { observacao?: string; link_gerado?: string; anexos?: string[] } = {}) {
     const { data } = await api.put(`/links-pagamento/${id}/aprovar`, opts)
     return data as LinkPagamentoData
   },
 
-  async reprovar(id: number, justificativa: string) {
-    const { data } = await api.put(`/links-pagamento/${id}/reprovar`, { justificativa })
+  async reprovar(id: number, justificativa: string, destino?: 'comercial' | 'franquia') {
+    const { data } = await api.put(`/links-pagamento/${id}/reprovar`, { justificativa, destino })
     return data as LinkPagamentoData
   },
 

@@ -53,13 +53,13 @@ class CartaCorrecaoResponse(BaseModel):
 
 
 class AprovarCartaRequest(BaseModel):
-    destino: Optional[Literal["faturamento", "financeiro", "ti"]] = None
     observacao: Optional[str] = None
     anexos: list[str] = []
 
 
 class ReprovarCartaRequest(BaseModel):
     justificativa: str
+    destino: Optional[Literal["comercial", "franquia"]] = None
 
 
 class ReenviarCartaRequest(BaseModel):

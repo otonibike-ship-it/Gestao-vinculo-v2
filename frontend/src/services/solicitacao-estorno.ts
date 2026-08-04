@@ -57,13 +57,13 @@ export const solicitacaoEstornoService = {
     return data as SolicitacaoEstornoData
   },
 
-  async aprovar(id: number, opts: { destino?: string; observacao?: string; anexos?: string[] } = {}) {
+  async aprovar(id: number, opts: { observacao?: string; anexos?: string[] } = {}) {
     const { data } = await api.put(`/solicitacoes-estorno/${id}/aprovar`, opts)
     return data as SolicitacaoEstornoData
   },
 
-  async reprovar(id: number, justificativa: string) {
-    const { data } = await api.put(`/solicitacoes-estorno/${id}/reprovar`, { justificativa })
+  async reprovar(id: number, justificativa: string, destino?: 'comercial' | 'franquia') {
+    const { data } = await api.put(`/solicitacoes-estorno/${id}/reprovar`, { justificativa, destino })
     return data as SolicitacaoEstornoData
   },
 
