@@ -15,6 +15,7 @@ export interface VinculoData {
   cupons: { valor: number }[] | null
   status: 'aberto' | 'validacao_comercial' | 'validacao_financeiro' | 'tarefa_ti' | 'fechado'
   anexos: string[]
+  observacoes_financeiro: string | null
   justificativa_reprovacao: string | null
   destino_reprovacao: string | null
   criado_em: string
@@ -54,8 +55,8 @@ export const vinculoService = {
     return data as VinculoData
   },
 
-  async aprovar(id: number, anexos: string[] = [], necessario_financeiro?: boolean) {
-    const { data } = await api.put(`/vinculos/${id}/aprovar`, { anexos, necessario_financeiro })
+  async aprovar(id: number, anexos: string[] = [], necessario_financeiro?: boolean, observacoes_financeiro?: string) {
+    const { data } = await api.put(`/vinculos/${id}/aprovar`, { anexos, necessario_financeiro, observacoes_financeiro })
     return data as VinculoData
   },
 

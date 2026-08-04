@@ -1,9 +1,10 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, Fragment } from 'react'
 import { X, Check, XCircle, Upload, FileText, Image as ImageIcon, Pencil, Send, AlertTriangle } from 'lucide-react'
 import { VinculoData, vinculoService, uploadService } from '@/services/vinculo'
 import { MotivoSelect } from '@/components/motivo-select'
+import { AnexosGrid } from '@/components/anexos-grid'
 import { useMutation, useQueryClient, useQuery } from '@tanstack/react-query'
 import api from '@/lib/api'
 
@@ -29,8 +30,6 @@ const statusColors: Record<string, string> = {
   fechado: 'bg-brand-lime/25 text-brand-forest',
 }
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL || ''
-
 export function VinculoModal({ vinculo, onClose, modo }: VinculoModalProps) {
   const queryClient = useQueryClient()
   const [justificativa, setJustificativa] = useState('')
@@ -39,6 +38,7 @@ export function VinculoModal({ vinculo, onClose, modo }: VinculoModalProps) {
   const [enviando, setEnviando] = useState(false)
   const [destinoReprovacao, setDestinoReprovacao] = useState('franquia')
   const [necessarioFinanceiro, setNecessarioFinanceiro] = useState(vinculo.necessario_validacao)
+  const [observacoesFinanceiro, setObservacoesFinanceiro] = useState('')
 
   // Estado de edicao
   const [editando, setEditando] = useState(false)
@@ -97,7 +97,7 @@ export function VinculoModal({ vinculo, onClose, modo }: VinculoModalProps) {
       if (modo === 'comercial') {
         return vinculoService.aprovar(vinculo.id, [], necessarioFinanceiro)
       }
-      return vinculoService.aprovar(vinculo.id, anexoUrls)
+      return vinculoService.aprovar(vinculo.id, anexoUrls, undefined, observacoesFinanceiro || undefined)
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['vinculos'] })
@@ -432,38 +432,69 @@ export function VinculoModal({ vinculo, onClose, modo }: VinculoModalProps) {
               )}
 
               {/* Anexos */}
-              {vinculo.anexos && vinculo.anexos.length > 0 && (
-                <div>
-                  <p className="text-xs font-medium text-slate-500 uppercase tracking-wider mb-2">Anexos</p>
-                  <div className="space-y-2">
-                    {vinculo.anexos.map((anexo, i) => {
-                      const isImage = /\.(jpg|jpeg|png|gif|webp)$/i.test(anexo)
-                      const url = `${API_URL}${anexo}`
-                      return (
-                        <a key={i} href={url} target="_blank" rel="noopener noreferrer"
-                          className="block border border-slate-200 rounded-lg overflow-hidden hover:border-brand-teal hover:shadow-md transition-all cursor-pointer group"
-                        >
-                          {isImage ? (
-                            <div className="relative">
-                              <img src={url} alt={`Anexo ${i + 1}`} className="w-full max-h-48 object-contain bg-slate-50" />
-                              <div className="absolute inset-0 bg-black/0 group-hover:bg-black/10 transition-colors flex items-center justify-center">
-                                <span className="opacity-0 group-hover:opacity-100 bg-white/90 text-slate-700 text-xs font-medium px-3 py-1.5 rounded-full shadow transition-opacity">
-                                  Abrir em nova aba
-                                </span>
-                              </div>
-                            </div>
-                          ) : (
-                            <div className="flex items-center gap-2 px-3 py-2 text-sm text-brand-pine hover:bg-brand-teal/10 transition-colors">
-                              <FileText size={16} />
-                              {anexo.split('/').pop()}
-                            </div>
-                          )}
-                        </a>
-                      )
-                    })}
-                  </div>
+              <AnexosGrid anexos={vinculo.anexos} />
+
+              {/* Comprovante do Financeiro — visível para TI e leitura geral */}
+              {vinculo.observacoes_financeiro && (
+                <div className="bg-brand-khaki/10 border border-brand-khaki/30 rounded-xl px-4 py-3">
+                  <p className="text-xs font-semibold text-brand-umber uppercase tracking-wider mb-2">Comprovante de Pagamento (Financeiro)</p>
+                  <p className="text-sm text-slate-700 whitespace-pre-wrap">{vinculo.observacoes_financeiro}</p>
                 </div>
               )}
+
+              {/* Histórico do Fluxo */}
+              {(() => {
+                const comFinanceiro = vinculo.necessario_validacao || vinculo.status === 'validacao_financeiro'
+                const steps = [
+                  { key: 'franquia', label: 'Franquia' },
+                  { key: 'comercial', label: 'Comercial' },
+                  ...(comFinanceiro ? [{ key: 'financeiro', label: 'Financeiro' }] : []),
+                  { key: 'ti', label: 'TI' },
+                  { key: 'vinculado', label: 'Vinculado' },
+                ]
+                const currentKeyMap: Record<string, string> = {
+                  aberto: 'franquia',
+                  validacao_comercial: 'comercial',
+                  validacao_financeiro: 'financeiro',
+                  tarefa_ti: 'ti',
+                  fechado: 'vinculado',
+                }
+                const currentIdx = steps.findIndex(s => s.key === (currentKeyMap[vinculo.status] ?? 'franquia'))
+                const isFechado = vinculo.status === 'fechado'
+                return (
+                  <div className="bg-slate-50 border border-slate-100 rounded-xl px-4 py-3">
+                    <p className="text-xs font-medium text-slate-500 uppercase tracking-wider mb-3">Histórico do Fluxo</p>
+                    <div className="flex items-center">
+                      {steps.map((step, i) => {
+                        const done = isFechado || i < currentIdx
+                        const current = !isFechado && i === currentIdx
+                        return (
+                          <Fragment key={step.key}>
+                            <div className="flex flex-col items-center gap-1">
+                              <div className={`w-7 h-7 rounded-full flex items-center justify-center shrink-0 ${
+                                done ? 'bg-brand-pine' : current ? 'bg-brand-forest' : 'bg-slate-200'
+                              }`}>
+                                {done
+                                  ? <Check size={13} className="text-white" />
+                                  : current
+                                    ? <div className="w-2.5 h-2.5 rounded-full bg-brand-lime" />
+                                    : <div className="w-2.5 h-2.5 rounded-full bg-slate-400" />
+                                }
+                              </div>
+                              <span className={`text-[10px] font-medium text-center leading-tight ${
+                                done ? 'text-brand-pine' : current ? 'text-brand-forest' : 'text-slate-400'
+                              }`}>{step.label}</span>
+                            </div>
+                            {i < steps.length - 1 && (
+                              <div className={`flex-1 h-0.5 mb-4 ${done ? 'bg-brand-pine/40' : 'bg-slate-200'}`} />
+                            )}
+                          </Fragment>
+                        )
+                      })}
+                    </div>
+                  </div>
+                )
+              })()}
 
               {/* Toggle necessario_financeiro — só para comercial */}
               {podeAprovarReprovar && modo === 'comercial' && !mostrarReprovar && (
@@ -483,6 +514,20 @@ export function VinculoModal({ vinculo, onClose, modo }: VinculoModalProps) {
                   <p className="text-xs text-brand-umber/80 mt-1 ml-7">
                     {necessarioFinanceiro ? 'Irá para Financeiro → TI' : 'Irá direto para TI'}
                   </p>
+                </div>
+              )}
+
+              {/* Comprovante de pagamento — só financeiro */}
+              {podeAprovarReprovar && modo === 'financeiro' && !mostrarReprovar && (
+                <div>
+                  <p className="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-2">Comprovante de Pagamento</p>
+                  <textarea
+                    value={observacoesFinanceiro}
+                    onChange={(e) => setObservacoesFinanceiro(e.target.value)}
+                    placeholder="Cole aqui o comprovante de pagamento (valor pago, NSU, código de autorização, parcelas...)"
+                    className="w-full border border-slate-200 rounded-xl px-4 py-3 text-sm text-slate-700 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-brand-teal/60 transition-all resize-none"
+                    rows={5}
+                  />
                 </div>
               )}
 

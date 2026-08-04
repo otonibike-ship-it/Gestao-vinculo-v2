@@ -46,6 +46,7 @@ class VinculoResponse(BaseModel):
     cupons: Optional[list] = None
     status: StatusVinculo
     anexos: list[str] = []
+    observacoes_financeiro: Optional[str] = None
     justificativa_reprovacao: Optional[str] = None
     destino_reprovacao: Optional[str] = None
     criado_em: datetime
@@ -58,6 +59,7 @@ class VinculoResponse(BaseModel):
 class AprovarRequest(BaseModel):
     anexos: list[str] = []
     necessario_financeiro: Optional[bool] = None  # comercial pode sobrescrever
+    observacoes_financeiro: Optional[str] = None
 
 
 class ReprovarRequest(BaseModel):

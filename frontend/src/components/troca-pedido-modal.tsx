@@ -5,6 +5,7 @@ import { X, Check, XCircle, Upload, FileText, Image as ImageIcon, Pencil, Send, 
 import { TrocaPedidoData, trocaPedidoService } from '@/services/troca-pedido'
 import { uploadService } from '@/services/vinculo'
 import { TrocaMotivoSelect } from '@/components/troca-motivo-select'
+import { AnexosGrid } from '@/components/anexos-grid'
 import { useMutation, useQueryClient, useQuery } from '@tanstack/react-query'
 import api from '@/lib/api'
 
@@ -354,37 +355,7 @@ export function TrocaPedidoModal({ troca, onClose, modo }: TrocaPedidoModalProps
               )}
 
               {/* Anexos */}
-              {troca.anexos && troca.anexos.length > 0 && (
-                <div>
-                  <p className="text-xs font-medium text-slate-500 uppercase tracking-wider mb-2">Anexos</p>
-                  <div className="space-y-2">
-                    {troca.anexos.map((anexo, i) => {
-                      const isImage = /\.(jpg|jpeg|png|gif|webp)$/i.test(anexo)
-                      return (
-                        <a key={i} href={anexo} target="_blank" rel="noopener noreferrer"
-                          className="block border border-slate-200 rounded-lg overflow-hidden hover:border-brand-teal hover:shadow-md transition-all cursor-pointer group"
-                        >
-                          {isImage ? (
-                            <div className="relative">
-                              <img src={anexo} alt={`Anexo ${i + 1}`} className="w-full max-h-48 object-contain bg-slate-50" />
-                              <div className="absolute inset-0 bg-black/0 group-hover:bg-black/10 transition-colors flex items-center justify-center">
-                                <span className="opacity-0 group-hover:opacity-100 bg-white/90 text-slate-700 text-xs font-medium px-3 py-1.5 rounded-full shadow transition-opacity">
-                                  Abrir em nova aba
-                                </span>
-                              </div>
-                            </div>
-                          ) : (
-                            <div className="flex items-center gap-2 px-3 py-2 text-sm text-brand-pine hover:bg-brand-teal/10 transition-colors">
-                              <FileText size={16} />
-                              {anexo.split('/').pop()}
-                            </div>
-                          )}
-                        </a>
-                      )
-                    })}
-                  </div>
-                </div>
-              )}
+              <AnexosGrid anexos={troca.anexos} />
 
               {/* Destino — só comercial */}
               {podeAprovarReprovar && modo === 'comercial' && !mostrarReprovar && (

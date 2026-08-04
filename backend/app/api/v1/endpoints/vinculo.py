@@ -33,6 +33,7 @@ def _serialize(v: Vinculo, empresa: Empresa | None = None) -> dict:
         "cupons": v.cupons,
         "status": v.status.value if v.status else None,
         "anexos": v.anexos or [],
+        "observacoes_financeiro": v.observacoes_financeiro,
         "justificativa_reprovacao": v.justificativa_reprovacao,
         "destino_reprovacao": v.destino_reprovacao,
         "criado_em": v.criado_em.isoformat() if v.criado_em else None,
@@ -176,6 +177,8 @@ async def aprovar_vinculo(vinculo_id: int, payload: AprovarRequest, db: AsyncSes
         vinculo.status = StatusVinculo.tarefa_ti
         if payload.anexos:
             vinculo.anexos = (vinculo.anexos or []) + payload.anexos
+        if payload.observacoes_financeiro is not None:
+            vinculo.observacoes_financeiro = payload.observacoes_financeiro
 
     elif vinculo.status == StatusVinculo.tarefa_ti:
         vinculo.status = StatusVinculo.fechado

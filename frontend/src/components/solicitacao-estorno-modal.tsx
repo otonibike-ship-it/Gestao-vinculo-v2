@@ -4,6 +4,7 @@ import { useState } from 'react'
 import { X, Check, XCircle, Upload, FileText, Image as ImageIcon, Pencil, Send, AlertTriangle } from 'lucide-react'
 import { SolicitacaoEstornoData, solicitacaoEstornoService } from '@/services/solicitacao-estorno'
 import { uploadService } from '@/services/vinculo'
+import { AnexosGrid } from '@/components/anexos-grid'
 import { useMutation, useQueryClient, useQuery } from '@tanstack/react-query'
 import api from '@/lib/api'
 
@@ -335,32 +336,7 @@ export function SolicitacaoEstornoModal({ estorno, onClose, modo }: SolicitacaoE
                 <Campo label="Observação do Comercial" valor={estorno.observacao_comercial} />
               )}
 
-              {estorno.anexos && estorno.anexos.length > 0 && (
-                <div>
-                  <p className="text-xs font-medium text-slate-500 uppercase tracking-wider mb-2">Anexos</p>
-                  <div className="space-y-2">
-                    {estorno.anexos.map((anexo, i) => {
-                      const isImage = /\.(jpg|jpeg|png|gif|webp)$/i.test(anexo)
-                      return (
-                        <a key={i} href={anexo} target="_blank" rel="noopener noreferrer"
-                          className="block border border-slate-200 rounded-lg overflow-hidden hover:border-brand-teal hover:shadow-md transition-all cursor-pointer group"
-                        >
-                          {isImage ? (
-                            <div className="relative">
-                              <img src={anexo} alt={`Anexo ${i + 1}`} className="w-full max-h-48 object-contain bg-slate-50" />
-                            </div>
-                          ) : (
-                            <div className="flex items-center gap-2 px-3 py-2 text-sm text-brand-pine hover:bg-brand-teal/10 transition-colors">
-                              <FileText size={16} />
-                              {anexo.split('/').pop()}
-                            </div>
-                          )}
-                        </a>
-                      )
-                    })}
-                  </div>
-                </div>
-              )}
+              <AnexosGrid anexos={estorno.anexos} />
 
               {podeAprovarReprovar && modo === 'comercial' && !mostrarReprovar && (
                 <div className="bg-brand-olive/10 border border-brand-olive/30 rounded-xl px-4 py-3 space-y-3">

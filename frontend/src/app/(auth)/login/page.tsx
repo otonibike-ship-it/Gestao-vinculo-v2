@@ -45,7 +45,12 @@ export default function LoginPage() {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-brand-forest via-brand-forest to-black">
+    <div className="min-h-screen flex flex-col items-center justify-center bg-gradient-to-br from-brand-forest via-brand-forest to-black">
+      {/* Logo SenseBike */}
+      <div className="mb-6 w-full max-w-md px-4">
+        <img src="/logo.png" alt="SenseBike" className="w-full h-auto" />
+      </div>
+
       <div className="w-full max-w-md mx-4">
         <div className="bg-white rounded-2xl shadow-2xl p-10">
           {/* Titulo */}

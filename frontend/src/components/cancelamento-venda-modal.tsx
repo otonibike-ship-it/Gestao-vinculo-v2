@@ -1,9 +1,10 @@
 'use client'
 
 import { useState } from 'react'
-import { X, Check, XCircle, Upload, FileText, Image as ImageIcon, Pencil, Send, AlertTriangle } from 'lucide-react'
+import { X, Check, XCircle, Upload, Image as ImageIcon, Pencil, Send, AlertTriangle } from 'lucide-react'
 import { CancelamentoVendaData, cancelamentoVendaService } from '@/services/cancelamento-venda'
 import { uploadService } from '@/services/vinculo'
+import { AnexosGrid } from '@/components/anexos-grid'
 import { useMutation, useQueryClient, useQuery } from '@tanstack/react-query'
 import api from '@/lib/api'
 
@@ -104,33 +105,6 @@ export function CancelamentoVendaModal({ cancelamento, onClose, modo }: Cancelam
     try { await reprovarMutation.mutateAsync() } finally { setEnviando(false) }
   }
 
-  const AnexosList = ({ titulo, anexos }: { titulo: string; anexos: string[] }) => (
-    anexos.length === 0 ? null : (
-      <div>
-        <p className="text-xs font-medium text-slate-500 uppercase tracking-wider mb-2">{titulo}</p>
-        <div className="space-y-2">
-          {anexos.map((anexo, i) => {
-            const isImage = /\.(jpg|jpeg|png|gif|webp)$/i.test(anexo)
-            return (
-              <a key={i} href={anexo} target="_blank" rel="noopener noreferrer"
-                className="block border border-slate-200 rounded-lg overflow-hidden hover:border-brand-teal hover:shadow-md transition-all cursor-pointer group"
-              >
-                {isImage ? (
-                  <img src={anexo} alt={`Anexo ${i + 1}`} className="w-full max-h-40 object-contain bg-slate-50" />
-                ) : (
-                  <div className="flex items-center gap-2 px-3 py-2 text-sm text-brand-pine hover:bg-brand-teal/10 transition-colors">
-                    <FileText size={16} />
-                    {anexo.split('/').pop()}
-                  </div>
-                )}
-              </a>
-            )
-          })}
-        </div>
-      </div>
-    )
-  )
-
   return (
     <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4" onClick={onClose}>
       <div
@@ -185,7 +159,7 @@ export function CancelamentoVendaModal({ cancelamento, onClose, modo }: Cancelam
             </div>
             <Campo label="Modelo/Cor/Tamanho" valor={cancelamento.descricao_modelo} />
           </div>
-          <AnexosList titulo="Evidências de sinais de uso" anexos={cancelamento.anexos_evidencias_uso} />
+          <AnexosGrid titulo="Evidências de sinais de uso" anexos={cancelamento.anexos_evidencias_uso} />
 
           <div className="bg-slate-50 border border-slate-100 rounded-xl px-4 py-3 space-y-3">
             <p className="text-xs font-medium text-slate-500 uppercase tracking-wider">Cliente e pagamento</p>
@@ -201,7 +175,7 @@ export function CancelamentoVendaModal({ cancelamento, onClose, modo }: Cancelam
               <Campo label="Pago em +1 cartão?" valor={cancelamento.pago_mais_um_cartao ? 'Sim' : 'Não'} />
             </div>
           </div>
-          <AnexosList titulo="Imagens do Portal e Comprovante" anexos={cancelamento.anexos_portal_comprovante} />
+          <AnexosGrid titulo="Imagens do Portal e Comprovante" anexos={cancelamento.anexos_portal_comprovante} />
 
           {cancelamento.observacao_comercial && (
             <Campo label="Observação do Comercial" valor={cancelamento.observacao_comercial} />

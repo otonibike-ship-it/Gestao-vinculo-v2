@@ -29,6 +29,7 @@ class Vinculo(Base):
     cupons = Column(JSON, nullable=True)            # [{valor: float}]
     status = Column(Enum(StatusVinculo), default=StatusVinculo.validacao_comercial, nullable=False)
     anexos = Column(JSON, default=list)
+    observacoes_financeiro = Column(Text, nullable=True)
     justificativa_reprovacao = Column(Text, nullable=True)
     destino_reprovacao = Column(String(50), nullable=True)  # franquia | comercial | financeiro
     criado_em = Column(DateTime(timezone=True), server_default=func.now())

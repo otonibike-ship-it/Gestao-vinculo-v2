@@ -8,6 +8,7 @@ const inter = Inter({ subsets: ['latin'] })
 export const metadata: Metadata = {
   title: 'Gestão de Vínculo',
   description: 'Sistema de gestão de vínculos entre pessoas e empresas',
+  icons: { icon: '/favicon.png' },
 }
 
 export default function RootLayout({
