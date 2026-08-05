@@ -5,6 +5,7 @@ import { X, Check, XCircle, Upload, Image as ImageIcon, Pencil, Send, AlertTrian
 import { CancelamentoVendaData, cancelamentoVendaService } from '@/services/cancelamento-venda'
 import { uploadService } from '@/services/vinculo'
 import { AnexosGrid } from '@/components/anexos-grid'
+import { FluxoStepper } from '@/components/fluxo-stepper'
 import { useMutation, useQueryClient, useQuery } from '@tanstack/react-query'
 import api from '@/lib/api'
 
@@ -176,6 +177,31 @@ export function CancelamentoVendaModal({ cancelamento, onClose, modo }: Cancelam
             </div>
           </div>
           <AnexosGrid titulo="Imagens do Portal e Comprovante" anexos={cancelamento.anexos_portal_comprovante} />
+
+          {/* Histórico do Fluxo */}
+          {(() => {
+            const equipeLabel =
+              cancelamento.status === 'aguardando_faturamento' ? 'Faturamento' :
+              cancelamento.status === 'aguardando_financeiro' ? 'Financeiro' :
+              cancelamento.status === 'aguardando_ti' ? 'TI' :
+              'Equipe'
+            const steps = [
+              { key: 'franquia', label: 'Franquia' },
+              { key: 'comercial', label: 'Comercial' },
+              { key: 'equipe', label: equipeLabel },
+              { key: 'concluido', label: 'Concluído' },
+            ]
+            const currentKeyMap: Record<string, string> = {
+              aberto: 'franquia',
+              aguardando_comercial: 'comercial',
+              aguardando_faturamento: 'equipe',
+              aguardando_financeiro: 'equipe',
+              aguardando_ti: 'equipe',
+              fechado: 'concluido',
+            }
+            const currentIdx = steps.findIndex(s => s.key === (currentKeyMap[cancelamento.status] ?? 'franquia'))
+            return <FluxoStepper steps={steps} currentIndex={currentIdx} isFechado={cancelamento.status === 'fechado'} />
+          })()}
 
           {cancelamento.observacao_comercial && (
             <Campo label="Observação do Comercial" valor={cancelamento.observacao_comercial} />

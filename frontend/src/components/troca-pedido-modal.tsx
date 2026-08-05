@@ -6,6 +6,7 @@ import { TrocaPedidoData, trocaPedidoService } from '@/services/troca-pedido'
 import { uploadService } from '@/services/vinculo'
 import { TrocaMotivoSelect } from '@/components/troca-motivo-select'
 import { AnexosGrid } from '@/components/anexos-grid'
+import { FluxoStepper } from '@/components/fluxo-stepper'
 import { useMutation, useQueryClient, useQuery } from '@tanstack/react-query'
 import api from '@/lib/api'
 
@@ -423,6 +424,26 @@ export function TrocaPedidoModal({ troca, onClose, modo }: TrocaPedidoModalProps
 
               {/* Anexos */}
               <AnexosGrid anexos={troca.anexos} />
+
+              {/* Histórico do Fluxo */}
+              {(() => {
+                const steps = [
+                  { key: 'franquia', label: 'Franquia' },
+                  { key: 'comercial', label: 'Comercial' },
+                  { key: 'faturamento', label: 'Faturamento' },
+                  { key: 'ti', label: 'TI' },
+                  { key: 'finalizado', label: 'Finalizado' },
+                ]
+                const currentKeyMap: Record<string, string> = {
+                  aberto: 'franquia',
+                  aguardando_comercial: 'comercial',
+                  aguardando_faturamento: 'faturamento',
+                  aguardando_ti: 'ti',
+                  fechado: 'finalizado',
+                }
+                const currentIdx = steps.findIndex(s => s.key === (currentKeyMap[troca.status] ?? 'franquia'))
+                return <FluxoStepper steps={steps} currentIndex={currentIdx} isFechado={troca.status === 'fechado'} />
+              })()}
 
               {/* Observação opcional — só comercial (segue fixo pro Faturamento) */}
               {podeAprovarReprovar && modo === 'comercial' && !mostrarReprovar && (

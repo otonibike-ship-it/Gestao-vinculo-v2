@@ -5,6 +5,7 @@ import { X, Check, XCircle, Upload, FileText, Image as ImageIcon, Pencil, Send, 
 import { LinkPagamentoData, linkPagamentoService } from '@/services/link-pagamento'
 import { uploadService } from '@/services/vinculo'
 import { AnexosGrid } from '@/components/anexos-grid'
+import { FluxoStepper } from '@/components/fluxo-stepper'
 import { useMutation, useQueryClient, useQuery } from '@tanstack/react-query'
 import api from '@/lib/api'
 
@@ -390,6 +391,24 @@ export function LinkPagamentoModal({ link, onClose, modo }: LinkPagamentoModalPr
               )}
 
               <AnexosGrid anexos={link.anexos} />
+
+              {/* Histórico do Fluxo */}
+              {(() => {
+                const steps = [
+                  { key: 'franquia', label: 'Franquia' },
+                  { key: 'comercial', label: 'Comercial' },
+                  { key: 'financeiro', label: 'Financeiro' },
+                  { key: 'concluido', label: 'Link Gerado' },
+                ]
+                const currentKeyMap: Record<string, string> = {
+                  aberto: 'franquia',
+                  aguardando_comercial: 'comercial',
+                  aguardando_financeiro: 'financeiro',
+                  fechado: 'concluido',
+                }
+                const currentIdx = steps.findIndex(s => s.key === (currentKeyMap[link.status] ?? 'franquia'))
+                return <FluxoStepper steps={steps} currentIndex={currentIdx} isFechado={link.status === 'fechado'} />
+              })()}
 
               {/* Link gerado obrigatório — só financeiro */}
               {podeAprovarReprovar && modo === 'financeiro' && !mostrarReprovar && (

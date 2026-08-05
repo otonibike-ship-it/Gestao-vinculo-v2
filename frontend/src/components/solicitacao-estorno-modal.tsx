@@ -5,6 +5,7 @@ import { X, Check, XCircle, Upload, FileText, Image as ImageIcon, Pencil, Send, 
 import { SolicitacaoEstornoData, solicitacaoEstornoService } from '@/services/solicitacao-estorno'
 import { uploadService } from '@/services/vinculo'
 import { AnexosGrid } from '@/components/anexos-grid'
+import { FluxoStepper } from '@/components/fluxo-stepper'
 import { useMutation, useQueryClient, useQuery } from '@tanstack/react-query'
 import api from '@/lib/api'
 
@@ -335,6 +336,24 @@ export function SolicitacaoEstornoModal({ estorno, onClose, modo }: SolicitacaoE
               )}
 
               <AnexosGrid anexos={estorno.anexos} />
+
+              {/* Histórico do Fluxo */}
+              {(() => {
+                const steps = [
+                  { key: 'franquia', label: 'Franquia' },
+                  { key: 'comercial', label: 'Comercial' },
+                  { key: 'financeiro', label: 'Financeiro' },
+                  { key: 'concluido', label: 'Estorno Realizado' },
+                ]
+                const currentKeyMap: Record<string, string> = {
+                  aberto: 'franquia',
+                  aguardando_comercial: 'comercial',
+                  aguardando_financeiro: 'financeiro',
+                  fechado: 'concluido',
+                }
+                const currentIdx = steps.findIndex(s => s.key === (currentKeyMap[estorno.status] ?? 'franquia'))
+                return <FluxoStepper steps={steps} currentIndex={currentIdx} isFechado={estorno.status === 'fechado'} />
+              })()}
 
               {podeAprovarReprovar && modo === 'comercial' && !mostrarReprovar && (
                 <div>

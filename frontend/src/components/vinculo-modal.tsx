@@ -1,10 +1,11 @@
 'use client'
 
-import { useState, useEffect, Fragment } from 'react'
+import { useState, useEffect } from 'react'
 import { X, Check, XCircle, Upload, FileText, Image as ImageIcon, Pencil, Send, AlertTriangle } from 'lucide-react'
 import { VinculoData, vinculoService, uploadService } from '@/services/vinculo'
 import { MotivoSelect } from '@/components/motivo-select'
 import { AnexosGrid } from '@/components/anexos-grid'
+import { FluxoStepper } from '@/components/fluxo-stepper'
 import { useMutation, useQueryClient, useQuery } from '@tanstack/react-query'
 import api from '@/lib/api'
 
@@ -460,40 +461,7 @@ export function VinculoModal({ vinculo, onClose, modo }: VinculoModalProps) {
                   fechado: 'vinculado',
                 }
                 const currentIdx = steps.findIndex(s => s.key === (currentKeyMap[vinculo.status] ?? 'franquia'))
-                const isFechado = vinculo.status === 'fechado'
-                return (
-                  <div className="bg-slate-50 border border-slate-100 rounded-xl px-4 py-3">
-                    <p className="text-xs font-medium text-slate-500 uppercase tracking-wider mb-3">Histórico do Fluxo</p>
-                    <div className="flex items-center">
-                      {steps.map((step, i) => {
-                        const done = isFechado || i < currentIdx
-                        const current = !isFechado && i === currentIdx
-                        return (
-                          <Fragment key={step.key}>
-                            <div className="flex flex-col items-center gap-1">
-                              <div className={`w-7 h-7 rounded-full flex items-center justify-center shrink-0 ${
-                                done ? 'bg-brand-pine' : current ? 'bg-brand-forest' : 'bg-slate-200'
-                              }`}>
-                                {done
-                                  ? <Check size={13} className="text-white" />
-                                  : current
-                                    ? <div className="w-2.5 h-2.5 rounded-full bg-brand-lime" />
-                                    : <div className="w-2.5 h-2.5 rounded-full bg-slate-400" />
-                                }
-                              </div>
-                              <span className={`text-[10px] font-medium text-center leading-tight ${
-                                done ? 'text-brand-pine' : current ? 'text-brand-forest' : 'text-slate-400'
-                              }`}>{step.label}</span>
-                            </div>
-                            {i < steps.length - 1 && (
-                              <div className={`flex-1 h-0.5 mb-4 ${done ? 'bg-brand-pine/40' : 'bg-slate-200'}`} />
-                            )}
-                          </Fragment>
-                        )
-                      })}
-                    </div>
-                  </div>
-                )
+                return <FluxoStepper steps={steps} currentIndex={currentIdx} isFechado={vinculo.status === 'fechado'} />
               })()}
 
               {/* Toggle necessario_financeiro — só para comercial */}

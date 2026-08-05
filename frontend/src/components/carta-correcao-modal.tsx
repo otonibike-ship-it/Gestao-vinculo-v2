@@ -6,6 +6,7 @@ import { CartaCorrecaoData, cartaCorrecaoService } from '@/services/carta-correc
 import { uploadService } from '@/services/vinculo'
 import { CampoCorrecaoSelect, MotivoDivergenciaSelect, CAMPO_CORRECAO_OPCOES } from '@/components/carta-correcao-selects'
 import { AnexosGrid } from '@/components/anexos-grid'
+import { FluxoStepper } from '@/components/fluxo-stepper'
 import { useMutation, useQueryClient, useQuery } from '@tanstack/react-query'
 import api from '@/lib/api'
 
@@ -309,6 +310,24 @@ export function CartaCorrecaoModal({ carta, onClose, modo }: CartaCorrecaoModalP
               )}
 
               <AnexosGrid anexos={carta.anexos} />
+
+              {/* Histórico do Fluxo */}
+              {(() => {
+                const steps = [
+                  { key: 'franquia', label: 'Franquia' },
+                  { key: 'comercial', label: 'Comercial' },
+                  { key: 'financeiro', label: 'Financeiro' },
+                  { key: 'concluido', label: 'Carta Gerada' },
+                ]
+                const currentKeyMap: Record<string, string> = {
+                  aberto: 'franquia',
+                  aguardando_comercial: 'comercial',
+                  aguardando_financeiro: 'financeiro',
+                  fechado: 'concluido',
+                }
+                const currentIdx = steps.findIndex(s => s.key === (currentKeyMap[carta.status] ?? 'franquia'))
+                return <FluxoStepper steps={steps} currentIndex={currentIdx} isFechado={carta.status === 'fechado'} />
+              })()}
 
               {podeAprovarReprovar && modo === 'comercial' && !mostrarReprovar && (
                 <div>
