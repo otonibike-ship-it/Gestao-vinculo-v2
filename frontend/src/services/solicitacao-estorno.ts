@@ -6,12 +6,12 @@ export interface SolicitacaoEstornoData {
   franquia_nome: string
   motivo: string
   vendedor: string
-  numero_pedido: string
+  numero_pedido: string | null
   data_pedido: string
   nome_cliente: string
   cpf: string
   data_pagamento: string
-  valor_pedido_portal: number
+  valor_pedido_portal: number | null
   valor_total_pago: number
   valor_devolver: number
   status: 'aberto' | 'aguardando_comercial' | 'aguardando_faturamento' | 'aguardando_financeiro' | 'aguardando_ti' | 'fechado'
@@ -27,12 +27,12 @@ export interface SolicitacaoEstornoCreatePayload {
   franquia_id: number
   motivo: string
   vendedor: string
-  numero_pedido: string
+  numero_pedido?: string
   data_pedido: string
   nome_cliente: string
   cpf: string
   data_pagamento: string
-  valor_pedido_portal: number
+  valor_pedido_portal?: number
   valor_total_pago: number
   valor_devolver: number
   anexos?: string[]

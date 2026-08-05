@@ -18,12 +18,12 @@ class SolicitacaoEstornoCreate(BaseModel):
     franquia_id: int
     motivo: str
     vendedor: str
-    numero_pedido: str
+    numero_pedido: Optional[str] = None
     data_pedido: date
     nome_cliente: str
     cpf: str
     data_pagamento: date
-    valor_pedido_portal: Decimal
+    valor_pedido_portal: Optional[Decimal] = None
     valor_total_pago: Decimal
     valor_devolver: Decimal
     anexos: list[str] = []
@@ -35,12 +35,12 @@ class SolicitacaoEstornoResponse(BaseModel):
     franquia_nome: Optional[str] = None
     motivo: str
     vendedor: str
-    numero_pedido: str
+    numero_pedido: Optional[str] = None
     data_pedido: date
     nome_cliente: str
     cpf: str
     data_pagamento: date
-    valor_pedido_portal: Decimal
+    valor_pedido_portal: Optional[Decimal] = None
     valor_total_pago: Decimal
     valor_devolver: Decimal
     status: StatusSolicitacaoEstorno
@@ -69,12 +69,12 @@ class ReenviarEstornoRequest(BaseModel):
     franquia_id: int
     motivo: str
     vendedor: str
-    numero_pedido: str
+    numero_pedido: Optional[str] = None
     data_pedido: date
     nome_cliente: str
     cpf: str
     data_pagamento: date
-    valor_pedido_portal: Decimal
+    valor_pedido_portal: Optional[Decimal] = None
     valor_total_pago: Decimal
     valor_devolver: Decimal
     anexos: list[str] = []

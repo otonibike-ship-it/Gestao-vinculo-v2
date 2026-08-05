@@ -134,7 +134,7 @@ export default function ComercialPage() {
     if (!busca) return true
     const termo = busca.toLowerCase()
     return (
-      e.numero_pedido.toLowerCase().includes(termo) ||
+      (e.numero_pedido || '').toLowerCase().includes(termo) ||
       e.nome_cliente.toLowerCase().includes(termo) ||
       e.franquia_nome.toLowerCase().includes(termo)
     )
@@ -456,7 +456,7 @@ export default function ComercialPage() {
                 <tbody className="divide-y divide-slate-50">
                   {estornosFiltrados.map((e) => (
                     <tr key={e.id} onClick={() => setSelecionadoEstorno(e)} className="hover:bg-brand-mist/60 transition-colors cursor-pointer">
-                      <td className="px-5 py-3 font-medium text-slate-800">{e.numero_pedido}</td>
+                      <td className="px-5 py-3 font-medium text-slate-800">{e.numero_pedido || '—'}</td>
                       <td className="px-5 py-3 text-slate-600">{e.franquia_nome}</td>
                       <td className="px-5 py-3 text-slate-600">{e.nome_cliente}</td>
                       <td className="px-5 py-3 text-slate-600">

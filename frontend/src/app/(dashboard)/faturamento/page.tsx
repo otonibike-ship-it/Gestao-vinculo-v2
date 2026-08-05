@@ -65,7 +65,7 @@ export default function FaturamentoPage() {
   const estornosFiltrados = estornos?.filter((e) => {
     if (!busca) return true
     const t = busca.toLowerCase()
-    return e.numero_pedido.toLowerCase().includes(t) || e.nome_cliente.toLowerCase().includes(t) || e.franquia_nome.toLowerCase().includes(t)
+    return (e.numero_pedido || '').toLowerCase().includes(t) || e.nome_cliente.toLowerCase().includes(t) || e.franquia_nome.toLowerCase().includes(t)
   })
   const cancelamentosFiltrados = cancelamentos?.filter((c) => {
     if (!busca) return true
@@ -210,7 +210,7 @@ export default function FaturamentoPage() {
         colunas={['N. Pedido', 'Franquia', 'Cliente', 'Valor a Devolver', 'Anexos']}
         renderRow={(e) => (
           <>
-            <td className="px-5 py-3 font-medium text-slate-800">{e.numero_pedido}</td>
+            <td className="px-5 py-3 font-medium text-slate-800">{e.numero_pedido || '—'}</td>
             <td className="px-5 py-3 text-slate-600">{e.franquia_nome}</td>
             <td className="px-5 py-3 text-slate-600">{e.nome_cliente}</td>
             <td className="px-5 py-3 text-slate-600">R$ {Number(e.valor_devolver).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</td>

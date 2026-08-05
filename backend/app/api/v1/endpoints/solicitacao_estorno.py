@@ -116,7 +116,7 @@ async def criar_estorno(payload: SolicitacaoEstornoCreate, db: AsyncSession = De
     result = await _enrich(estorno, db)
 
     asyncio.create_task(email_svc.notificar_novo_pedido_estorno(
-        payload.numero_pedido, payload.vendedor, result.get("franquia_nome", "")
+        payload.numero_pedido or "Sinal/Garantia (sem pedido)", payload.vendedor, result.get("franquia_nome", "")
     ))
     return result
 
@@ -147,7 +147,7 @@ async def aprovar_estorno(estorno_id: int, payload: AprovarEstornoRequest, db: A
     result = await _enrich(estorno, db)
 
     franquia_nome = result.get("franquia_nome", "")
-    numero = estorno.numero_pedido
+    numero = estorno.numero_pedido or "Sinal/Garantia (sem pedido)"
     vendedor = estorno.vendedor
     if estorno.status == StatusSolicitacaoEstorno.aguardando_financeiro:
         email_financeiro = await db.scalar(
@@ -196,7 +196,7 @@ async def reprovar_estorno(estorno_id: int, payload: ReprovarEstornoRequest, db:
     await db.refresh(estorno)
     result = await _enrich(estorno, db)
 
-    numero = estorno.numero_pedido
+    numero = estorno.numero_pedido or "Sinal/Garantia (sem pedido)"
     if destino == "franquia":
         u = await db.scalar(select(Usuario).where(
             Usuario.franquia_id == estorno.franquia_id,

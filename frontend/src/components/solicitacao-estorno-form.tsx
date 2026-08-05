@@ -65,12 +65,10 @@ export default function SolicitacaoEstornoForm({ voltarPara }: Props) {
     !!franquiaId &&
     !!motivo.trim() &&
     !!vendedor.trim() &&
-    !!numeroPedido.trim() &&
     !!dataPedido &&
     !!nomeCliente.trim() &&
     cpf.replace(/\D/g, '').length === 11 &&
     !!dataPagamento &&
-    !!valorPedidoPortal && parseFloat(valorPedidoPortal) > 0 &&
     !!valorTotalPago && parseFloat(valorTotalPago) > 0 &&
     !!valorDevolver && parseFloat(valorDevolver) > 0 &&
     arquivos.length > 0
@@ -82,12 +80,11 @@ export default function SolicitacaoEstornoForm({ voltarPara }: Props) {
     if (!franquiaId) { setErro('Selecione a franquia'); return }
     if (!motivo.trim()) { setErro('Informe o motivo do pagamento a mais'); return }
     if (!vendedor.trim()) { setErro('Nome do vendedor é obrigatório'); return }
-    if (!numeroPedido.trim()) { setErro('Número do pedido é obrigatório'); return }
     if (!dataPedido) { setErro('Data do pedido é obrigatória'); return }
     if (!nomeCliente.trim()) { setErro('Nome do cliente é obrigatório'); return }
     if (cpf.replace(/\D/g, '').length !== 11) { setErro('CPF inválido'); return }
     if (!dataPagamento) { setErro('Data do pagamento é obrigatória'); return }
-    if (!valorPedidoPortal || parseFloat(valorPedidoPortal) <= 0) { setErro('Valor do pedido no portal inválido'); return }
+    if (valorPedidoPortal && parseFloat(valorPedidoPortal) <= 0) { setErro('Valor do pedido no portal inválido'); return }
     if (!valorTotalPago || parseFloat(valorTotalPago) <= 0) { setErro('Valor total pago inválido'); return }
     if (!valorDevolver || parseFloat(valorDevolver) <= 0) { setErro('Valor a devolver inválido'); return }
     if (arquivos.length === 0) { setErro('Anexe o comprovante de pagamento'); return }
@@ -101,12 +98,12 @@ export default function SolicitacaoEstornoForm({ voltarPara }: Props) {
         franquia_id: franquiaId,
         motivo: motivo.trim(),
         vendedor: vendedor.trim(),
-        numero_pedido: numeroPedido.trim(),
+        numero_pedido: numeroPedido.trim() || undefined,
         data_pedido: dataPedido,
         nome_cliente: nomeCliente.trim(),
         cpf: cpf.trim(),
         data_pagamento: dataPagamento,
-        valor_pedido_portal: parseFloat(valorPedidoPortal),
+        valor_pedido_portal: valorPedidoPortal ? parseFloat(valorPedidoPortal) : undefined,
         valor_total_pago: parseFloat(valorTotalPago),
         valor_devolver: parseFloat(valorDevolver),
         anexos: anexoUrls,

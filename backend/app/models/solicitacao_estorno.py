@@ -21,12 +21,12 @@ class SolicitacaoEstorno(Base):
     franquia_id = Column(Integer, ForeignKey("empresas.id"), nullable=False, index=True)
     motivo = Column(Text, nullable=False)
     vendedor = Column(String(200), nullable=False)
-    numero_pedido = Column(String(50), nullable=False, index=True)
+    numero_pedido = Column(String(50), nullable=True, index=True)  # opcional: pode ser so um sinal/garantia, sem pedido
     data_pedido = Column(Date, nullable=False)
     nome_cliente = Column(Text, nullable=False)
     cpf = Column(String(14), nullable=False)
     data_pagamento = Column(Date, nullable=False)
-    valor_pedido_portal = Column(Numeric(12, 2), nullable=False)
+    valor_pedido_portal = Column(Numeric(12, 2), nullable=True)  # opcional: pode ser so um sinal/garantia, sem pedido
     valor_total_pago = Column(Numeric(12, 2), nullable=False)
     valor_devolver = Column(Numeric(12, 2), nullable=False)
     status = Column(Enum(StatusSolicitacaoEstorno), default=StatusSolicitacaoEstorno.aguardando_comercial, nullable=False)

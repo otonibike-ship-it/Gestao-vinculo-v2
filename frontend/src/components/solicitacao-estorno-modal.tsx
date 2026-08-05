@@ -53,12 +53,12 @@ export function SolicitacaoEstornoModal({ estorno, onClose, modo }: SolicitacaoE
   const [formFranquiaId, setFormFranquiaId] = useState(estorno.franquia_id)
   const [formMotivo, setFormMotivo] = useState(estorno.motivo)
   const [formVendedor, setFormVendedor] = useState(estorno.vendedor)
-  const [formNumeroPedido, setFormNumeroPedido] = useState(estorno.numero_pedido)
+  const [formNumeroPedido, setFormNumeroPedido] = useState(estorno.numero_pedido || '')
   const [formDataPedido, setFormDataPedido] = useState(estorno.data_pedido)
   const [formNomeCliente, setFormNomeCliente] = useState(estorno.nome_cliente)
   const [formCpf, setFormCpf] = useState(estorno.cpf)
   const [formDataPagamento, setFormDataPagamento] = useState(estorno.data_pagamento)
-  const [formValorPedidoPortal, setFormValorPedidoPortal] = useState(String(estorno.valor_pedido_portal))
+  const [formValorPedidoPortal, setFormValorPedidoPortal] = useState(estorno.valor_pedido_portal != null ? String(estorno.valor_pedido_portal) : '')
   const [formValorTotalPago, setFormValorTotalPago] = useState(String(estorno.valor_total_pago))
   const [formValorDevolver, setFormValorDevolver] = useState(String(estorno.valor_devolver))
   const [formAnexos, setFormAnexos] = useState<string[]>(estorno.anexos || [])
@@ -119,12 +119,12 @@ export function SolicitacaoEstornoModal({ estorno, onClose, modo }: SolicitacaoE
         franquia_id: formFranquiaId,
         motivo: formMotivo,
         vendedor: formVendedor,
-        numero_pedido: formNumeroPedido,
+        numero_pedido: formNumeroPedido.trim() || undefined,
         data_pedido: formDataPedido,
         nome_cliente: formNomeCliente,
         cpf: formCpf,
         data_pagamento: formDataPagamento,
-        valor_pedido_portal: parseFloat(formValorPedidoPortal),
+        valor_pedido_portal: formValorPedidoPortal ? parseFloat(formValorPedidoPortal) : undefined,
         valor_total_pago: parseFloat(formValorTotalPago),
         valor_devolver: parseFloat(formValorDevolver),
         anexos: todosAnexos,
@@ -148,7 +148,7 @@ export function SolicitacaoEstornoModal({ estorno, onClose, modo }: SolicitacaoE
   }
 
   const handleReenviar = async () => {
-    if (!formNumeroPedido.trim() || formCpf.replace(/\D/g, '').length !== 11 || !formDataPedido || !formDataPagamento) return
+    if (formCpf.replace(/\D/g, '').length !== 11 || !formDataPedido || !formDataPagamento) return
     setEnviando(true)
     try { await reenviarMutation.mutateAsync() } finally { setEnviando(false) }
   }
@@ -165,7 +165,7 @@ export function SolicitacaoEstornoModal({ estorno, onClose, modo }: SolicitacaoE
         <div className="flex items-center justify-between px-6 py-4 border-b border-slate-100">
           <div>
             <h3 className="text-lg font-semibold text-slate-800">
-              Estorno {estorno.numero_pedido}
+              Estorno {estorno.numero_pedido || 'Sinal/Garantia'}
               {editando && <span className="text-sm font-normal text-brand-umber ml-2">— Editando</span>}
             </h3>
             <span className={`inline-block mt-1 text-xs font-medium px-2.5 py-1 rounded-full ${statusColors[estorno.status] || 'bg-slate-100 text-slate-600'}`}>
@@ -310,7 +310,7 @@ export function SolicitacaoEstornoModal({ estorno, onClose, modo }: SolicitacaoE
 
               <div className="bg-slate-50 border border-slate-100 rounded-xl px-4 py-3 space-y-3">
                 <div className="grid grid-cols-2 gap-4">
-                  <Campo label="N. do Pedido" valor={estorno.numero_pedido} />
+                  <Campo label="N. do Pedido" valor={estorno.numero_pedido || 'Sinal/Garantia (sem pedido)'} />
                   <Campo label="Data do Pedido" valor={estorno.data_pedido ? new Date(estorno.data_pedido + 'T00:00:00').toLocaleDateString('pt-BR') : '—'} />
                   <Campo label="Data do Pagamento" valor={estorno.data_pagamento ? new Date(estorno.data_pagamento + 'T00:00:00').toLocaleDateString('pt-BR') : '—'} />
                 </div>
@@ -324,7 +324,7 @@ export function SolicitacaoEstornoModal({ estorno, onClose, modo }: SolicitacaoE
               <div className="bg-slate-50 border border-slate-100 rounded-xl px-4 py-3 space-y-3">
                 <p className="text-xs font-medium text-slate-500 uppercase tracking-wider">Valores</p>
                 <div className="grid grid-cols-1 gap-2">
-                  <Campo label="Valor do Pedido no Portal" valor={`R$ ${Number(estorno.valor_pedido_portal).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`} />
+                  <Campo label="Valor do Pedido no Portal" valor={estorno.valor_pedido_portal != null ? `R$ ${Number(estorno.valor_pedido_portal).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}` : '—'} />
                   <Campo label="Valor total pago" valor={`R$ ${Number(estorno.valor_total_pago).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`} />
                   <Campo label="Valor a devolver" valor={`R$ ${Number(estorno.valor_devolver).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`} />
                 </div>
@@ -435,7 +435,7 @@ export function SolicitacaoEstornoModal({ estorno, onClose, modo }: SolicitacaoE
               </button>
               <button
                 onClick={handleReenviar}
-                disabled={enviando || !formNumeroPedido.trim() || formCpf.replace(/\D/g, '').length !== 11 || !formDataPedido || !formDataPagamento}
+                disabled={enviando || formCpf.replace(/\D/g, '').length !== 11 || !formDataPedido || !formDataPagamento}
                 className="flex-1 py-2.5 px-4 rounded-xl text-sm font-medium text-white bg-brand-pine hover:bg-brand-forest transition-colors disabled:opacity-50 flex items-center justify-center gap-2"
               >
                 <Send size={16} />

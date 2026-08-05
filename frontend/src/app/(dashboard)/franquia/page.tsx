@@ -137,7 +137,7 @@ export default function FranquiaPage() {
   const estornosFiltrados = estornos?.filter((e) => {
     if (!busca) return true
     const t = busca.toLowerCase()
-    return e.numero_pedido.toLowerCase().includes(t) || e.nome_cliente.toLowerCase().includes(t)
+    return (e.numero_pedido || '').toLowerCase().includes(t) || e.nome_cliente.toLowerCase().includes(t)
   })
   const estornosAtivos = estornosFiltrados?.filter(e => e.status !== 'aberto') ?? []
   const estornosReprovados = estornosFiltrados?.filter(e => e.status === 'aberto') ?? []
@@ -447,7 +447,7 @@ export default function FranquiaPage() {
         vazio="Nenhuma solicitação de estorno em andamento"
         renderRow={(e) => (
           <>
-            <td className="px-5 py-3 font-medium text-slate-800">{e.numero_pedido}</td>
+            <td className="px-5 py-3 font-medium text-slate-800">{e.numero_pedido || '—'}</td>
             <td className="px-5 py-3 text-slate-600">{e.nome_cliente}</td>
             <td className="px-5 py-3 text-slate-600">
               R$ {Number(e.valor_devolver).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
