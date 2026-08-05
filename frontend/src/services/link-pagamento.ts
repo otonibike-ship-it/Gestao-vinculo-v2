@@ -71,8 +71,8 @@ export const linkPagamentoService = {
     return data as LinkPagamentoData
   },
 
-  async reprovar(id: number, justificativa: string, destino?: 'comercial' | 'franquia') {
-    const { data } = await api.put(`/links-pagamento/${id}/reprovar`, { justificativa, destino })
+  async reprovar(id: number, justificativa: string) {
+    const { data } = await api.put(`/links-pagamento/${id}/reprovar`, { justificativa })
     return data as LinkPagamentoData
   },
 

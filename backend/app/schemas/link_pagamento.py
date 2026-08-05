@@ -1,5 +1,5 @@
 from pydantic import BaseModel
-from typing import Optional, Literal
+from typing import Optional
 from datetime import datetime, date
 from decimal import Decimal
 from enum import Enum
@@ -65,14 +65,13 @@ class LinkPagamentoResponse(BaseModel):
 
 
 class AprovarLinkRequest(BaseModel):
-    observacao: Optional[str] = None  # obrigatorio na etapa comercial
+    observacao: Optional[str] = None
     link_gerado: Optional[str] = None  # obrigatorio na etapa financeiro
     anexos: list[str] = []
 
 
 class ReprovarLinkRequest(BaseModel):
     justificativa: str
-    destino: Optional[Literal["comercial", "franquia"]] = None
 
 
 class ReenviarLinkRequest(BaseModel):

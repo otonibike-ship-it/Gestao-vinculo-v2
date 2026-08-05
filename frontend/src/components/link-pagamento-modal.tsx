@@ -55,8 +55,6 @@ export function LinkPagamentoModal({ link, onClose, modo }: LinkPagamentoModalPr
   const [mostrarReprovar, setMostrarReprovar] = useState(false)
   const [arquivosAprovacao, setArquivosAprovacao] = useState<File[]>([])
   const [enviando, setEnviando] = useState(false)
-  const [destinoReprovacao, setDestinoReprovacao] = useState<'comercial' | 'franquia'>('comercial')
-  const [observacao, setObservacao] = useState('')
   const [linkGerado, setLinkGerado] = useState('')
 
   // Estado de edicao
@@ -102,7 +100,7 @@ export function LinkPagamentoModal({ link, onClose, modo }: LinkPagamentoModalPr
   const aprovarMutation = useMutation({
     mutationFn: async () => {
       if (modo === 'comercial') {
-        return linkPagamentoService.aprovar(link.id, { observacao })
+        return linkPagamentoService.aprovar(link.id, {})
       }
       const resultados = await Promise.all(arquivosAprovacao.map(arq => uploadService.upload(arq)))
       const anexoUrls = resultados.map(r => r.url)
@@ -115,11 +113,7 @@ export function LinkPagamentoModal({ link, onClose, modo }: LinkPagamentoModalPr
   })
 
   const reprovarMutation = useMutation({
-    mutationFn: () => linkPagamentoService.reprovar(
-      link.id,
-      justificativa,
-      modo === 'comercial' ? undefined : destinoReprovacao
-    ),
+    mutationFn: () => linkPagamentoService.reprovar(link.id, justificativa),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['links-pagamento'] })
       onClose()
@@ -156,7 +150,6 @@ export function LinkPagamentoModal({ link, onClose, modo }: LinkPagamentoModalPr
   })
 
   const handleAprovar = async () => {
-    if (modo === 'comercial' && !observacao.trim()) return
     if (modo === 'financeiro' && !linkGerado.trim()) return
     setEnviando(true)
     try { await aprovarMutation.mutateAsync() } finally { setEnviando(false) }
@@ -398,20 +391,6 @@ export function LinkPagamentoModal({ link, onClose, modo }: LinkPagamentoModalPr
 
               <AnexosGrid anexos={link.anexos} />
 
-              {/* Observação obrigatória — só comercial (segue fixo pro Financeiro) */}
-              {podeAprovarReprovar && modo === 'comercial' && !mostrarReprovar && (
-                <div>
-                  <p className="text-xs font-medium text-slate-500 uppercase tracking-wider mb-2">Observação (obrigatória)</p>
-                  <textarea
-                    value={observacao}
-                    onChange={(e) => setObservacao(e.target.value)}
-                    placeholder="Informação para o Financeiro gerar o link..."
-                    className="w-full border border-slate-200 rounded-xl px-4 py-3 text-sm text-slate-700 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-brand-teal/60 transition-all resize-none"
-                    rows={2}
-                  />
-                </div>
-              )}
-
               {/* Link gerado obrigatório — só financeiro */}
               {podeAprovarReprovar && modo === 'financeiro' && !mostrarReprovar && (
                 <div>
@@ -423,6 +402,9 @@ export function LinkPagamentoModal({ link, onClose, modo }: LinkPagamentoModalPr
                     className="w-full border border-slate-200 rounded-xl px-4 py-3 text-sm text-slate-700 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-brand-teal/60 transition-all resize-none"
                     rows={4}
                   />
+                  {!linkGerado.trim() && (
+                    <p className="text-xs text-red-500 mt-1.5">Cole o link de pagamento para poder aprovar.</p>
+                  )}
                 </div>
               )}
 
@@ -461,40 +443,15 @@ export function LinkPagamentoModal({ link, onClose, modo }: LinkPagamentoModalPr
               )}
 
               {podeAprovarReprovar && mostrarReprovar && (
-                <div className="space-y-3">
-                  {modo !== 'comercial' && (
-                    <div>
-                      <p className="text-xs font-medium text-slate-500 uppercase tracking-wider mb-2">Enviar para</p>
-                      <div className="flex gap-2">
-                        {(['comercial', 'franquia'] as const).map(d => (
-                          <button
-                            key={d}
-                            type="button"
-                            onClick={() => setDestinoReprovacao(d)}
-                            className={`flex-1 py-2 px-3 rounded-lg text-sm font-medium border transition-colors ${
-                              destinoReprovacao === d
-                                ? 'bg-brand-pine text-white border-brand-pine'
-                                : 'text-slate-600 border-slate-200 hover:bg-slate-50'
-                            }`}
-                          >
-                            {d === 'comercial' ? 'Comercial' : 'Franquia'}
-                          </button>
-                        ))}
-                      </div>
-                    </div>
-                  )}
-                  <div>
-                    <p className="text-xs font-medium text-slate-500 uppercase tracking-wider mb-2">
-                      Justificativa {modo === 'comercial' ? '(volta para a Franquia)' : ''}
-                    </p>
-                    <textarea
-                      value={justificativa}
-                      onChange={(e) => setJustificativa(e.target.value)}
-                      placeholder="Descreva o motivo da reprovacao..."
-                      className="w-full border border-slate-200 rounded-xl px-4 py-3 text-sm text-slate-700 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-red-300 focus:border-red-300 transition-all resize-none"
-                      rows={3}
-                    />
-                  </div>
+                <div>
+                  <p className="text-xs font-medium text-slate-500 uppercase tracking-wider mb-2">Justificativa (volta para a Franquia)</p>
+                  <textarea
+                    value={justificativa}
+                    onChange={(e) => setJustificativa(e.target.value)}
+                    placeholder="Descreva o motivo da reprovacao..."
+                    className="w-full border border-slate-200 rounded-xl px-4 py-3 text-sm text-slate-700 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-red-300 focus:border-red-300 transition-all resize-none"
+                    rows={3}
+                  />
                 </div>
               )}
             </>
@@ -550,7 +507,7 @@ export function LinkPagamentoModal({ link, onClose, modo }: LinkPagamentoModalPr
                   </button>
                   <button
                     onClick={handleAprovar}
-                    disabled={enviando || (modo === 'comercial' && !observacao.trim()) || (modo === 'financeiro' && !linkGerado.trim())}
+                    disabled={enviando || (modo === 'financeiro' && !linkGerado.trim())}
                     className="flex-1 py-2.5 px-4 rounded-xl text-sm font-medium text-white bg-brand-pine hover:bg-brand-forest transition-colors disabled:opacity-50 flex items-center justify-center gap-2"
                   >
                     <Check size={16} />

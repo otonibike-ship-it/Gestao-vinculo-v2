@@ -138,8 +138,6 @@ async def aprovar_link(link_id: int, payload: AprovarLinkRequest, db: AsyncSessi
         raise HTTPException(status_code=404, detail="Link de pagamento não encontrado")
 
     if link.status == StatusLinkPagamento.aguardando_comercial:
-        if not payload.observacao or not payload.observacao.strip():
-            raise HTTPException(status_code=422, detail="observacao é obrigatória")
         link.status = StatusLinkPagamento.aguardando_financeiro
         link.observacao_comercial = payload.observacao
 
@@ -188,40 +186,24 @@ async def reprovar_link(link_id: int, payload: ReprovarLinkRequest, db: AsyncSes
     if not link:
         raise HTTPException(status_code=404, detail="Link de pagamento não encontrado")
 
-    if link.status == StatusLinkPagamento.aguardando_comercial:
-        destino = "franquia"
-        link.status = StatusLinkPagamento.aberto
-
-    elif link.status == StatusLinkPagamento.aguardando_financeiro:
-        destino = payload.destino or "franquia"
-        if destino not in ("comercial", "franquia"):
-            raise HTTPException(status_code=422, detail="destino deve ser comercial ou franquia")
-        link.status = StatusLinkPagamento.aguardando_comercial if destino == "comercial" else StatusLinkPagamento.aberto
-
-    else:
+    if link.status not in (StatusLinkPagamento.aguardando_comercial, StatusLinkPagamento.aguardando_financeiro):
         raise HTTPException(status_code=400, detail=f"Não é possível reprovar com status '{link.status.value}'")
 
+    link.status = StatusLinkPagamento.aberto
     link.justificativa_reprovacao = payload.justificativa
-    link.destino_reprovacao = destino
+    link.destino_reprovacao = "franquia"
     await db.flush()
     await db.refresh(link)
     result = await _enrich(link, db)
 
     numero = link.numero_pedido
-    if destino == "franquia":
-        u = await db.scalar(select(Usuario).where(
-            Usuario.franquia_id == link.franquia_id,
-            Usuario.perfil == PerfilUsuario.franquia,
-            Usuario.ativo == True,
-        ))
-        if u:
-            asyncio.create_task(email_svc.notificar_reprovado(numero, payload.justificativa, u.email))
-    else:
-        email_comercial = await db.scalar(
-            select(Configuracao.valor).where(Configuracao.chave == "email_comercial")
-        )
-        if email_comercial:
-            asyncio.create_task(email_svc.notificar_reprovado(numero, payload.justificativa, email_comercial))
+    u = await db.scalar(select(Usuario).where(
+        Usuario.franquia_id == link.franquia_id,
+        Usuario.perfil == PerfilUsuario.franquia,
+        Usuario.ativo == True,
+    ))
+    if u:
+        asyncio.create_task(email_svc.notificar_reprovado(numero, payload.justificativa, u.email))
 
     return result
 
