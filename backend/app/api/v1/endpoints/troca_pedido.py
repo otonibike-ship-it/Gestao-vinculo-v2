@@ -28,6 +28,7 @@ def _serialize(t: TrocaPedido, empresa: Empresa | None = None) -> dict:
         "franquia_id": t.franquia_id,
         "franquia_nome": empresa.nome_fantasia or empresa.razao_social if empresa else "—",
         "motivo": t.motivo,
+        "motivo_detalhado": t.motivo_detalhado,
         "nome_vendedor": t.nome_vendedor,
         "numero_pedido_cancelar": t.numero_pedido_cancelar,
         "data_pedido_cancelar": t.data_pedido_cancelar.isoformat() if t.data_pedido_cancelar else None,
@@ -37,6 +38,10 @@ def _serialize(t: TrocaPedido, empresa: Empresa | None = None) -> dict:
         "codigo_produto_novo": t.codigo_produto_novo,
         "descricao_novo_pedido": t.descricao_novo_pedido,
         "status_portal": t.status_portal,
+        "nome_cliente": t.nome_cliente,
+        "cpf": t.cpf,
+        "valor_novo_pedido": t.valor_novo_pedido,
+        "valor_pago_cliente": t.valor_pago_cliente,
         "status": t.status.value if t.status else None,
         "anexos": t.anexos or [],
         "observacao_comercial": t.observacao_comercial,
@@ -99,6 +104,7 @@ async def criar_troca(payload: TrocaPedidoCreate, db: AsyncSession = Depends(get
     troca = TrocaPedido(
         franquia_id=payload.franquia_id,
         motivo=payload.motivo,
+        motivo_detalhado=payload.motivo_detalhado,
         nome_vendedor=payload.nome_vendedor,
         numero_pedido_cancelar=payload.numero_pedido_cancelar,
         data_pedido_cancelar=payload.data_pedido_cancelar,
@@ -108,6 +114,10 @@ async def criar_troca(payload: TrocaPedidoCreate, db: AsyncSession = Depends(get
         codigo_produto_novo=payload.codigo_produto_novo,
         descricao_novo_pedido=payload.descricao_novo_pedido,
         status_portal=payload.status_portal,
+        nome_cliente=payload.nome_cliente,
+        cpf=payload.cpf,
+        valor_novo_pedido=payload.valor_novo_pedido,
+        valor_pago_cliente=payload.valor_pago_cliente,
         status=StatusTrocaPedido.aguardando_comercial,
         anexos=payload.anexos,
     )
@@ -240,6 +250,7 @@ async def reenviar_troca(troca_id: int, payload: ReenviarTrocaRequest, db: Async
 
     troca.franquia_id = payload.franquia_id
     troca.motivo = payload.motivo
+    troca.motivo_detalhado = payload.motivo_detalhado
     troca.nome_vendedor = payload.nome_vendedor
     troca.numero_pedido_cancelar = payload.numero_pedido_cancelar
     troca.data_pedido_cancelar = payload.data_pedido_cancelar
@@ -249,6 +260,10 @@ async def reenviar_troca(troca_id: int, payload: ReenviarTrocaRequest, db: Async
     troca.codigo_produto_novo = payload.codigo_produto_novo
     troca.descricao_novo_pedido = payload.descricao_novo_pedido
     troca.status_portal = payload.status_portal
+    troca.nome_cliente = payload.nome_cliente
+    troca.cpf = payload.cpf
+    troca.valor_novo_pedido = payload.valor_novo_pedido
+    troca.valor_pago_cliente = payload.valor_pago_cliente
     troca.anexos = payload.anexos
     troca.justificativa_reprovacao = None
     troca.destino_reprovacao = None

@@ -5,6 +5,7 @@ export interface TrocaPedidoData {
   franquia_id: number
   franquia_nome: string
   motivo: string
+  motivo_detalhado: string | null
   nome_vendedor: string
   numero_pedido_cancelar: string
   data_pedido_cancelar: string
@@ -14,6 +15,10 @@ export interface TrocaPedidoData {
   codigo_produto_novo: string
   descricao_novo_pedido: string
   status_portal: string
+  nome_cliente: string | null
+  cpf: string | null
+  valor_novo_pedido: number | null
+  valor_pago_cliente: number | null
   status: 'aberto' | 'aguardando_comercial' | 'aguardando_faturamento' | 'aguardando_financeiro' | 'aguardando_ti' | 'fechado'
   anexos: string[]
   observacao_comercial: string | null
@@ -27,6 +32,7 @@ export interface TrocaPedidoData {
 export interface TrocaPedidoCreatePayload {
   franquia_id: number
   motivo: string
+  motivo_detalhado: string
   nome_vendedor: string
   numero_pedido_cancelar: string
   data_pedido_cancelar: string
@@ -36,6 +42,10 @@ export interface TrocaPedidoCreatePayload {
   codigo_produto_novo: string
   descricao_novo_pedido: string
   status_portal: string
+  nome_cliente: string
+  cpf: string
+  valor_novo_pedido: number
+  valor_pago_cliente: number
   anexos?: string[]
 }
 

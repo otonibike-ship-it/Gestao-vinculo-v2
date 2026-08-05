@@ -1,6 +1,7 @@
 from pydantic import BaseModel
 from typing import Optional, Literal
 from datetime import datetime, date
+from decimal import Decimal
 from enum import Enum
 
 
@@ -16,6 +17,7 @@ class StatusTrocaPedido(str, Enum):
 class TrocaPedidoCreate(BaseModel):
     franquia_id: int
     motivo: str
+    motivo_detalhado: str
     nome_vendedor: str
     numero_pedido_cancelar: str
     data_pedido_cancelar: date
@@ -25,6 +27,10 @@ class TrocaPedidoCreate(BaseModel):
     codigo_produto_novo: str
     descricao_novo_pedido: str
     status_portal: str
+    nome_cliente: str
+    cpf: str
+    valor_novo_pedido: Decimal
+    valor_pago_cliente: Decimal
     anexos: list[str] = []
 
 
@@ -33,6 +39,7 @@ class TrocaPedidoResponse(BaseModel):
     franquia_id: int
     franquia_nome: Optional[str] = None
     motivo: str
+    motivo_detalhado: Optional[str] = None
     nome_vendedor: str
     numero_pedido_cancelar: str
     data_pedido_cancelar: date
@@ -42,6 +49,10 @@ class TrocaPedidoResponse(BaseModel):
     codigo_produto_novo: str
     descricao_novo_pedido: str
     status_portal: str
+    nome_cliente: Optional[str] = None
+    cpf: Optional[str] = None
+    valor_novo_pedido: Optional[Decimal] = None
+    valor_pago_cliente: Optional[Decimal] = None
     status: StatusTrocaPedido
     anexos: list[str] = []
     observacao_comercial: Optional[str] = None
@@ -68,6 +79,7 @@ class ReprovarTrocaRequest(BaseModel):
 class ReenviarTrocaRequest(BaseModel):
     franquia_id: int
     motivo: str
+    motivo_detalhado: str
     nome_vendedor: str
     numero_pedido_cancelar: str
     data_pedido_cancelar: date
@@ -77,4 +89,8 @@ class ReenviarTrocaRequest(BaseModel):
     codigo_produto_novo: str
     descricao_novo_pedido: str
     status_portal: str
+    nome_cliente: str
+    cpf: str
+    valor_novo_pedido: Decimal
+    valor_pago_cliente: Decimal
     anexos: list[str] = []

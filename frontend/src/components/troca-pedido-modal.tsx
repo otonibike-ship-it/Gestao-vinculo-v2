@@ -39,6 +39,14 @@ const STATUS_PORTAL_OPCOES = [
   { value: 'faturado', label: 'Faturado' },
 ]
 
+const formatCpf = (value: string) => {
+  const digits = value.replace(/\D/g, '').slice(0, 11)
+  return digits
+    .replace(/(\d{3})(\d)/, '$1.$2')
+    .replace(/(\d{3})\.(\d{3})(\d)/, '$1.$2.$3')
+    .replace(/(\d{3})\.(\d{3})\.(\d{3})(\d)/, '$1.$2.$3-$4')
+}
+
 export function TrocaPedidoModal({ troca, onClose, modo }: TrocaPedidoModalProps) {
   const queryClient = useQueryClient()
   const [justificativa, setJustificativa] = useState('')
@@ -52,6 +60,7 @@ export function TrocaPedidoModal({ troca, onClose, modo }: TrocaPedidoModalProps
   const [editando, setEditando] = useState(false)
   const [formFranquiaId, setFormFranquiaId] = useState(troca.franquia_id)
   const [formMotivo, setFormMotivo] = useState(troca.motivo)
+  const [formMotivoDetalhado, setFormMotivoDetalhado] = useState(troca.motivo_detalhado || '')
   const [formNomeVendedor, setFormNomeVendedor] = useState(troca.nome_vendedor)
   const [formNumeroPedidoCancelar, setFormNumeroPedidoCancelar] = useState(troca.numero_pedido_cancelar)
   const [formDataPedidoCancelar, setFormDataPedidoCancelar] = useState(troca.data_pedido_cancelar)
@@ -61,6 +70,10 @@ export function TrocaPedidoModal({ troca, onClose, modo }: TrocaPedidoModalProps
   const [formCodigoProdutoNovo, setFormCodigoProdutoNovo] = useState(troca.codigo_produto_novo)
   const [formDescricaoNovoPedido, setFormDescricaoNovoPedido] = useState(troca.descricao_novo_pedido)
   const [formStatusPortal, setFormStatusPortal] = useState(troca.status_portal)
+  const [formNomeCliente, setFormNomeCliente] = useState(troca.nome_cliente || '')
+  const [formCpf, setFormCpf] = useState(troca.cpf || '')
+  const [formValorNovoPedido, setFormValorNovoPedido] = useState(String(troca.valor_novo_pedido ?? ''))
+  const [formValorPagoCliente, setFormValorPagoCliente] = useState(String(troca.valor_pago_cliente ?? ''))
   const [formAnexos, setFormAnexos] = useState<string[]>(troca.anexos || [])
   const [novosArquivos, setNovosArquivos] = useState<File[]>([])
 
@@ -121,6 +134,7 @@ export function TrocaPedidoModal({ troca, onClose, modo }: TrocaPedidoModalProps
       return trocaPedidoService.reenviar(troca.id, {
         franquia_id: formFranquiaId,
         motivo: formMotivo,
+        motivo_detalhado: formMotivoDetalhado,
         nome_vendedor: formNomeVendedor,
         numero_pedido_cancelar: formNumeroPedidoCancelar,
         data_pedido_cancelar: formDataPedidoCancelar,
@@ -130,6 +144,10 @@ export function TrocaPedidoModal({ troca, onClose, modo }: TrocaPedidoModalProps
         codigo_produto_novo: formCodigoProdutoNovo,
         descricao_novo_pedido: formDescricaoNovoPedido,
         status_portal: formStatusPortal,
+        nome_cliente: formNomeCliente,
+        cpf: formCpf,
+        valor_novo_pedido: parseFloat(formValorNovoPedido),
+        valor_pago_cliente: parseFloat(formValorPagoCliente),
         anexos: todosAnexos,
       })
     },
@@ -151,7 +169,11 @@ export function TrocaPedidoModal({ troca, onClose, modo }: TrocaPedidoModalProps
   }
 
   const handleReenviar = async () => {
-    if (!formNomeVendedor.trim() || !formNumeroPedidoCancelar.trim() || !formDataPedidoCancelar || !formStatusPortal) return
+    if (
+      !formNomeVendedor.trim() || !formNumeroPedidoCancelar.trim() || !formDataPedidoCancelar || !formStatusPortal ||
+      !formMotivoDetalhado.trim() || !formNomeCliente.trim() || formCpf.replace(/\D/g, '').length !== 11 ||
+      !formValorNovoPedido || !formValorPagoCliente
+    ) return
     setEnviando(true)
     try { await reenviarMutation.mutateAsync() } finally { setEnviando(false) }
   }
@@ -218,6 +240,11 @@ export function TrocaPedidoModal({ troca, onClose, modo }: TrocaPedidoModalProps
               </div>
 
               <div>
+                <label className={labelClass}>Motivo detalhado</label>
+                <textarea value={formMotivoDetalhado} onChange={(e) => setFormMotivoDetalhado(e.target.value)} className={inputClass + ' resize-none'} rows={4} />
+              </div>
+
+              <div>
                 <label className={labelClass}>Nome do Vendedor</label>
                 <input value={formNomeVendedor} onChange={(e) => setFormNomeVendedor(e.target.value)} className={inputClass} />
               </div>
@@ -266,6 +293,27 @@ export function TrocaPedidoModal({ troca, onClose, modo }: TrocaPedidoModalProps
                     <option key={o.value} value={o.value}>{o.label}</option>
                   ))}
                 </select>
+              </div>
+
+              <div>
+                <label className={labelClass}>Nome completo do Cliente</label>
+                <input value={formNomeCliente} onChange={(e) => setFormNomeCliente(e.target.value)} className={inputClass} />
+              </div>
+
+              <div>
+                <label className={labelClass}>CPF do Cliente</label>
+                <input value={formCpf} onChange={(e) => setFormCpf(formatCpf(e.target.value))} className={inputClass} maxLength={14} />
+              </div>
+
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className={labelClass}>Valor do novo Pedido no portal</label>
+                  <input type="number" step="0.01" value={formValorNovoPedido} onChange={(e) => setFormValorNovoPedido(e.target.value)} className={inputClass} />
+                </div>
+                <div>
+                  <label className={labelClass}>Valor pago pelo Cliente</label>
+                  <input type="number" step="0.01" value={formValorPagoCliente} onChange={(e) => setFormValorPagoCliente(e.target.value)} className={inputClass} />
+                </div>
               </div>
 
               {/* Anexos existentes */}
@@ -330,6 +378,20 @@ export function TrocaPedidoModal({ troca, onClose, modo }: TrocaPedidoModalProps
                 <Campo label="Vendedor" valor={troca.nome_vendedor} />
                 <Campo label="Motivo" valor={troca.motivo} />
                 <Campo label="Status no Portal" valor={STATUS_PORTAL_OPCOES.find(o => o.value === troca.status_portal)?.label || troca.status_portal} />
+              </div>
+
+              {troca.motivo_detalhado && (
+                <Campo label="Motivo detalhado" valor={troca.motivo_detalhado} />
+              )}
+
+              <div className="bg-slate-50 border border-slate-100 rounded-xl px-4 py-3 space-y-3">
+                <p className="text-xs font-medium text-slate-500 uppercase tracking-wider">Cliente</p>
+                <div className="grid grid-cols-2 gap-4">
+                  <Campo label="Nome" valor={troca.nome_cliente || '—'} />
+                  <Campo label="CPF" valor={troca.cpf || '—'} />
+                  <Campo label="Valor do novo Pedido" valor={troca.valor_novo_pedido != null ? `R$ ${Number(troca.valor_novo_pedido).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}` : '—'} />
+                  <Campo label="Valor pago pelo Cliente" valor={troca.valor_pago_cliente != null ? `R$ ${Number(troca.valor_pago_cliente).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}` : '—'} />
+                </div>
               </div>
 
               <div className="bg-slate-50 border border-slate-100 rounded-xl px-4 py-3 space-y-3">
@@ -479,7 +541,11 @@ export function TrocaPedidoModal({ troca, onClose, modo }: TrocaPedidoModalProps
               </button>
               <button
                 onClick={handleReenviar}
-                disabled={enviando || !formNomeVendedor.trim() || !formNumeroPedidoCancelar.trim() || !formDataPedidoCancelar || !formStatusPortal}
+                disabled={
+                  enviando || !formNomeVendedor.trim() || !formNumeroPedidoCancelar.trim() || !formDataPedidoCancelar || !formStatusPortal ||
+                  !formMotivoDetalhado.trim() || !formNomeCliente.trim() || formCpf.replace(/\D/g, '').length !== 11 ||
+                  !formValorNovoPedido || !formValorPagoCliente
+                }
                 className="flex-1 py-2.5 px-4 rounded-xl text-sm font-medium text-white bg-brand-pine hover:bg-brand-forest transition-colors disabled:opacity-50 flex items-center justify-center gap-2"
               >
                 <Send size={16} />

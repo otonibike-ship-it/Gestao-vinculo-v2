@@ -20,6 +20,14 @@ const STATUS_PORTAL_OPCOES = [
   { value: 'faturado', label: 'Faturado' },
 ]
 
+const formatCpf = (value: string) => {
+  const digits = value.replace(/\D/g, '').slice(0, 11)
+  return digits
+    .replace(/(\d{3})(\d)/, '$1.$2')
+    .replace(/(\d{3})\.(\d{3})(\d)/, '$1.$2.$3')
+    .replace(/(\d{3})\.(\d{3})\.(\d{3})(\d)/, '$1.$2.$3-$4')
+}
+
 export default function TrocaPedidoForm({ voltarPara }: Props) {
   const router = useRouter()
   const queryClient = useQueryClient()
@@ -28,6 +36,7 @@ export default function TrocaPedidoForm({ voltarPara }: Props) {
 
   const [franquiaId, setFranquiaId] = useState<number>(0)
   const [motivo, setMotivo] = useState('')
+  const [motivoDetalhado, setMotivoDetalhado] = useState('')
   const [nomeVendedor, setNomeVendedor] = useState('')
   const [numeroPedidoCancelar, setNumeroPedidoCancelar] = useState('')
   const [dataPedidoCancelar, setDataPedidoCancelar] = useState('')
@@ -37,6 +46,10 @@ export default function TrocaPedidoForm({ voltarPara }: Props) {
   const [codigoProdutoNovo, setCodigoProdutoNovo] = useState('')
   const [descricaoNovoPedido, setDescricaoNovoPedido] = useState('')
   const [statusPortal, setStatusPortal] = useState('')
+  const [nomeCliente, setNomeCliente] = useState('')
+  const [cpf, setCpf] = useState('')
+  const [valorNovoPedido, setValorNovoPedido] = useState('')
+  const [valorPagoCliente, setValorPagoCliente] = useState('')
   const [arquivos, setArquivos] = useState<File[]>([])
 
   const [enviando, setEnviando] = useState(false)
@@ -63,6 +76,7 @@ export default function TrocaPedidoForm({ voltarPara }: Props) {
   const camposObrigatoriosPreenchidos =
     !!franquiaId &&
     !!motivo &&
+    !!motivoDetalhado.trim() &&
     !!nomeVendedor.trim() &&
     !!numeroPedidoCancelar.trim() &&
     !!dataPedidoCancelar &&
@@ -72,6 +86,10 @@ export default function TrocaPedidoForm({ voltarPara }: Props) {
     !!codigoProdutoNovo.trim() &&
     !!descricaoNovoPedido.trim() &&
     !!statusPortal &&
+    !!nomeCliente.trim() &&
+    cpf.replace(/\D/g, '').length === 11 &&
+    !!valorNovoPedido &&
+    !!valorPagoCliente &&
     arquivos.length > 0
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -80,6 +98,7 @@ export default function TrocaPedidoForm({ voltarPara }: Props) {
 
     if (!franquiaId) { setErro('Selecione a franquia'); return }
     if (!motivo) { setErro('Selecione o motivo'); return }
+    if (!motivoDetalhado.trim()) { setErro('Detalhe o motivo da troca'); return }
     if (!nomeVendedor.trim()) { setErro('Nome do vendedor é obrigatório'); return }
     if (!numeroPedidoCancelar.trim()) { setErro('Número do pedido a cancelar é obrigatório'); return }
     if (!dataPedidoCancelar) { setErro('Data do pedido a cancelar é obrigatória'); return }
@@ -89,6 +108,10 @@ export default function TrocaPedidoForm({ voltarPara }: Props) {
     if (!codigoProdutoNovo.trim()) { setErro('Código do produto do novo pedido é obrigatório'); return }
     if (!descricaoNovoPedido.trim()) { setErro('Descreva o modelo/cor/tamanho do novo pedido'); return }
     if (!statusPortal) { setErro('Selecione o status do pedido no portal'); return }
+    if (!nomeCliente.trim()) { setErro('Nome completo do cliente é obrigatório'); return }
+    if (cpf.replace(/\D/g, '').length !== 11) { setErro('CPF do cliente inválido'); return }
+    if (!valorNovoPedido) { setErro('Valor do novo pedido é obrigatório'); return }
+    if (!valorPagoCliente) { setErro('Valor pago pelo cliente é obrigatório'); return }
     if (arquivos.length === 0) { setErro('Anexe pelo menos um arquivo'); return }
 
     setEnviando(true)
@@ -99,6 +122,7 @@ export default function TrocaPedidoForm({ voltarPara }: Props) {
       await trocaPedidoService.criar({
         franquia_id: franquiaId,
         motivo,
+        motivo_detalhado: motivoDetalhado.trim(),
         nome_vendedor: nomeVendedor.trim(),
         numero_pedido_cancelar: numeroPedidoCancelar.trim(),
         data_pedido_cancelar: dataPedidoCancelar,
@@ -108,6 +132,10 @@ export default function TrocaPedidoForm({ voltarPara }: Props) {
         codigo_produto_novo: codigoProdutoNovo.trim(),
         descricao_novo_pedido: descricaoNovoPedido.trim(),
         status_portal: statusPortal,
+        nome_cliente: nomeCliente.trim(),
+        cpf,
+        valor_novo_pedido: parseFloat(valorNovoPedido),
+        valor_pago_cliente: parseFloat(valorPagoCliente),
         anexos: anexoUrls,
       })
 
@@ -181,6 +209,18 @@ export default function TrocaPedidoForm({ voltarPara }: Props) {
           <div>
             <label className={labelClass}>Informe o motivo da troca para um novo pedido</label>
             <TrocaMotivoSelect value={motivo} onChange={setMotivo} />
+          </div>
+
+          {/* Motivo detalhado */}
+          <div>
+            <label className={labelClass}>Informe de forma detalhada o motivo da troca para um novo pedido</label>
+            <textarea
+              value={motivoDetalhado}
+              onChange={e => setMotivoDetalhado(e.target.value)}
+              className={inputClass + ' resize-none'}
+              rows={4}
+              placeholder="Descreva com detalhes o motivo da troca..."
+            />
           </div>
 
           {/* Nome do vendedor */}
@@ -284,10 +324,58 @@ export default function TrocaPedidoForm({ voltarPara }: Props) {
             </select>
           </div>
 
+          {/* Cliente e valores */}
+          <div className="border border-slate-200 rounded-xl p-4 space-y-4 bg-slate-50">
+            <p className="text-xs font-semibold text-slate-600 uppercase tracking-wider">Cliente e valores</p>
+            <div>
+              <label className={labelClass}>Nome completo do Cliente</label>
+              <input
+                value={nomeCliente}
+                onChange={e => setNomeCliente(e.target.value)}
+                className={inputClass + ' bg-white'}
+                placeholder="Nome completo do cliente"
+              />
+            </div>
+            <div>
+              <label className={labelClass}>CPF do Cliente</label>
+              <input
+                value={cpf}
+                onChange={e => setCpf(formatCpf(e.target.value))}
+                className={inputClass + ' bg-white'}
+                placeholder="000.000.000-00"
+                maxLength={14}
+              />
+            </div>
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <label className={labelClass}>Valor do novo Pedido no portal</label>
+                <input
+                  type="number"
+                  step="0.01"
+                  value={valorNovoPedido}
+                  onChange={e => setValorNovoPedido(e.target.value)}
+                  className={inputClass + ' bg-white'}
+                  placeholder="0,00"
+                />
+              </div>
+              <div>
+                <label className={labelClass}>Valor pago pelo Cliente</label>
+                <input
+                  type="number"
+                  step="0.01"
+                  value={valorPagoCliente}
+                  onChange={e => setValorPagoCliente(e.target.value)}
+                  className={inputClass + ' bg-white'}
+                  placeholder="0,00"
+                />
+              </div>
+            </div>
+          </div>
+
           {/* Anexos obrigatório */}
           <div>
             <label className={labelClass}>
-              Anexos <span className="text-red-400 normal-case font-normal">(obrigatório)</span>
+              Comprovante de Pagamento <span className="text-red-400 normal-case font-normal">(obrigatório)</span>
             </label>
             <button
               type="button"
