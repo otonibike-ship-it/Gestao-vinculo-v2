@@ -172,40 +172,24 @@ async def reprovar_carta(carta_id: int, payload: ReprovarCartaRequest, db: Async
     if not carta:
         raise HTTPException(status_code=404, detail="Carta de correção não encontrada")
 
-    if carta.status == StatusCartaCorrecao.aguardando_comercial:
-        destino = "franquia"
-        carta.status = StatusCartaCorrecao.aberto
-
-    elif carta.status == StatusCartaCorrecao.aguardando_financeiro:
-        destino = payload.destino or "franquia"
-        if destino not in ("comercial", "franquia"):
-            raise HTTPException(status_code=422, detail="destino deve ser comercial ou franquia")
-        carta.status = StatusCartaCorrecao.aguardando_comercial if destino == "comercial" else StatusCartaCorrecao.aberto
-
-    else:
+    if carta.status not in (StatusCartaCorrecao.aguardando_comercial, StatusCartaCorrecao.aguardando_financeiro):
         raise HTTPException(status_code=400, detail=f"Não é possível reprovar com status '{carta.status.value}'")
 
+    carta.status = StatusCartaCorrecao.aberto
     carta.justificativa_reprovacao = payload.justificativa
-    carta.destino_reprovacao = destino
+    carta.destino_reprovacao = "franquia"
     await db.flush()
     await db.refresh(carta)
     result = await _enrich(carta, db)
 
     numero = carta.numero_pedido
-    if destino == "franquia":
-        u = await db.scalar(select(Usuario).where(
-            Usuario.franquia_id == carta.franquia_id,
-            Usuario.perfil == PerfilUsuario.franquia,
-            Usuario.ativo == True,
-        ))
-        if u:
-            asyncio.create_task(email_svc.notificar_reprovado(numero, payload.justificativa, u.email))
-    else:
-        email_comercial = await db.scalar(
-            select(Configuracao.valor).where(Configuracao.chave == "email_comercial")
-        )
-        if email_comercial:
-            asyncio.create_task(email_svc.notificar_reprovado(numero, payload.justificativa, email_comercial))
+    u = await db.scalar(select(Usuario).where(
+        Usuario.franquia_id == carta.franquia_id,
+        Usuario.perfil == PerfilUsuario.franquia,
+        Usuario.ativo == True,
+    ))
+    if u:
+        asyncio.create_task(email_svc.notificar_reprovado(numero, payload.justificativa, u.email))
 
     return result
 

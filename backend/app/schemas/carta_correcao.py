@@ -1,5 +1,5 @@
 from pydantic import BaseModel
-from typing import Optional, Literal
+from typing import Optional
 from datetime import datetime
 from enum import Enum
 
@@ -59,7 +59,6 @@ class AprovarCartaRequest(BaseModel):
 
 class ReprovarCartaRequest(BaseModel):
     justificativa: str
-    destino: Optional[Literal["comercial", "franquia"]] = None
 
 
 class ReenviarCartaRequest(BaseModel):

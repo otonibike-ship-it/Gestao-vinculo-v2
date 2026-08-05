@@ -39,7 +39,6 @@ export function CartaCorrecaoModal({ carta, onClose, modo }: CartaCorrecaoModalP
   const [mostrarReprovar, setMostrarReprovar] = useState(false)
   const [arquivosAprovacao, setArquivosAprovacao] = useState<File[]>([])
   const [enviando, setEnviando] = useState(false)
-  const [destinoReprovacao, setDestinoReprovacao] = useState<'comercial' | 'franquia'>('comercial')
   const [observacao, setObservacao] = useState('')
 
   const [editando, setEditando] = useState(false)
@@ -92,11 +91,7 @@ export function CartaCorrecaoModal({ carta, onClose, modo }: CartaCorrecaoModalP
   })
 
   const reprovarMutation = useMutation({
-    mutationFn: () => cartaCorrecaoService.reprovar(
-      carta.id,
-      justificativa,
-      modo === 'comercial' ? undefined : destinoReprovacao
-    ),
+    mutationFn: () => cartaCorrecaoService.reprovar(carta.id, justificativa),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['cartas-correcao'] })
       onClose()
@@ -363,40 +358,15 @@ export function CartaCorrecaoModal({ carta, onClose, modo }: CartaCorrecaoModalP
               )}
 
               {podeAprovarReprovar && mostrarReprovar && (
-                <div className="space-y-3">
-                  {modo !== 'comercial' && (
-                    <div>
-                      <p className="text-xs font-medium text-slate-500 uppercase tracking-wider mb-2">Enviar para</p>
-                      <div className="flex gap-2">
-                        {(['comercial', 'franquia'] as const).map(d => (
-                          <button
-                            key={d}
-                            type="button"
-                            onClick={() => setDestinoReprovacao(d)}
-                            className={`flex-1 py-2 px-3 rounded-lg text-sm font-medium border transition-colors ${
-                              destinoReprovacao === d
-                                ? 'bg-brand-pine text-white border-brand-pine'
-                                : 'text-slate-600 border-slate-200 hover:bg-slate-50'
-                            }`}
-                          >
-                            {d === 'comercial' ? 'Comercial' : 'Franquia'}
-                          </button>
-                        ))}
-                      </div>
-                    </div>
-                  )}
-                  <div>
-                    <p className="text-xs font-medium text-slate-500 uppercase tracking-wider mb-2">
-                      Justificativa {modo === 'comercial' ? '(volta para a Franquia)' : ''}
-                    </p>
-                    <textarea
-                      value={justificativa}
-                      onChange={(e) => setJustificativa(e.target.value)}
-                      placeholder="Descreva o motivo da reprovacao..."
-                      className="w-full border border-slate-200 rounded-xl px-4 py-3 text-sm text-slate-700 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-red-300 focus:border-red-300 transition-all resize-none"
-                      rows={3}
-                    />
-                  </div>
+                <div>
+                  <p className="text-xs font-medium text-slate-500 uppercase tracking-wider mb-2">Justificativa (volta para a Franquia)</p>
+                  <textarea
+                    value={justificativa}
+                    onChange={(e) => setJustificativa(e.target.value)}
+                    placeholder="Descreva o motivo da reprovacao..."
+                    className="w-full border border-slate-200 rounded-xl px-4 py-3 text-sm text-slate-700 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-red-300 focus:border-red-300 transition-all resize-none"
+                    rows={3}
+                  />
                 </div>
               )}
             </>
