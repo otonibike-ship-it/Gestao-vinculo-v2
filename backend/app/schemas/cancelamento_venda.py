@@ -74,13 +74,13 @@ class CancelamentoVendaResponse(BaseModel):
 
 
 class AprovarCancelamentoRequest(BaseModel):
-    destino: Optional[Literal["faturamento", "financeiro", "ti"]] = None
     observacao: Optional[str] = None
-    anexos: list[str] = []  # anexados na etapa de faturamento/financeiro/ti, entram em anexos_portal_comprovante
+    anexos: list[str] = []  # anexados na etapa de faturamento/financeiro, entram em anexos_portal_comprovante
 
 
 class ReprovarCancelamentoRequest(BaseModel):
     justificativa: str
+    destino: Optional[Literal["comercial", "franquia"]] = None
 
 
 class ReenviarCancelamentoRequest(BaseModel):

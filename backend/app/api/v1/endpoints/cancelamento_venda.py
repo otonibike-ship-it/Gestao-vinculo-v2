@@ -21,18 +21,6 @@ logger = logging.getLogger(__name__)
 
 router = APIRouter()
 
-_DESTINO_STATUS = {
-    "faturamento": StatusCancelamentoVenda.aguardando_faturamento,
-    "financeiro": StatusCancelamentoVenda.aguardando_financeiro,
-    "ti": StatusCancelamentoVenda.aguardando_ti,
-}
-
-_DESTINO_EMAIL_CONFIG = {
-    "faturamento": "email_faturamento",
-    "financeiro": "email_financeiro",
-    "ti": "email_ti",
-}
-
 
 def _serialize(c: CancelamentoVenda, empresa: Empresa | None = None) -> dict:
     return {
@@ -159,19 +147,18 @@ async def aprovar_cancelamento(cancelamento_id: int, payload: AprovarCancelament
         raise HTTPException(status_code=404, detail="Cancelamento de venda não encontrado")
 
     if cancelamento.status == StatusCancelamentoVenda.aguardando_comercial:
-        if payload.destino not in _DESTINO_STATUS:
-            raise HTTPException(status_code=422, detail="destino deve ser faturamento, financeiro ou ti")
-        cancelamento.status = _DESTINO_STATUS[payload.destino]
+        cancelamento.status = StatusCancelamentoVenda.aguardando_faturamento
         cancelamento.observacao_comercial = payload.observacao
 
-    elif cancelamento.status in (
-        StatusCancelamentoVenda.aguardando_faturamento,
-        StatusCancelamentoVenda.aguardando_financeiro,
-        StatusCancelamentoVenda.aguardando_ti,
-    ):
+    elif cancelamento.status == StatusCancelamentoVenda.aguardando_faturamento:
+        cancelamento.status = StatusCancelamentoVenda.aguardando_financeiro
         if payload.anexos:
             cancelamento.anexos_portal_comprovante = (cancelamento.anexos_portal_comprovante or []) + payload.anexos
+
+    elif cancelamento.status == StatusCancelamentoVenda.aguardando_financeiro:
         cancelamento.status = StatusCancelamentoVenda.fechado
+        if payload.anexos:
+            cancelamento.anexos_portal_comprovante = (cancelamento.anexos_portal_comprovante or []) + payload.anexos
 
     else:
         raise HTTPException(status_code=400, detail=f"Não é possível aprovar com status '{cancelamento.status.value}'")
@@ -185,13 +172,18 @@ async def aprovar_cancelamento(cancelamento_id: int, payload: AprovarCancelament
     franquia_nome = result.get("franquia_nome", "")
     numero = cancelamento.numero_pedido_cancelar
     vendedor = cancelamento.vendedor
-    if cancelamento.status in _DESTINO_STATUS.values():
-        destino = next(d for d, s in _DESTINO_STATUS.items() if s == cancelamento.status)
-        email_destino = await db.scalar(
-            select(Configuracao.valor).where(Configuracao.chave == _DESTINO_EMAIL_CONFIG[destino])
+    if cancelamento.status == StatusCancelamentoVenda.aguardando_faturamento:
+        email_faturamento = await db.scalar(
+            select(Configuracao.valor).where(Configuracao.chave == "email_faturamento")
         )
-        if email_destino:
-            asyncio.create_task(email_svc.notificar_triagem_cancelamento(numero, vendedor, franquia_nome, email_destino))
+        if email_faturamento:
+            asyncio.create_task(email_svc.notificar_triagem_cancelamento(numero, vendedor, franquia_nome, email_faturamento))
+    elif cancelamento.status == StatusCancelamentoVenda.aguardando_financeiro:
+        email_financeiro = await db.scalar(
+            select(Configuracao.valor).where(Configuracao.chave == "email_financeiro")
+        )
+        if email_financeiro:
+            asyncio.create_task(email_svc.notificar_triagem_cancelamento(numero, vendedor, franquia_nome, email_financeiro))
     elif cancelamento.status == StatusCancelamentoVenda.fechado:
         u = await db.scalar(select(Usuario).where(
             Usuario.franquia_id == cancelamento.franquia_id,
@@ -211,30 +203,43 @@ async def reprovar_cancelamento(cancelamento_id: int, payload: ReprovarCancelame
     if not cancelamento:
         raise HTTPException(status_code=404, detail="Cancelamento de venda não encontrado")
 
-    if cancelamento.status not in (
-        StatusCancelamentoVenda.aguardando_comercial,
-        StatusCancelamentoVenda.aguardando_faturamento,
-        StatusCancelamentoVenda.aguardando_financeiro,
-        StatusCancelamentoVenda.aguardando_ti,
-    ):
+    if not payload.justificativa or not payload.justificativa.strip():
+        raise HTTPException(status_code=422, detail="justificativa é obrigatória")
+
+    if cancelamento.status == StatusCancelamentoVenda.aguardando_comercial:
+        destino = "franquia"
+        cancelamento.status = StatusCancelamentoVenda.aberto
+
+    elif cancelamento.status in (StatusCancelamentoVenda.aguardando_faturamento, StatusCancelamentoVenda.aguardando_financeiro):
+        destino = payload.destino or "franquia"
+        if destino not in ("comercial", "franquia"):
+            raise HTTPException(status_code=422, detail="destino deve ser comercial ou franquia")
+        cancelamento.status = StatusCancelamentoVenda.aguardando_comercial if destino == "comercial" else StatusCancelamentoVenda.aberto
+
+    else:
         raise HTTPException(status_code=400, detail=f"Não é possível reprovar com status '{cancelamento.status.value}'")
 
-    cancelamento.status = StatusCancelamentoVenda.aberto
     cancelamento.justificativa_reprovacao = payload.justificativa
-    cancelamento.destino_reprovacao = "franquia"
+    cancelamento.destino_reprovacao = destino
     await db.flush()
     await db.refresh(cancelamento)
     result = await _enrich(cancelamento, db)
 
-    u = await db.scalar(select(Usuario).where(
-        Usuario.franquia_id == cancelamento.franquia_id,
-        Usuario.perfil == PerfilUsuario.franquia,
-        Usuario.ativo == True,
-    ))
-    if u:
-        asyncio.create_task(email_svc.notificar_reprovado(
-            cancelamento.numero_pedido_cancelar, payload.justificativa, u.email
+    numero = cancelamento.numero_pedido_cancelar
+    if destino == "franquia":
+        u = await db.scalar(select(Usuario).where(
+            Usuario.franquia_id == cancelamento.franquia_id,
+            Usuario.perfil == PerfilUsuario.franquia,
+            Usuario.ativo == True,
         ))
+        if u:
+            asyncio.create_task(email_svc.notificar_reprovado(numero, payload.justificativa, u.email))
+    else:
+        email_comercial = await db.scalar(
+            select(Configuracao.valor).where(Configuracao.chave == "email_comercial")
+        )
+        if email_comercial:
+            asyncio.create_task(email_svc.notificar_reprovado(numero, payload.justificativa, email_comercial))
 
     return result
 

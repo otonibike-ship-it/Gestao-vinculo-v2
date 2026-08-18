@@ -75,13 +75,13 @@ export const cancelamentoVendaService = {
     return data as CancelamentoVendaData
   },
 
-  async aprovar(id: number, opts: { destino?: string; observacao?: string; anexos?: string[] } = {}) {
+  async aprovar(id: number, opts: { observacao?: string; anexos?: string[] } = {}) {
     const { data } = await api.put(`/cancelamentos-venda/${id}/aprovar`, opts)
     return data as CancelamentoVendaData
   },
 
-  async reprovar(id: number, justificativa: string) {
-    const { data } = await api.put(`/cancelamentos-venda/${id}/reprovar`, { justificativa })
+  async reprovar(id: number, justificativa: string, destino?: 'comercial' | 'franquia') {
+    const { data } = await api.put(`/cancelamentos-venda/${id}/reprovar`, { justificativa, destino })
     return data as CancelamentoVendaData
   },
 

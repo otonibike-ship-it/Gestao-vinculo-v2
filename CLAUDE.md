@@ -55,9 +55,7 @@ Status enum lives in `backend/app/models/vinculo.py` (`StatusVinculo`). The appr
 
 Five other forms each have their own table, model, and endpoint (not a shared polymorphic model — copy the closest existing form: model + schema + endpoint + email functions + migration + service + form + modal + dashboard wiring rather than generalizing early). There is **no Checklist Bike Shop** — it was deliberately dropped (too rarely used) in favor of **Cancelamento de Venda**. The six live forms are: Vinculo, **Troca de Pedido**, **Link de Pagamento**, **Carta de Correção**, **Solicitação de Estorno**, **Cancelamento de Venda**.
 
-**Cancelamento de Venda** (`cancelamento_venda.py`) still uses the original generic template — a 3-way triage where Comercial picks the destino (Faturamento | Financeiro | TI) and any target-team reject always returns straight to the franquia. This was the shared pattern all five non-Vinculo forms used at first.
-
-**Troca de Pedido, Link de Pagamento, Carta de Correção and Solicitação de Estorno were reworked (2026-08-04) into distinct, fixed per-form pipelines** — Comercial no longer picks a destino; each form always routes to the same next team. Target-team rejection returns to **Comercial** (not the franquia) with a destino picker (`comercial` | `franquia`), mirroring the picker Vinculo's own `reprovar` endpoint already used. Comercial's own initial reject (from `aguardando_comercial`) always goes straight to the franquia, justificativa required, no picker:
+**All five non-Vinculo forms were reworked (2026-08-04/05) from the original shared 3-way-triage template into distinct, fixed per-form pipelines.** Comercial no longer picks a destino (Faturamento | Financeiro | TI) on any of them — each form always routes to the same next team(s). Comercial's own initial reject (from `aguardando_comercial`) always goes straight to the franquia, justificativa required, no picker. Beyond that, each form's target-team reject behavior differs — confirmed individually with the user, not assumed:
 
 ```
 Troca de Pedido (troca_pedido.py, /trocas-pedido):
@@ -71,21 +69,37 @@ Troca de Pedido (troca_pedido.py, /trocas-pedido):
 
 Link de Pagamento (link_pagamento.py, /links-pagamento):
   Franquia/Comercial submits → aguardando_comercial
-    Comercial aprova (observação OBRIGATÓRIA) → aguardando_financeiro
+    Comercial aprova (sem campo obrigatório) → aguardando_financeiro
       Financeiro aprova (preenche link_gerado, campo obrigatório) → fechado ("Link Gerado")
-      Financeiro reprova (destino comercial|franquia, justificativa obrigatória) → aguardando_comercial | aberto
+      Financeiro reprova (justificativa obrigatória) → aberto (SEMPRE franquia, sem picker — reprovado por engano na v1, corrigido)
     Comercial reprova (justificativa obrigatória) → aberto (volta pra franquia)
   franquia vê o link_gerado num pop-up de leitura no próprio modal.
 
-Carta de Correção (carta_correcao.py, /cartas-correcao) e Solicitação de Estorno (solicitacao_estorno.py, /solicitacoes-estorno):
+Carta de Correção (carta_correcao.py, /cartas-correcao):
   Franquia/Comercial submits → aguardando_comercial
     Comercial aprova (observação opcional) → aguardando_financeiro
-      Financeiro aprova (anexo opcional — carta usa isso pra anexar a NF corrigida em PDF) → fechado ("Carta Gerada" / "Estorno Realizado")
+      Financeiro aprova (anexo opcional, pra NF corrigida em PDF) → fechado ("Carta Gerada")
+      Financeiro reprova (justificativa obrigatória) → aberto (SEMPRE franquia, sem picker)
+    Comercial reprova (justificativa obrigatória) → aberto (volta pra franquia)
+
+Solicitação de Estorno (solicitacao_estorno.py, /solicitacoes-estorno):
+  Franquia/Comercial submits → aguardando_comercial
+    Comercial aprova (observação opcional) → aguardando_financeiro
+      Financeiro aprova (anexo opcional) → fechado ("Estorno Realizado")
       Financeiro reprova (destino comercial|franquia, justificativa obrigatória) → aguardando_comercial | aberto
+    Comercial reprova (justificativa obrigatória) → aberto (volta pra franquia)
+
+Cancelamento de Venda (cancelamento_venda.py, /cancelamentos-venda):
+  Franquia/Comercial submits → aguardando_comercial
+    Comercial aprova (observação opcional) → aguardando_faturamento
+      Faturamento aprova (anexo opcional) → aguardando_financeiro
+        Financeiro aprova (anexo opcional) → fechado ("Estorno Realizado")
+        Financeiro reprova (destino comercial|franquia, justificativa obrigatória) → aguardando_comercial | aberto
+      Faturamento reprova (destino comercial|franquia, justificativa obrigatória) → aguardando_comercial | aberto
     Comercial reprova (justificativa obrigatória) → aberto (volta pra franquia)
 ```
 
-`aguardando_faturamento`/`aguardando_ti` remain in the `StatusLinkPagamento`/`StatusCartaCorrecao`/`StatusSolicitacaoEstorno` enums (harmless — Alembic can't easily drop Postgres enum values) but are unreachable now that these three forms are fixed at Comercial→Financeiro. The Financeiro/Faturamento dashboard sections for these forms are still wired to query those dead statuses, so they render as permanently-empty sections rather than being removed — a known cosmetic gap, not a bug.
+`aguardando_ti` remains in `StatusLinkPagamento`/`StatusCartaCorrecao`/`StatusSolicitacaoEstorno`/`StatusCancelamentoVenda`, and `aguardando_financeiro` remains unused-but-present in `StatusTrocaPedido` (harmless — Alembic can't easily drop Postgres enum values) — dead now that each form is fixed at its own two/three-stage pipeline. The dashboard sections that still query those dead statuses (e.g. TI's queue for these forms) render as permanently-empty sections rather than being removed — a known cosmetic gap, not a bug.
 
 Two things worth knowing before adding a 7th form:
 - **Dropdown "motivo" fields** store the full option text as the value (see `frontend/src/components/carta-correcao-selects.tsx` for the two-select pattern), matching `MotivoSelect`/`TrocaMotivoSelect` — not a coded enum.
