@@ -1,5 +1,5 @@
 from pydantic import BaseModel
-from typing import Optional, Literal
+from typing import Optional
 from datetime import datetime, date
 from decimal import Decimal
 from enum import Enum
@@ -59,6 +59,7 @@ class TrocaPedidoResponse(BaseModel):
     observacao_faturamento: Optional[str] = None
     justificativa_reprovacao: Optional[str] = None
     destino_reprovacao: Optional[str] = None
+    historico_observacoes: list[dict] = []
     criado_em: datetime
     atualizado_em: datetime
 
@@ -69,11 +70,12 @@ class TrocaPedidoResponse(BaseModel):
 class AprovarTrocaRequest(BaseModel):
     observacao: Optional[str] = None
     anexos: list[str] = []
+    destino: Optional[str] = None  # comercial | faturamento | ti | concluir
 
 
 class ReprovarTrocaRequest(BaseModel):
     justificativa: Optional[str] = None
-    destino: Optional[Literal["comercial", "franquia"]] = None
+    destino: Optional[str] = None  # comercial | faturamento | ti | franquia
 
 
 class ReenviarTrocaRequest(BaseModel):

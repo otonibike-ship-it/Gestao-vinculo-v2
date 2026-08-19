@@ -7,8 +7,21 @@ import { uploadService } from '@/services/vinculo'
 import { TrocaMotivoSelect } from '@/components/troca-motivo-select'
 import { AnexosGrid } from '@/components/anexos-grid'
 import { FluxoStepper } from '@/components/fluxo-stepper'
+import { DestinoPicker } from '@/components/destino-picker'
+import { HistoricoObservacoes } from '@/components/historico-observacoes'
 import { useMutation, useQueryClient, useQuery } from '@tanstack/react-query'
 import api from '@/lib/api'
+
+const AREAS_TROCA = [
+  { value: 'comercial', label: 'Comercial' },
+  { value: 'faturamento', label: 'Faturamento' },
+  { value: 'ti', label: 'TI' },
+]
+
+function outrasAreas(modoAtual: string, incluirFranquia: boolean) {
+  const opts = AREAS_TROCA.filter(a => a.value !== modoAtual)
+  return incluirFranquia ? [...opts, { value: 'franquia', label: 'Franquia' }] : opts
+}
 
 interface TrocaPedidoModalProps {
   troca: TrocaPedidoData
@@ -54,7 +67,8 @@ export function TrocaPedidoModal({ troca, onClose, modo }: TrocaPedidoModalProps
   const [mostrarReprovar, setMostrarReprovar] = useState(false)
   const [arquivosAprovacao, setArquivosAprovacao] = useState<File[]>([])
   const [enviando, setEnviando] = useState(false)
-  const [destinoReprovacao, setDestinoReprovacao] = useState<'comercial' | 'franquia'>('comercial')
+  const [destinoReprovacao, setDestinoReprovacao] = useState<string>('comercial')
+  const [destinoAprovacao, setDestinoAprovacao] = useState<string>(modo === 'faturamento' ? 'ti' : 'faturamento')
   const [observacao, setObservacao] = useState('')
 
   // Estado de edicao
@@ -101,14 +115,14 @@ export function TrocaPedidoModal({ troca, onClose, modo }: TrocaPedidoModalProps
   const aprovarMutation = useMutation({
     mutationFn: async () => {
       if (modo === 'comercial') {
-        return trocaPedidoService.aprovar(troca.id, { observacao: observacao || undefined })
+        return trocaPedidoService.aprovar(troca.id, { observacao: observacao || undefined, destino: destinoAprovacao })
       }
       const resultados = await Promise.all(arquivosAprovacao.map(arq => uploadService.upload(arq)))
       const anexoUrls = resultados.map(r => r.url)
       if (modo === 'faturamento') {
-        return trocaPedidoService.aprovar(troca.id, { observacao: observacao || undefined, anexos: anexoUrls })
+        return trocaPedidoService.aprovar(troca.id, { observacao: observacao || undefined, anexos: anexoUrls, destino: destinoAprovacao })
       }
-      return trocaPedidoService.aprovar(troca.id, { anexos: anexoUrls })
+      return trocaPedidoService.aprovar(troca.id, { anexos: anexoUrls, observacao: observacao || undefined })
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['trocas-pedido'] })
@@ -445,28 +459,59 @@ export function TrocaPedidoModal({ troca, onClose, modo }: TrocaPedidoModalProps
                 return <FluxoStepper steps={steps} currentIndex={currentIdx} isFechado={troca.status === 'fechado'} />
               })()}
 
-              {/* Observação opcional — só comercial (segue fixo pro Faturamento) */}
+              {/* Histórico de Observações */}
+              <HistoricoObservacoes historico={troca.historico_observacoes} />
+
+              {/* Destino + Observação — comercial (fixo pro Faturamento, mas pode redirecionar) */}
               {podeAprovarReprovar && modo === 'comercial' && !mostrarReprovar && (
-                <div>
-                  <p className="text-xs font-medium text-slate-500 uppercase tracking-wider mb-2">Observação (opcional)</p>
-                  <textarea
-                    value={observacao}
-                    onChange={(e) => setObservacao(e.target.value)}
-                    placeholder="Informação para o Faturamento (opcional)..."
-                    className="w-full border border-slate-200 rounded-xl px-4 py-3 text-sm text-slate-700 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-brand-teal/60 transition-all resize-none"
-                    rows={2}
+                <>
+                  <DestinoPicker
+                    options={outrasAreas('comercial', false)}
+                    value={destinoAprovacao}
+                    onChange={setDestinoAprovacao}
                   />
-                </div>
+                  <div>
+                    <p className="text-xs font-medium text-slate-500 uppercase tracking-wider mb-2">Observação (opcional)</p>
+                    <textarea
+                      value={observacao}
+                      onChange={(e) => setObservacao(e.target.value)}
+                      placeholder="Informação para a área de destino (opcional)..."
+                      className="w-full border border-slate-200 rounded-xl px-4 py-3 text-sm text-slate-700 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-brand-teal/60 transition-all resize-none"
+                      rows={2}
+                    />
+                  </div>
+                </>
               )}
 
-              {/* Observação opcional — só faturamento (usada tanto pra aprovar quanto reprovar) */}
+              {/* Destino + Observação — faturamento (fixo pro TI, mas pode redirecionar) */}
               {podeAprovarReprovar && modo === 'faturamento' && !mostrarReprovar && (
+                <>
+                  <DestinoPicker
+                    options={outrasAreas('faturamento', false)}
+                    value={destinoAprovacao}
+                    onChange={setDestinoAprovacao}
+                  />
+                  <div>
+                    <p className="text-xs font-medium text-slate-500 uppercase tracking-wider mb-2">Observação (opcional)</p>
+                    <textarea
+                      value={observacao}
+                      onChange={(e) => setObservacao(e.target.value)}
+                      placeholder="Informação sobre o cancelamento da nota fiscal (opcional)..."
+                      className="w-full border border-slate-200 rounded-xl px-4 py-3 text-sm text-slate-700 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-brand-teal/60 transition-all resize-none"
+                      rows={2}
+                    />
+                  </div>
+                </>
+              )}
+
+              {/* Observação — só TI (conclui o formulário) */}
+              {podeAprovarReprovar && modo === 'ti' && !mostrarReprovar && (
                 <div>
                   <p className="text-xs font-medium text-slate-500 uppercase tracking-wider mb-2">Observação (opcional)</p>
                   <textarea
                     value={observacao}
                     onChange={(e) => setObservacao(e.target.value)}
-                    placeholder="Informação sobre o cancelamento da nota fiscal (opcional)..."
+                    placeholder="Observação sobre a conclusão (opcional)..."
                     className="w-full border border-slate-200 rounded-xl px-4 py-3 text-sm text-slate-700 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-brand-teal/60 transition-all resize-none"
                     rows={2}
                   />
@@ -512,25 +557,11 @@ export function TrocaPedidoModal({ troca, onClose, modo }: TrocaPedidoModalProps
               {podeAprovarReprovar && mostrarReprovar && (
                 <div className="space-y-3">
                   {modo !== 'comercial' && (
-                    <div>
-                      <p className="text-xs font-medium text-slate-500 uppercase tracking-wider mb-2">Enviar para</p>
-                      <div className="flex gap-2">
-                        {(['comercial', 'franquia'] as const).map(d => (
-                          <button
-                            key={d}
-                            type="button"
-                            onClick={() => setDestinoReprovacao(d)}
-                            className={`flex-1 py-2 px-3 rounded-lg text-sm font-medium border transition-colors ${
-                              destinoReprovacao === d
-                                ? 'bg-brand-pine text-white border-brand-pine'
-                                : 'text-slate-600 border-slate-200 hover:bg-slate-50'
-                            }`}
-                          >
-                            {d === 'comercial' ? 'Comercial' : 'Franquia'}
-                          </button>
-                        ))}
-                      </div>
-                    </div>
+                    <DestinoPicker
+                      options={outrasAreas(modo, true)}
+                      value={destinoReprovacao}
+                      onChange={setDestinoReprovacao}
+                    />
                   )}
                   <div>
                     <p className="text-xs font-medium text-slate-500 uppercase tracking-wider mb-2">

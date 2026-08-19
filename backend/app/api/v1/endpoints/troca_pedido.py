@@ -1,5 +1,6 @@
 import logging
 import asyncio
+from datetime import datetime, timezone
 from fastapi import APIRouter, Depends, HTTPException, status, Query
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
@@ -20,6 +21,38 @@ from app.services import email as email_svc
 logger = logging.getLogger(__name__)
 
 router = APIRouter()
+
+_AREA_STATUS = {
+    "comercial": StatusTrocaPedido.aguardando_comercial,
+    "faturamento": StatusTrocaPedido.aguardando_faturamento,
+    "ti": StatusTrocaPedido.aguardando_ti,
+}
+_AREA_EMAIL_CONFIG = {
+    "comercial": "email_comercial",
+    "faturamento": "email_faturamento",
+    "ti": "email_ti",
+}
+_FINAL_AREA = "ti"
+
+
+def _area_atual(troca_status: StatusTrocaPedido) -> Optional[str]:
+    for area, s in _AREA_STATUS.items():
+        if s == troca_status:
+            return area
+    return None
+
+
+def _registrar_nota(troca: TrocaPedido, area: str, texto: Optional[str], tipo: str):
+    if not texto or not texto.strip():
+        return
+    historico = list(troca.historico_observacoes or [])
+    historico.append({
+        "area": area,
+        "texto": texto.strip(),
+        "tipo": tipo,
+        "data": datetime.now(timezone.utc).isoformat(),
+    })
+    troca.historico_observacoes = historico
 
 
 def _serialize(t: TrocaPedido, empresa: Empresa | None = None) -> dict:
@@ -48,6 +81,7 @@ def _serialize(t: TrocaPedido, empresa: Empresa | None = None) -> dict:
         "observacao_faturamento": t.observacao_faturamento,
         "justificativa_reprovacao": t.justificativa_reprovacao,
         "destino_reprovacao": t.destino_reprovacao,
+        "historico_observacoes": t.historico_observacoes or [],
         "criado_em": t.criado_em.isoformat() if t.criado_em else None,
         "atualizado_em": t.atualizado_em.isoformat() if t.atualizado_em else None,
     }
@@ -139,23 +173,35 @@ async def aprovar_troca(troca_id: int, payload: AprovarTrocaRequest, db: AsyncSe
     if not troca:
         raise HTTPException(status_code=404, detail="Troca de pedido não encontrada")
 
-    if troca.status == StatusTrocaPedido.aguardando_comercial:
-        troca.status = StatusTrocaPedido.aguardando_faturamento
-        troca.observacao_comercial = payload.observacao
-
-    elif troca.status == StatusTrocaPedido.aguardando_faturamento:
-        troca.status = StatusTrocaPedido.aguardando_ti
-        troca.observacao_faturamento = payload.observacao
-        if payload.anexos:
-            troca.anexos = (troca.anexos or []) + payload.anexos
-
-    elif troca.status == StatusTrocaPedido.aguardando_ti:
-        troca.status = StatusTrocaPedido.fechado
-        if payload.anexos:
-            troca.anexos = (troca.anexos or []) + payload.anexos
-
-    else:
+    area_atual = _area_atual(troca.status)
+    if area_atual is None:
         raise HTTPException(status_code=400, detail=f"Não é possível aprovar com status '{troca.status.value}'")
+
+    _registrar_nota(troca, area_atual, payload.observacao, "aprovacao")
+    if area_atual == "comercial":
+        troca.observacao_comercial = payload.observacao
+    elif area_atual == "faturamento":
+        troca.observacao_faturamento = payload.observacao
+
+    if payload.destino == "concluir":
+        if area_atual != _FINAL_AREA:
+            raise HTTPException(status_code=422, detail=f"Só é possível concluir a partir de {_FINAL_AREA}")
+        troca.status = StatusTrocaPedido.fechado
+    elif payload.destino:
+        if payload.destino not in _AREA_STATUS or payload.destino == area_atual:
+            raise HTTPException(status_code=422, detail="destino inválido")
+        troca.status = _AREA_STATUS[payload.destino]
+    else:
+        # Sem destino explícito: segue o próximo passo padrão
+        if area_atual == "comercial":
+            troca.status = StatusTrocaPedido.aguardando_faturamento
+        elif area_atual == "faturamento":
+            troca.status = StatusTrocaPedido.aguardando_ti
+        elif area_atual == "ti":
+            troca.status = StatusTrocaPedido.fechado
+
+    if payload.anexos:
+        troca.anexos = (troca.anexos or []) + payload.anexos
 
     troca.justificativa_reprovacao = None
     troca.destino_reprovacao = None
@@ -166,19 +212,8 @@ async def aprovar_troca(troca_id: int, payload: AprovarTrocaRequest, db: AsyncSe
     franquia_nome = result.get("franquia_nome", "")
     numero = troca.numero_pedido_cancelar
     vendedor = troca.nome_vendedor
-    if troca.status == StatusTrocaPedido.aguardando_faturamento:
-        email_faturamento = await db.scalar(
-            select(Configuracao.valor).where(Configuracao.chave == "email_faturamento")
-        )
-        if email_faturamento:
-            asyncio.create_task(email_svc.notificar_triagem_troca(numero, vendedor, franquia_nome, email_faturamento))
-    elif troca.status == StatusTrocaPedido.aguardando_ti:
-        email_ti = await db.scalar(
-            select(Configuracao.valor).where(Configuracao.chave == "email_ti")
-        )
-        if email_ti:
-            asyncio.create_task(email_svc.notificar_triagem_troca(numero, vendedor, franquia_nome, email_ti))
-    elif troca.status == StatusTrocaPedido.fechado:
+    novo_status = troca.status
+    if novo_status == StatusTrocaPedido.fechado:
         u = await db.scalar(select(Usuario).where(
             Usuario.franquia_id == troca.franquia_id,
             Usuario.perfil == PerfilUsuario.franquia,
@@ -186,6 +221,14 @@ async def aprovar_troca(troca_id: int, payload: AprovarTrocaRequest, db: AsyncSe
         ))
         if u:
             asyncio.create_task(email_svc.notificar_concluido_troca(numero, vendedor, u.email))
+    else:
+        nova_area = _area_atual(novo_status)
+        if nova_area:
+            email_destino = await db.scalar(
+                select(Configuracao.valor).where(Configuracao.chave == _AREA_EMAIL_CONFIG[nova_area])
+            )
+            if email_destino:
+                asyncio.create_task(email_svc.notificar_triagem_troca(numero, vendedor, franquia_nome, email_destino))
 
     return result
 
@@ -197,21 +240,20 @@ async def reprovar_troca(troca_id: int, payload: ReprovarTrocaRequest, db: Async
     if not troca:
         raise HTTPException(status_code=404, detail="Troca de pedido não encontrada")
 
-    if troca.status == StatusTrocaPedido.aguardando_comercial:
-        if not payload.justificativa or not payload.justificativa.strip():
-            raise HTTPException(status_code=422, detail="justificativa é obrigatória")
-        destino = "franquia"
-        troca.status = StatusTrocaPedido.aberto
-
-    elif troca.status in (StatusTrocaPedido.aguardando_faturamento, StatusTrocaPedido.aguardando_ti):
-        destino = payload.destino or "franquia"
-        if destino not in ("comercial", "franquia"):
-            raise HTTPException(status_code=422, detail="destino deve ser comercial ou franquia")
-        troca.status = StatusTrocaPedido.aguardando_comercial if destino == "comercial" else StatusTrocaPedido.aberto
-
-    else:
+    area_atual = _area_atual(troca.status)
+    if area_atual is None:
         raise HTTPException(status_code=400, detail=f"Não é possível reprovar com status '{troca.status.value}'")
 
+    if area_atual == "comercial" and (not payload.justificativa or not payload.justificativa.strip()):
+        raise HTTPException(status_code=422, detail="justificativa é obrigatória")
+
+    destino = payload.destino or "franquia"
+    if destino != "franquia" and (destino not in _AREA_STATUS or destino == area_atual):
+        raise HTTPException(status_code=422, detail="destino inválido")
+
+    _registrar_nota(troca, area_atual, payload.justificativa, "reprovacao")
+
+    troca.status = StatusTrocaPedido.aberto if destino == "franquia" else _AREA_STATUS[destino]
     troca.justificativa_reprovacao = payload.justificativa
     troca.destino_reprovacao = destino
     await db.flush()
@@ -229,11 +271,11 @@ async def reprovar_troca(troca_id: int, payload: ReprovarTrocaRequest, db: Async
         if u:
             asyncio.create_task(email_svc.notificar_reprovado(numero, motivo, u.email))
     else:
-        email_comercial = await db.scalar(
-            select(Configuracao.valor).where(Configuracao.chave == "email_comercial")
+        email_destino = await db.scalar(
+            select(Configuracao.valor).where(Configuracao.chave == _AREA_EMAIL_CONFIG[destino])
         )
-        if email_comercial:
-            asyncio.create_task(email_svc.notificar_reprovado(numero, motivo, email_comercial))
+        if email_destino:
+            asyncio.create_task(email_svc.notificar_reprovado(numero, motivo, email_destino))
 
     return result
 

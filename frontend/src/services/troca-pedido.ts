@@ -25,6 +25,7 @@ export interface TrocaPedidoData {
   observacao_faturamento: string | null
   justificativa_reprovacao: string | null
   destino_reprovacao: string | null
+  historico_observacoes: { area: string; texto: string; tipo: 'aprovacao' | 'reprovacao'; data: string }[]
   criado_em: string
   atualizado_em: string
 }
@@ -68,12 +69,12 @@ export const trocaPedidoService = {
     return data as TrocaPedidoData
   },
 
-  async aprovar(id: number, opts: { observacao?: string; anexos?: string[] } = {}) {
+  async aprovar(id: number, opts: { observacao?: string; anexos?: string[]; destino?: string } = {}) {
     const { data } = await api.put(`/trocas-pedido/${id}/aprovar`, opts)
     return data as TrocaPedidoData
   },
 
-  async reprovar(id: number, justificativa?: string, destino?: 'comercial' | 'franquia') {
+  async reprovar(id: number, justificativa?: string, destino?: string) {
     const { data } = await api.put(`/trocas-pedido/${id}/reprovar`, { justificativa, destino })
     return data as TrocaPedidoData
   },
