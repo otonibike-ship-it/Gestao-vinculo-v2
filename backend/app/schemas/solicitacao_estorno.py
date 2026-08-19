@@ -48,6 +48,7 @@ class SolicitacaoEstornoResponse(BaseModel):
     observacao_comercial: Optional[str] = None
     justificativa_reprovacao: Optional[str] = None
     destino_reprovacao: Optional[str] = None
+    historico_observacoes: list[dict] = []
     criado_em: datetime
     atualizado_em: datetime
 

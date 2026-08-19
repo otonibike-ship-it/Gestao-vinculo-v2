@@ -6,6 +6,7 @@ import { SolicitacaoEstornoData, solicitacaoEstornoService } from '@/services/so
 import { uploadService } from '@/services/vinculo'
 import { AnexosGrid } from '@/components/anexos-grid'
 import { FluxoStepper } from '@/components/fluxo-stepper'
+import { HistoricoObservacoes } from '@/components/historico-observacoes'
 import { useMutation, useQueryClient, useQuery } from '@tanstack/react-query'
 import api from '@/lib/api'
 
@@ -354,6 +355,9 @@ export function SolicitacaoEstornoModal({ estorno, onClose, modo }: SolicitacaoE
                 const currentIdx = steps.findIndex(s => s.key === (currentKeyMap[estorno.status] ?? 'franquia'))
                 return <FluxoStepper steps={steps} currentIndex={currentIdx} isFechado={estorno.status === 'fechado'} />
               })()}
+
+              {/* Histórico de Observações */}
+              <HistoricoObservacoes historico={estorno.historico_observacoes} />
 
               {podeAprovarReprovar && modo === 'comercial' && !mostrarReprovar && (
                 <div>

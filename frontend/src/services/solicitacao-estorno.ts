@@ -19,6 +19,7 @@ export interface SolicitacaoEstornoData {
   observacao_comercial: string | null
   justificativa_reprovacao: string | null
   destino_reprovacao: string | null
+  historico_observacoes: { area: string; texto: string; tipo: 'aprovacao' | 'reprovacao'; data: string }[]
   criado_em: string
   atualizado_em: string
 }

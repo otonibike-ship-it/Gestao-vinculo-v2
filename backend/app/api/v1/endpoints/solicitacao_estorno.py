@@ -1,5 +1,6 @@
 import logging
 import asyncio
+from datetime import datetime, timezone
 from fastapi import APIRouter, Depends, HTTPException, status, Query
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
@@ -22,6 +23,19 @@ logger = logging.getLogger(__name__)
 router = APIRouter()
 
 
+def _registrar_nota(estorno: SolicitacaoEstorno, area: str, texto: Optional[str], tipo: str):
+    if not texto or not texto.strip():
+        return
+    historico = list(estorno.historico_observacoes or [])
+    historico.append({
+        "area": area,
+        "texto": texto.strip(),
+        "tipo": tipo,
+        "data": datetime.now(timezone.utc).isoformat(),
+    })
+    estorno.historico_observacoes = historico
+
+
 def _serialize(s: SolicitacaoEstorno, empresa: Empresa | None = None) -> dict:
     return {
         "id": s.id,
@@ -42,6 +56,7 @@ def _serialize(s: SolicitacaoEstorno, empresa: Empresa | None = None) -> dict:
         "observacao_comercial": s.observacao_comercial,
         "justificativa_reprovacao": s.justificativa_reprovacao,
         "destino_reprovacao": s.destino_reprovacao,
+        "historico_observacoes": s.historico_observacoes or [],
         "criado_em": s.criado_em.isoformat() if s.criado_em else None,
         "atualizado_em": s.atualizado_em.isoformat() if s.atualizado_em else None,
     }
@@ -129,10 +144,12 @@ async def aprovar_estorno(estorno_id: int, payload: AprovarEstornoRequest, db: A
         raise HTTPException(status_code=404, detail="Solicitação de estorno não encontrada")
 
     if estorno.status == StatusSolicitacaoEstorno.aguardando_comercial:
+        _registrar_nota(estorno, "comercial", payload.observacao, "aprovacao")
         estorno.status = StatusSolicitacaoEstorno.aguardando_financeiro
         estorno.observacao_comercial = payload.observacao
 
     elif estorno.status == StatusSolicitacaoEstorno.aguardando_financeiro:
+        _registrar_nota(estorno, "financeiro", payload.observacao, "aprovacao")
         if payload.anexos:
             estorno.anexos = (estorno.anexos or []) + payload.anexos
         estorno.status = StatusSolicitacaoEstorno.fechado
@@ -179,12 +196,14 @@ async def reprovar_estorno(estorno_id: int, payload: ReprovarEstornoRequest, db:
 
     if estorno.status == StatusSolicitacaoEstorno.aguardando_comercial:
         destino = "franquia"
+        _registrar_nota(estorno, "comercial", payload.justificativa, "reprovacao")
         estorno.status = StatusSolicitacaoEstorno.aberto
 
     elif estorno.status == StatusSolicitacaoEstorno.aguardando_financeiro:
         destino = payload.destino or "franquia"
         if destino not in ("comercial", "franquia"):
             raise HTTPException(status_code=422, detail="destino deve ser comercial ou franquia")
+        _registrar_nota(estorno, "financeiro", payload.justificativa, "reprovacao")
         estorno.status = StatusSolicitacaoEstorno.aguardando_comercial if destino == "comercial" else StatusSolicitacaoEstorno.aberto
 
     else:
