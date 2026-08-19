@@ -6,8 +6,21 @@ import { CancelamentoVendaData, cancelamentoVendaService } from '@/services/canc
 import { uploadService } from '@/services/vinculo'
 import { AnexosGrid } from '@/components/anexos-grid'
 import { FluxoStepper } from '@/components/fluxo-stepper'
+import { DestinoPicker } from '@/components/destino-picker'
+import { HistoricoObservacoes } from '@/components/historico-observacoes'
 import { useMutation, useQueryClient, useQuery } from '@tanstack/react-query'
 import api from '@/lib/api'
+
+const AREAS_CANCELAMENTO = [
+  { value: 'comercial', label: 'Comercial' },
+  { value: 'faturamento', label: 'Faturamento' },
+  { value: 'financeiro', label: 'Financeiro' },
+]
+
+function outrasAreas(modoAtual: string, incluirFranquia: boolean) {
+  const opts = AREAS_CANCELAMENTO.filter(a => a.value !== modoAtual)
+  return incluirFranquia ? [...opts, { value: 'franquia', label: 'Franquia' }] : opts
+}
 
 interface CancelamentoVendaModalProps {
   cancelamento: CancelamentoVendaData
@@ -52,7 +65,8 @@ export function CancelamentoVendaModal({ cancelamento, onClose, modo }: Cancelam
   const [mostrarReprovar, setMostrarReprovar] = useState(false)
   const [arquivosAprovacao, setArquivosAprovacao] = useState<File[]>([])
   const [enviando, setEnviando] = useState(false)
-  const [destinoReprovacao, setDestinoReprovacao] = useState<'comercial' | 'franquia'>('comercial')
+  const [destinoReprovacao, setDestinoReprovacao] = useState('comercial')
+  const [destinoAprovacao, setDestinoAprovacao] = useState(modo === 'faturamento' ? 'financeiro' : 'faturamento')
   const [observacao, setObservacao] = useState('')
 
   const podeEditar =
@@ -69,11 +83,14 @@ export function CancelamentoVendaModal({ cancelamento, onClose, modo }: Cancelam
   const aprovarMutation = useMutation({
     mutationFn: async () => {
       if (modo === 'comercial') {
-        return cancelamentoVendaService.aprovar(cancelamento.id, { observacao: observacao || undefined })
+        return cancelamentoVendaService.aprovar(cancelamento.id, { observacao: observacao || undefined, destino: destinoAprovacao })
       }
       const resultados = await Promise.all(arquivosAprovacao.map(arq => uploadService.upload(arq)))
       const anexoUrls = resultados.map(r => r.url)
-      return cancelamentoVendaService.aprovar(cancelamento.id, { anexos: anexoUrls })
+      if (modo === 'faturamento') {
+        return cancelamentoVendaService.aprovar(cancelamento.id, { observacao: observacao || undefined, anexos: anexoUrls, destino: destinoAprovacao })
+      }
+      return cancelamentoVendaService.aprovar(cancelamento.id, { anexos: anexoUrls, observacao: observacao || undefined })
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['cancelamentos-venda'] })
@@ -200,13 +217,56 @@ export function CancelamentoVendaModal({ cancelamento, onClose, modo }: Cancelam
             <Campo label="Observação do Comercial" valor={cancelamento.observacao_comercial} />
           )}
 
+          {/* Histórico de Observações */}
+          <HistoricoObservacoes historico={cancelamento.historico_observacoes} />
+
           {podeAprovarReprovar && modo === 'comercial' && !mostrarReprovar && (
+            <>
+              <DestinoPicker
+                options={outrasAreas('comercial', false)}
+                value={destinoAprovacao}
+                onChange={setDestinoAprovacao}
+              />
+              <div>
+                <p className="text-xs font-medium text-slate-500 uppercase tracking-wider mb-2">Observação (opcional)</p>
+                <textarea
+                  value={observacao}
+                  onChange={(e) => setObservacao(e.target.value)}
+                  placeholder="Informação para a área de destino (opcional)..."
+                  className="w-full border border-slate-200 rounded-xl px-4 py-3 text-sm text-slate-700 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-brand-teal/60 transition-all resize-none"
+                  rows={2}
+                />
+              </div>
+            </>
+          )}
+
+          {podeAprovarReprovar && modo === 'faturamento' && !mostrarReprovar && (
+            <>
+              <DestinoPicker
+                options={outrasAreas('faturamento', false)}
+                value={destinoAprovacao}
+                onChange={setDestinoAprovacao}
+              />
+              <div>
+                <p className="text-xs font-medium text-slate-500 uppercase tracking-wider mb-2">Observação (opcional)</p>
+                <textarea
+                  value={observacao}
+                  onChange={(e) => setObservacao(e.target.value)}
+                  placeholder="Informação sobre o cancelamento da nota fiscal (opcional)..."
+                  className="w-full border border-slate-200 rounded-xl px-4 py-3 text-sm text-slate-700 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-brand-teal/60 transition-all resize-none"
+                  rows={2}
+                />
+              </div>
+            </>
+          )}
+
+          {podeAprovarReprovar && modo === 'financeiro' && !mostrarReprovar && (
             <div>
               <p className="text-xs font-medium text-slate-500 uppercase tracking-wider mb-2">Observação (opcional)</p>
               <textarea
                 value={observacao}
                 onChange={(e) => setObservacao(e.target.value)}
-                placeholder="Informação para o Faturamento (opcional)..."
+                placeholder="Observação sobre o estorno (opcional)..."
                 className="w-full border border-slate-200 rounded-xl px-4 py-3 text-sm text-slate-700 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-brand-teal/60 transition-all resize-none"
                 rows={2}
               />
@@ -250,25 +310,11 @@ export function CancelamentoVendaModal({ cancelamento, onClose, modo }: Cancelam
           {podeAprovarReprovar && mostrarReprovar && (
             <div className="space-y-3">
               {modo !== 'comercial' && (
-                <div>
-                  <p className="text-xs font-medium text-slate-500 uppercase tracking-wider mb-2">Enviar para</p>
-                  <div className="flex gap-2">
-                    {(['comercial', 'franquia'] as const).map(d => (
-                      <button
-                        key={d}
-                        type="button"
-                        onClick={() => setDestinoReprovacao(d)}
-                        className={`flex-1 py-2 px-3 rounded-lg text-sm font-medium border transition-colors ${
-                          destinoReprovacao === d
-                            ? 'bg-brand-pine text-white border-brand-pine'
-                            : 'text-slate-600 border-slate-200 hover:bg-slate-50'
-                        }`}
-                      >
-                        {d === 'comercial' ? 'Comercial' : 'Franquia'}
-                      </button>
-                    ))}
-                  </div>
-                </div>
+                <DestinoPicker
+                  options={outrasAreas(modo, true)}
+                  value={destinoReprovacao}
+                  onChange={setDestinoReprovacao}
+                />
               )}
               <div>
                 <p className="text-xs font-medium text-slate-500 uppercase tracking-wider mb-2">

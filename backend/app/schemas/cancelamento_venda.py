@@ -1,5 +1,5 @@
 from pydantic import BaseModel
-from typing import Optional, Literal
+from typing import Optional
 from datetime import datetime, date
 from decimal import Decimal
 from enum import Enum
@@ -66,6 +66,7 @@ class CancelamentoVendaResponse(BaseModel):
     observacao_comercial: Optional[str] = None
     justificativa_reprovacao: Optional[str] = None
     destino_reprovacao: Optional[str] = None
+    historico_observacoes: list[dict] = []
     criado_em: datetime
     atualizado_em: datetime
 
@@ -76,11 +77,12 @@ class CancelamentoVendaResponse(BaseModel):
 class AprovarCancelamentoRequest(BaseModel):
     observacao: Optional[str] = None
     anexos: list[str] = []  # anexados na etapa de faturamento/financeiro, entram em anexos_portal_comprovante
+    destino: Optional[str] = None  # comercial | faturamento | financeiro | concluir
 
 
 class ReprovarCancelamentoRequest(BaseModel):
     justificativa: str
-    destino: Optional[Literal["comercial", "franquia"]] = None
+    destino: Optional[str] = None  # comercial | faturamento | financeiro | franquia
 
 
 class ReenviarCancelamentoRequest(BaseModel):

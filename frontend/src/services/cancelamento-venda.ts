@@ -28,6 +28,7 @@ export interface CancelamentoVendaData {
   observacao_comercial: string | null
   justificativa_reprovacao: string | null
   destino_reprovacao: string | null
+  historico_observacoes: { area: string; texto: string; tipo: 'aprovacao' | 'reprovacao'; data: string }[]
   criado_em: string
   atualizado_em: string
 }
@@ -75,12 +76,12 @@ export const cancelamentoVendaService = {
     return data as CancelamentoVendaData
   },
 
-  async aprovar(id: number, opts: { observacao?: string; anexos?: string[] } = {}) {
+  async aprovar(id: number, opts: { observacao?: string; anexos?: string[]; destino?: string } = {}) {
     const { data } = await api.put(`/cancelamentos-venda/${id}/aprovar`, opts)
     return data as CancelamentoVendaData
   },
 
-  async reprovar(id: number, justificativa: string, destino?: 'comercial' | 'franquia') {
+  async reprovar(id: number, justificativa: string, destino?: string) {
     const { data } = await api.put(`/cancelamentos-venda/${id}/reprovar`, { justificativa, destino })
     return data as CancelamentoVendaData
   },
