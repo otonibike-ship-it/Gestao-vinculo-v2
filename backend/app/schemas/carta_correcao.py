@@ -45,6 +45,7 @@ class CartaCorrecaoResponse(BaseModel):
     observacao_comercial: Optional[str] = None
     justificativa_reprovacao: Optional[str] = None
     destino_reprovacao: Optional[str] = None
+    historico_observacoes: list[dict] = []
     criado_em: datetime
     atualizado_em: datetime
 
@@ -59,6 +60,7 @@ class AprovarCartaRequest(BaseModel):
 
 class ReprovarCartaRequest(BaseModel):
     justificativa: str
+    destino: Optional[str] = None  # comercial | franquia
 
 
 class ReenviarCartaRequest(BaseModel):

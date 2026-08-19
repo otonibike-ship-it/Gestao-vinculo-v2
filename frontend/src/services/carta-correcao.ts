@@ -18,6 +18,7 @@ export interface CartaCorrecaoData {
   observacao_comercial: string | null
   justificativa_reprovacao: string | null
   destino_reprovacao: string | null
+  historico_observacoes: { area: string; texto: string; tipo: 'aprovacao' | 'reprovacao'; data: string }[]
   criado_em: string
   atualizado_em: string
 }
@@ -60,8 +61,8 @@ export const cartaCorrecaoService = {
     return data as CartaCorrecaoData
   },
 
-  async reprovar(id: number, justificativa: string) {
-    const { data } = await api.put(`/cartas-correcao/${id}/reprovar`, { justificativa })
+  async reprovar(id: number, justificativa: string, destino?: string) {
+    const { data } = await api.put(`/cartas-correcao/${id}/reprovar`, { justificativa, destino })
     return data as CartaCorrecaoData
   },
 

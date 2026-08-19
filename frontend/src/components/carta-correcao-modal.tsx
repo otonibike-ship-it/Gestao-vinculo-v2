@@ -7,6 +7,8 @@ import { uploadService } from '@/services/vinculo'
 import { CampoCorrecaoSelect, MotivoDivergenciaSelect, CAMPO_CORRECAO_OPCOES } from '@/components/carta-correcao-selects'
 import { AnexosGrid } from '@/components/anexos-grid'
 import { FluxoStepper } from '@/components/fluxo-stepper'
+import { DestinoPicker } from '@/components/destino-picker'
+import { HistoricoObservacoes } from '@/components/historico-observacoes'
 import { useMutation, useQueryClient, useQuery } from '@tanstack/react-query'
 import api from '@/lib/api'
 
@@ -41,6 +43,7 @@ export function CartaCorrecaoModal({ carta, onClose, modo }: CartaCorrecaoModalP
   const [arquivosAprovacao, setArquivosAprovacao] = useState<File[]>([])
   const [enviando, setEnviando] = useState(false)
   const [observacao, setObservacao] = useState('')
+  const [destinoReprovacao, setDestinoReprovacao] = useState('comercial')
 
   const [editando, setEditando] = useState(false)
   const [formFranquiaId, setFormFranquiaId] = useState(carta.franquia_id)
@@ -92,7 +95,11 @@ export function CartaCorrecaoModal({ carta, onClose, modo }: CartaCorrecaoModalP
   })
 
   const reprovarMutation = useMutation({
-    mutationFn: () => cartaCorrecaoService.reprovar(carta.id, justificativa),
+    mutationFn: () => cartaCorrecaoService.reprovar(
+      carta.id,
+      justificativa,
+      modo === 'comercial' ? undefined : destinoReprovacao
+    ),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['cartas-correcao'] })
       onClose()
@@ -329,6 +336,9 @@ export function CartaCorrecaoModal({ carta, onClose, modo }: CartaCorrecaoModalP
                 return <FluxoStepper steps={steps} currentIndex={currentIdx} isFechado={carta.status === 'fechado'} />
               })()}
 
+              {/* Histórico de Observações */}
+              <HistoricoObservacoes historico={carta.historico_observacoes} />
+
               {podeAprovarReprovar && modo === 'comercial' && !mostrarReprovar && (
                 <div>
                   <p className="text-xs font-medium text-slate-500 uppercase tracking-wider mb-2">Observação (opcional)</p>
@@ -377,15 +387,29 @@ export function CartaCorrecaoModal({ carta, onClose, modo }: CartaCorrecaoModalP
               )}
 
               {podeAprovarReprovar && mostrarReprovar && (
-                <div>
-                  <p className="text-xs font-medium text-slate-500 uppercase tracking-wider mb-2">Justificativa (volta para a Franquia)</p>
-                  <textarea
-                    value={justificativa}
-                    onChange={(e) => setJustificativa(e.target.value)}
-                    placeholder="Descreva o motivo da reprovacao..."
-                    className="w-full border border-slate-200 rounded-xl px-4 py-3 text-sm text-slate-700 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-red-300 focus:border-red-300 transition-all resize-none"
-                    rows={3}
-                  />
+                <div className="space-y-3">
+                  {modo === 'financeiro' && (
+                    <DestinoPicker
+                      options={[
+                        { value: 'comercial', label: 'Comercial' },
+                        { value: 'franquia', label: 'Franquia' },
+                      ]}
+                      value={destinoReprovacao}
+                      onChange={setDestinoReprovacao}
+                    />
+                  )}
+                  <div>
+                    <p className="text-xs font-medium text-slate-500 uppercase tracking-wider mb-2">
+                      Justificativa {modo === 'comercial' ? '(volta para a Franquia)' : ''}
+                    </p>
+                    <textarea
+                      value={justificativa}
+                      onChange={(e) => setJustificativa(e.target.value)}
+                      placeholder="Descreva o motivo da reprovacao..."
+                      className="w-full border border-slate-200 rounded-xl px-4 py-3 text-sm text-slate-700 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-red-300 focus:border-red-300 transition-all resize-none"
+                      rows={3}
+                    />
+                  </div>
                 </div>
               )}
             </>

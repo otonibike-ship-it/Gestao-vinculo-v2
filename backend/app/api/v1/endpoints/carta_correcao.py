@@ -1,5 +1,6 @@
 import logging
 import asyncio
+from datetime import datetime, timezone
 from fastapi import APIRouter, Depends, HTTPException, status, Query
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
@@ -21,6 +22,35 @@ logger = logging.getLogger(__name__)
 
 router = APIRouter()
 
+_AREA_STATUS = {
+    "comercial": StatusCartaCorrecao.aguardando_comercial,
+    "financeiro": StatusCartaCorrecao.aguardando_financeiro,
+}
+_AREA_EMAIL_CONFIG = {
+    "comercial": "email_comercial",
+    "financeiro": "email_financeiro",
+}
+
+
+def _area_atual(carta_status: StatusCartaCorrecao) -> Optional[str]:
+    for area, s in _AREA_STATUS.items():
+        if s == carta_status:
+            return area
+    return None
+
+
+def _registrar_nota(carta: CartaCorrecao, area: str, texto: Optional[str], tipo: str):
+    if not texto or not texto.strip():
+        return
+    historico = list(carta.historico_observacoes or [])
+    historico.append({
+        "area": area,
+        "texto": texto.strip(),
+        "tipo": tipo,
+        "data": datetime.now(timezone.utc).isoformat(),
+    })
+    carta.historico_observacoes = historico
+
 
 def _serialize(c: CartaCorrecao, empresa: Empresa | None = None) -> dict:
     return {
@@ -41,6 +71,7 @@ def _serialize(c: CartaCorrecao, empresa: Empresa | None = None) -> dict:
         "observacao_comercial": c.observacao_comercial,
         "justificativa_reprovacao": c.justificativa_reprovacao,
         "destino_reprovacao": c.destino_reprovacao,
+        "historico_observacoes": c.historico_observacoes or [],
         "criado_em": c.criado_em.isoformat() if c.criado_em else None,
         "atualizado_em": c.atualizado_em.isoformat() if c.atualizado_em else None,
     }
@@ -126,6 +157,10 @@ async def aprovar_carta(carta_id: int, payload: AprovarCartaRequest, db: AsyncSe
     if not carta:
         raise HTTPException(status_code=404, detail="Carta de correção não encontrada")
 
+    area_atual = _area_atual(carta.status)
+    if area_atual:
+        _registrar_nota(carta, area_atual, payload.observacao, "aprovacao")
+
     if carta.status == StatusCartaCorrecao.aguardando_comercial:
         carta.status = StatusCartaCorrecao.aguardando_financeiro
         carta.observacao_comercial = payload.observacao
@@ -172,24 +207,38 @@ async def reprovar_carta(carta_id: int, payload: ReprovarCartaRequest, db: Async
     if not carta:
         raise HTTPException(status_code=404, detail="Carta de correção não encontrada")
 
-    if carta.status not in (StatusCartaCorrecao.aguardando_comercial, StatusCartaCorrecao.aguardando_financeiro):
+    area_atual = _area_atual(carta.status)
+    if area_atual is None:
         raise HTTPException(status_code=400, detail=f"Não é possível reprovar com status '{carta.status.value}'")
 
-    carta.status = StatusCartaCorrecao.aberto
+    destino = (payload.destino or "franquia") if area_atual != "comercial" else "franquia"
+    if destino != "franquia" and (destino not in _AREA_STATUS or destino == area_atual):
+        raise HTTPException(status_code=422, detail="destino inválido")
+
+    _registrar_nota(carta, area_atual, payload.justificativa, "reprovacao")
+
+    carta.status = StatusCartaCorrecao.aberto if destino == "franquia" else _AREA_STATUS[destino]
     carta.justificativa_reprovacao = payload.justificativa
-    carta.destino_reprovacao = "franquia"
+    carta.destino_reprovacao = destino
     await db.flush()
     await db.refresh(carta)
     result = await _enrich(carta, db)
 
     numero = carta.numero_pedido
-    u = await db.scalar(select(Usuario).where(
-        Usuario.franquia_id == carta.franquia_id,
-        Usuario.perfil == PerfilUsuario.franquia,
-        Usuario.ativo == True,
-    ))
-    if u:
-        asyncio.create_task(email_svc.notificar_reprovado(numero, payload.justificativa, u.email))
+    if destino == "franquia":
+        u = await db.scalar(select(Usuario).where(
+            Usuario.franquia_id == carta.franquia_id,
+            Usuario.perfil == PerfilUsuario.franquia,
+            Usuario.ativo == True,
+        ))
+        if u:
+            asyncio.create_task(email_svc.notificar_reprovado(numero, payload.justificativa, u.email))
+    else:
+        email_destino = await db.scalar(
+            select(Configuracao.valor).where(Configuracao.chave == _AREA_EMAIL_CONFIG[destino])
+        )
+        if email_destino:
+            asyncio.create_task(email_svc.notificar_reprovado(numero, payload.justificativa, email_destino))
 
     return result
 
