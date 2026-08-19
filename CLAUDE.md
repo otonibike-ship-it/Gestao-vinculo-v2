@@ -55,55 +55,29 @@ Status enum lives in `backend/app/models/vinculo.py` (`StatusVinculo`). The appr
 
 Five other forms each have their own table, model, and endpoint (not a shared polymorphic model — copy the closest existing form: model + schema + endpoint + email functions + migration + service + form + modal + dashboard wiring rather than generalizing early). There is **no Checklist Bike Shop** — it was deliberately dropped (too rarely used) in favor of **Cancelamento de Venda**. The six live forms are: Vinculo, **Troca de Pedido**, **Link de Pagamento**, **Carta de Correção**, **Solicitação de Estorno**, **Cancelamento de Venda**.
 
-**All five non-Vinculo forms were reworked (2026-08-04/05) from the original shared 3-way-triage template into distinct, fixed per-form pipelines.** Comercial no longer picks a destino (Faturamento | Financeiro | TI) on any of them — each form always routes to the same next team(s). Comercial's own initial reject (from `aguardando_comercial`) always goes straight to the franquia, justificativa required, no picker. Beyond that, each form's target-team reject behavior differs — confirmed individually with the user, not assumed:
+**All six forms now use free routing between areas (reworked 2026-08-19), not a fixed pipeline.** Each form has an "area set" — the subset of {comercial, faturamento, financeiro, ti} it actually uses — and at every stage, whoever currently holds the record can **aprovar** (advance — defaults to the next natural step, but a `DestinoPicker` lets them redirect to any other area in the set instead) or **reprovar** (send back — `DestinoPicker` covers every other area in the set plus **franquia**). This replaced the 2026-08-04/05 fixed-pipeline rework because a real need surfaced: e.g. TI needs one more piece of info from Comercial, rejects to Comercial, Comercial fills it in and **resends straight back to TI** — not necessarily through Faturamento/Financeiro again. Comercial's own initial reject (from `aguardando_comercial`) still always goes straight to franquia, no picker, justificativa required — that one case didn't need to change.
 
-```
-Troca de Pedido (troca_pedido.py, /trocas-pedido):
-  Franquia/Comercial submits → aguardando_comercial
-    Comercial aprova (observação opcional) → aguardando_faturamento
-      Faturamento aprova (observação opcional) → aguardando_ti
-        TI aprova → fechado ("Finalizado")
-        TI reprova (destino comercial|franquia, justificativa opcional) → aguardando_comercial | aberto
-      Faturamento reprova (destino comercial|franquia, justificativa opcional) → aguardando_comercial | aberto
-    Comercial reprova (justificativa obrigatória) → aberto (volta pra franquia)
+Each form's area set and final area (the one that can additionally choose **"concluir"** on aprovar to close it — `fechado`):
 
-Link de Pagamento (link_pagamento.py, /links-pagamento):
-  Franquia/Comercial submits → aguardando_comercial
-    Comercial aprova (sem campo obrigatório) → aguardando_financeiro
-      Financeiro aprova (preenche link_gerado, campo obrigatório) → fechado ("Link Gerado")
-      Financeiro reprova (justificativa obrigatória) → aberto (SEMPRE franquia, sem picker — reprovado por engano na v1, corrigido)
-    Comercial reprova (justificativa obrigatória) → aberto (volta pra franquia)
-  franquia vê o link_gerado num pop-up de leitura no próprio modal.
+| Form | Area set | Final area | Endpoint |
+|---|---|---|---|
+| Vinculo | comercial, financeiro, ti | ti | `vinculo.py` |
+| Troca de Pedido | comercial, faturamento, ti | ti | `troca_pedido.py` |
+| Link de Pagamento | comercial, financeiro | financeiro | `link_pagamento.py` |
+| Carta de Correção | comercial, financeiro | financeiro | `carta_correcao.py` |
+| Solicitação de Estorno | comercial, financeiro | financeiro | `solicitacao_estorno.py` |
+| Cancelamento de Venda | comercial, faturamento, financeiro | financeiro | `cancelamento_venda.py` |
 
-Carta de Correção (carta_correcao.py, /cartas-correcao):
-  Franquia/Comercial submits → aguardando_comercial
-    Comercial aprova (observação opcional) → aguardando_financeiro
-      Financeiro aprova (anexo opcional, pra NF corrigida em PDF) → fechado ("Carta Gerada")
-      Financeiro reprova (justificativa obrigatória) → aberto (SEMPRE franquia, sem picker)
-    Comercial reprova (justificativa obrigatória) → aberto (volta pra franquia)
+Every endpoint follows the same shape: an `_AREA_STATUS` dict (area name → status enum value), `_AREA_EMAIL_CONFIG` (area name → `configuracoes` key for its notification email), `_area_atual()` (reverse lookup from the record's current status), and `_registrar_nota()` (appends `{area, texto, tipo: "aprovacao"|"reprovacao", data}` to the `historico_observacoes` JSON column — every form got this column added in migration `0016`). `aprovar` accepts `destino: Optional[str]` (an area name, or `"concluir"` only from the final area); `reprovar` accepts `destino: Optional[str]` (an area name, or `"franquia"`, which is also the default when omitted). Vinculo is the one exception with extra logic: its `necessario_validacao` flag still picks the default next step (financeiro vs ti) when Comercial approves without an explicit destino, preserving the pre-existing skip-financeiro behavior.
 
-Solicitação de Estorno (solicitacao_estorno.py, /solicitacoes-estorno):
-  Franquia/Comercial submits → aguardando_comercial
-    Comercial aprova (observação opcional) → aguardando_financeiro
-      Financeiro aprova (anexo opcional) → fechado ("Estorno Realizado")
-      Financeiro reprova (destino comercial|franquia, justificativa obrigatória) → aguardando_comercial | aberto
-    Comercial reprova (justificativa obrigatória) → aberto (volta pra franquia)
+On the frontend, every modal renders a `<HistoricoObservacoes historico={record.historico_observacoes} />` (shows the running log, most areas leave a note whether approving or rejecting) and uses the shared `<DestinoPicker options={...} value={...} onChange={...} />` for both the aprovar and reprovar destino choices — options are computed per-modal as "this form's area set minus the current area" (plus franquia for reprovar). `aguardando_ti` remains defined-but-unreachable in `StatusLinkPagamento`/`StatusCartaCorrecao`/`StatusSolicitacaoEstorno`, and `aguardando_financeiro` similarly in `StatusTrocaPedido` — those forms' area sets never route there in practice, but the DB enum can't easily drop values, so they're harmless dead options. The dashboard sections that query those dead statuses (e.g. TI's queue for Link/Carta/Estorno) render as permanently-empty sections — a known cosmetic gap, not a bug.
 
-Cancelamento de Venda (cancelamento_venda.py, /cancelamentos-venda):
-  Franquia/Comercial submits → aguardando_comercial
-    Comercial aprova (observação opcional) → aguardando_faturamento
-      Faturamento aprova (anexo opcional) → aguardando_financeiro
-        Financeiro aprova (anexo opcional) → fechado ("Estorno Realizado")
-        Financeiro reprova (destino comercial|franquia, justificativa obrigatória) → aguardando_comercial | aberto
-      Faturamento reprova (destino comercial|franquia, justificativa obrigatória) → aguardando_comercial | aberto
-    Comercial reprova (justificativa obrigatória) → aberto (volta pra franquia)
-```
+Pop-up width: all 6 modals use `max-w-3xl` (bumped from `max-w-lg` on 2026-08-19) so the longer forms have room to breathe.
 
-`aguardando_ti` remains in `StatusLinkPagamento`/`StatusCartaCorrecao`/`StatusSolicitacaoEstorno`/`StatusCancelamentoVenda`, and `aguardando_financeiro` remains unused-but-present in `StatusTrocaPedido` (harmless — Alembic can't easily drop Postgres enum values) — dead now that each form is fixed at its own two/three-stage pipeline. The dashboard sections that still query those dead statuses (e.g. TI's queue for these forms) render as permanently-empty sections rather than being removed — a known cosmetic gap, not a bug.
-
-Two things worth knowing before adding a 7th form:
+Three things worth knowing before adding a 7th form:
 - **Dropdown "motivo" fields** store the full option text as the value (see `frontend/src/components/carta-correcao-selects.tsx` for the two-select pattern), matching `MotivoSelect`/`TrocaMotivoSelect` — not a coded enum.
 - **`CancelamentoVenda` has two independent attachment arrays** (`anexos_evidencias_uso`, `anexos_portal_comprovante`) instead of the single `anexos` every other form uses — its `AprovarCancelamentoRequest.anexos` payload merges into `anexos_portal_comprovante` on approve. Its modal also skips the inline "Editar e Reenviar" flow (too many fields split across two attachment types); a reprovado record just tells the franquia to submit a new one. The `/reenviar` endpoint still exists for API consistency but the frontend doesn't call it.
+- **Free routing is the standard now** (see the area-set table above) — copy an existing endpoint's `_AREA_STATUS`/`_registrar_nota` pattern and an existing modal's `DestinoPicker`/`HistoricoObservacoes` usage rather than building a fixed pipeline from scratch.
 
 ### User Profiles & Routing
 
@@ -158,17 +132,17 @@ Uploads go **directly from the browser to Cloudinary** using an unsigned preset 
 | `app/models/cancelamento_venda.py` | `CancelamentoVenda` model (2 anexo arrays) + `StatusCancelamentoVenda` enum |
 | `app/models/usuario.py` | `Usuario` model + `PerfilUsuario` enum |
 | `app/models/configuracao.py` | Key/value config store (SMTP, templates) |
-| `app/api/v1/endpoints/vinculo.py` | All vinculo CRUD + approve/reject logic |
-| `app/api/v1/endpoints/troca_pedido.py` | All troca de pedido CRUD + fixed Comercial→Faturamento→TI pipeline |
-| `app/api/v1/endpoints/link_pagamento.py` | All link de pagamento CRUD + fixed Comercial→Financeiro pipeline (`link_gerado`) |
-| `app/api/v1/endpoints/carta_correcao.py` | All carta de correção CRUD + fixed Comercial→Financeiro pipeline |
-| `app/api/v1/endpoints/solicitacao_estorno.py` | All solicitação de estorno CRUD + fixed Comercial→Financeiro pipeline |
-| `app/api/v1/endpoints/cancelamento_venda.py` | All cancelamento de venda CRUD + 3-way triage logic |
+| `app/api/v1/endpoints/vinculo.py` | All vinculo CRUD + free-routing approve/reject logic |
+| `app/api/v1/endpoints/troca_pedido.py` | All troca de pedido CRUD + free-routing approve/reject logic |
+| `app/api/v1/endpoints/link_pagamento.py` | All link de pagamento CRUD + free-routing approve/reject logic (`link_gerado`) |
+| `app/api/v1/endpoints/carta_correcao.py` | All carta de correção CRUD + free-routing approve/reject logic |
+| `app/api/v1/endpoints/solicitacao_estorno.py` | All solicitação de estorno CRUD + free-routing approve/reject logic |
+| `app/api/v1/endpoints/cancelamento_venda.py` | All cancelamento de venda CRUD + free-routing approve/reject logic |
 | `app/api/v1/endpoints/configuracoes.py` | SMTP config + email template management |
 | `app/services/email.py` | Email sending (creates own DB session) |
 | `app/services/auth_service.py` | JWT generation + password validation |
 | `app/core/database.py` | Async engine, `get_db` dependency, `AsyncSessionLocal` |
-| `alembic/versions/` | 11 migrations; latest is `0011_cancelamento_venda.py` |
+| `alembic/versions/` | 16 migrations; latest is `0016_historico_observacoes.py` |
 
 ### Key Frontend Files
 
@@ -189,6 +163,10 @@ Uploads go **directly from the browser to Cloudinary** using an unsigned preset 
 | `src/components/carta-correcao-modal.tsx` | Approve/reject modal (Comercial/Faturamento/Financeiro/TI) |
 | `src/components/solicitacao-estorno-modal.tsx` | Approve/reject modal (Comercial/Faturamento/Financeiro/TI) |
 | `src/components/cancelamento-venda-modal.tsx` | Approve/reject modal — no inline edit/resend (see note above) |
+| `src/components/destino-picker.tsx` | Shared button-group used by every modal for the free-routing area choice |
+| `src/components/historico-observacoes.tsx` | Shared log display for `historico_observacoes` (+ `AREA_LABELS` map) |
+| `src/components/fluxo-stepper.tsx` | Shared "Histórico do Fluxo" progress stepper, used by all 6 modals |
+| `src/components/anexos-grid.tsx` | Shared attachment grid (image preview, embedded PDF viewer) used by all 6 modals |
 | `src/components/novo-pedido-form.tsx` | New order form (Comercial) |
 | `src/components/troca-pedido-form.tsx` | New troca de pedido form |
 | `src/components/link-pagamento-form.tsx` | New link de pagamento form (CPF/telefone masks) |
