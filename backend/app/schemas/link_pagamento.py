@@ -57,6 +57,7 @@ class LinkPagamentoResponse(BaseModel):
     link_gerado: Optional[str] = None
     justificativa_reprovacao: Optional[str] = None
     destino_reprovacao: Optional[str] = None
+    historico_observacoes: list[dict] = []
     criado_em: datetime
     atualizado_em: datetime
 
@@ -72,6 +73,7 @@ class AprovarLinkRequest(BaseModel):
 
 class ReprovarLinkRequest(BaseModel):
     justificativa: str
+    destino: Optional[str] = None  # comercial | franquia
 
 
 class ReenviarLinkRequest(BaseModel):

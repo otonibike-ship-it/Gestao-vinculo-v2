@@ -24,6 +24,7 @@ export interface LinkPagamentoData {
   link_gerado: string | null
   justificativa_reprovacao: string | null
   destino_reprovacao: string | null
+  historico_observacoes: { area: string; texto: string; tipo: 'aprovacao' | 'reprovacao'; data: string }[]
   criado_em: string
   atualizado_em: string
 }
@@ -71,8 +72,8 @@ export const linkPagamentoService = {
     return data as LinkPagamentoData
   },
 
-  async reprovar(id: number, justificativa: string) {
-    const { data } = await api.put(`/links-pagamento/${id}/reprovar`, { justificativa })
+  async reprovar(id: number, justificativa: string, destino?: string) {
+    const { data } = await api.put(`/links-pagamento/${id}/reprovar`, { justificativa, destino })
     return data as LinkPagamentoData
   },
 

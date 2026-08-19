@@ -6,6 +6,8 @@ import { LinkPagamentoData, linkPagamentoService } from '@/services/link-pagamen
 import { uploadService } from '@/services/vinculo'
 import { AnexosGrid } from '@/components/anexos-grid'
 import { FluxoStepper } from '@/components/fluxo-stepper'
+import { DestinoPicker } from '@/components/destino-picker'
+import { HistoricoObservacoes } from '@/components/historico-observacoes'
 import { useMutation, useQueryClient, useQuery } from '@tanstack/react-query'
 import api from '@/lib/api'
 
@@ -57,6 +59,8 @@ export function LinkPagamentoModal({ link, onClose, modo }: LinkPagamentoModalPr
   const [arquivosAprovacao, setArquivosAprovacao] = useState<File[]>([])
   const [enviando, setEnviando] = useState(false)
   const [linkGerado, setLinkGerado] = useState('')
+  const [observacao, setObservacao] = useState('')
+  const [destinoReprovacao, setDestinoReprovacao] = useState('comercial')
 
   // Estado de edicao
   const [editando, setEditando] = useState(false)
@@ -101,7 +105,7 @@ export function LinkPagamentoModal({ link, onClose, modo }: LinkPagamentoModalPr
   const aprovarMutation = useMutation({
     mutationFn: async () => {
       if (modo === 'comercial') {
-        return linkPagamentoService.aprovar(link.id, {})
+        return linkPagamentoService.aprovar(link.id, { observacao: observacao || undefined })
       }
       const resultados = await Promise.all(arquivosAprovacao.map(arq => uploadService.upload(arq)))
       const anexoUrls = resultados.map(r => r.url)
@@ -114,7 +118,11 @@ export function LinkPagamentoModal({ link, onClose, modo }: LinkPagamentoModalPr
   })
 
   const reprovarMutation = useMutation({
-    mutationFn: () => linkPagamentoService.reprovar(link.id, justificativa),
+    mutationFn: () => linkPagamentoService.reprovar(
+      link.id,
+      justificativa,
+      modo === 'comercial' ? undefined : destinoReprovacao
+    ),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['links-pagamento'] })
       onClose()
@@ -410,6 +418,23 @@ export function LinkPagamentoModal({ link, onClose, modo }: LinkPagamentoModalPr
                 return <FluxoStepper steps={steps} currentIndex={currentIdx} isFechado={link.status === 'fechado'} />
               })()}
 
+              {/* Histórico de Observações */}
+              <HistoricoObservacoes historico={link.historico_observacoes} />
+
+              {/* Observação — só comercial */}
+              {podeAprovarReprovar && modo === 'comercial' && !mostrarReprovar && (
+                <div>
+                  <p className="text-xs font-medium text-slate-500 uppercase tracking-wider mb-2">Observação (opcional)</p>
+                  <textarea
+                    value={observacao}
+                    onChange={(e) => setObservacao(e.target.value)}
+                    placeholder="Informação para o Financeiro (opcional)..."
+                    className="w-full border border-slate-200 rounded-xl px-4 py-3 text-sm text-slate-700 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-brand-teal/60 transition-all resize-none"
+                    rows={2}
+                  />
+                </div>
+              )}
+
               {/* Link gerado obrigatório — só financeiro */}
               {podeAprovarReprovar && modo === 'financeiro' && !mostrarReprovar && (
                 <div>
@@ -462,15 +487,29 @@ export function LinkPagamentoModal({ link, onClose, modo }: LinkPagamentoModalPr
               )}
 
               {podeAprovarReprovar && mostrarReprovar && (
-                <div>
-                  <p className="text-xs font-medium text-slate-500 uppercase tracking-wider mb-2">Justificativa (volta para a Franquia)</p>
-                  <textarea
-                    value={justificativa}
-                    onChange={(e) => setJustificativa(e.target.value)}
-                    placeholder="Descreva o motivo da reprovacao..."
-                    className="w-full border border-slate-200 rounded-xl px-4 py-3 text-sm text-slate-700 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-red-300 focus:border-red-300 transition-all resize-none"
-                    rows={3}
-                  />
+                <div className="space-y-3">
+                  {modo === 'financeiro' && (
+                    <DestinoPicker
+                      options={[
+                        { value: 'comercial', label: 'Comercial' },
+                        { value: 'franquia', label: 'Franquia' },
+                      ]}
+                      value={destinoReprovacao}
+                      onChange={setDestinoReprovacao}
+                    />
+                  )}
+                  <div>
+                    <p className="text-xs font-medium text-slate-500 uppercase tracking-wider mb-2">
+                      Justificativa {modo === 'comercial' ? '(volta para a Franquia)' : ''}
+                    </p>
+                    <textarea
+                      value={justificativa}
+                      onChange={(e) => setJustificativa(e.target.value)}
+                      placeholder="Descreva o motivo da reprovacao..."
+                      className="w-full border border-slate-200 rounded-xl px-4 py-3 text-sm text-slate-700 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-red-300 focus:border-red-300 transition-all resize-none"
+                      rows={3}
+                    />
+                  </div>
                 </div>
               )}
             </>

@@ -1,5 +1,6 @@
 import logging
 import asyncio
+from datetime import datetime, timezone
 from fastapi import APIRouter, Depends, HTTPException, status, Query
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
@@ -20,6 +21,35 @@ from app.services import email as email_svc
 logger = logging.getLogger(__name__)
 
 router = APIRouter()
+
+_AREA_STATUS = {
+    "comercial": StatusLinkPagamento.aguardando_comercial,
+    "financeiro": StatusLinkPagamento.aguardando_financeiro,
+}
+_AREA_EMAIL_CONFIG = {
+    "comercial": "email_comercial",
+    "financeiro": "email_financeiro",
+}
+
+
+def _area_atual(link_status: StatusLinkPagamento) -> Optional[str]:
+    for area, s in _AREA_STATUS.items():
+        if s == link_status:
+            return area
+    return None
+
+
+def _registrar_nota(link: LinkPagamento, area: str, texto: Optional[str], tipo: str):
+    if not texto or not texto.strip():
+        return
+    historico = list(link.historico_observacoes or [])
+    historico.append({
+        "area": area,
+        "texto": texto.strip(),
+        "tipo": tipo,
+        "data": datetime.now(timezone.utc).isoformat(),
+    })
+    link.historico_observacoes = historico
 
 
 def _serialize(l: LinkPagamento, empresa: Empresa | None = None) -> dict:
@@ -47,6 +77,7 @@ def _serialize(l: LinkPagamento, empresa: Empresa | None = None) -> dict:
         "link_gerado": l.link_gerado,
         "justificativa_reprovacao": l.justificativa_reprovacao,
         "destino_reprovacao": l.destino_reprovacao,
+        "historico_observacoes": l.historico_observacoes or [],
         "criado_em": l.criado_em.isoformat() if l.criado_em else None,
         "atualizado_em": l.atualizado_em.isoformat() if l.atualizado_em else None,
     }
@@ -137,6 +168,10 @@ async def aprovar_link(link_id: int, payload: AprovarLinkRequest, db: AsyncSessi
     if not link:
         raise HTTPException(status_code=404, detail="Link de pagamento não encontrado")
 
+    area_atual = _area_atual(link.status)
+    if area_atual:
+        _registrar_nota(link, area_atual, payload.observacao, "aprovacao")
+
     if link.status == StatusLinkPagamento.aguardando_comercial:
         link.status = StatusLinkPagamento.aguardando_financeiro
         link.observacao_comercial = payload.observacao
@@ -146,6 +181,7 @@ async def aprovar_link(link_id: int, payload: AprovarLinkRequest, db: AsyncSessi
             raise HTTPException(status_code=422, detail="link_gerado é obrigatório")
         link.status = StatusLinkPagamento.fechado
         link.link_gerado = payload.link_gerado
+        _registrar_nota(link, "financeiro", payload.link_gerado, "aprovacao")
         if payload.anexos:
             link.anexos = (link.anexos or []) + payload.anexos
 
@@ -186,24 +222,38 @@ async def reprovar_link(link_id: int, payload: ReprovarLinkRequest, db: AsyncSes
     if not link:
         raise HTTPException(status_code=404, detail="Link de pagamento não encontrado")
 
-    if link.status not in (StatusLinkPagamento.aguardando_comercial, StatusLinkPagamento.aguardando_financeiro):
+    area_atual = _area_atual(link.status)
+    if area_atual is None:
         raise HTTPException(status_code=400, detail=f"Não é possível reprovar com status '{link.status.value}'")
 
-    link.status = StatusLinkPagamento.aberto
+    destino = (payload.destino or "franquia") if area_atual != "comercial" else "franquia"
+    if destino != "franquia" and (destino not in _AREA_STATUS or destino == area_atual):
+        raise HTTPException(status_code=422, detail="destino inválido")
+
+    _registrar_nota(link, area_atual, payload.justificativa, "reprovacao")
+
+    link.status = StatusLinkPagamento.aberto if destino == "franquia" else _AREA_STATUS[destino]
     link.justificativa_reprovacao = payload.justificativa
-    link.destino_reprovacao = "franquia"
+    link.destino_reprovacao = destino
     await db.flush()
     await db.refresh(link)
     result = await _enrich(link, db)
 
     numero = link.numero_pedido
-    u = await db.scalar(select(Usuario).where(
-        Usuario.franquia_id == link.franquia_id,
-        Usuario.perfil == PerfilUsuario.franquia,
-        Usuario.ativo == True,
-    ))
-    if u:
-        asyncio.create_task(email_svc.notificar_reprovado(numero, payload.justificativa, u.email))
+    if destino == "franquia":
+        u = await db.scalar(select(Usuario).where(
+            Usuario.franquia_id == link.franquia_id,
+            Usuario.perfil == PerfilUsuario.franquia,
+            Usuario.ativo == True,
+        ))
+        if u:
+            asyncio.create_task(email_svc.notificar_reprovado(numero, payload.justificativa, u.email))
+    else:
+        email_destino = await db.scalar(
+            select(Configuracao.valor).where(Configuracao.chave == _AREA_EMAIL_CONFIG[destino])
+        )
+        if email_destino:
+            asyncio.create_task(email_svc.notificar_reprovado(numero, payload.justificativa, email_destino))
 
     return result
 
