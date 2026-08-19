@@ -18,6 +18,7 @@ export interface VinculoData {
   observacoes_financeiro: string | null
   justificativa_reprovacao: string | null
   destino_reprovacao: string | null
+  historico_observacoes: { area: string; texto: string; tipo: 'aprovacao' | 'reprovacao'; data: string }[]
   criado_em: string
   atualizado_em: string
 }
@@ -55,8 +56,14 @@ export const vinculoService = {
     return data as VinculoData
   },
 
-  async aprovar(id: number, anexos: string[] = [], necessario_financeiro?: boolean, observacoes_financeiro?: string) {
-    const { data } = await api.put(`/vinculos/${id}/aprovar`, { anexos, necessario_financeiro, observacoes_financeiro })
+  async aprovar(id: number, opts: {
+    anexos?: string[]
+    necessario_financeiro?: boolean
+    observacoes_financeiro?: string
+    observacao?: string
+    destino?: string
+  } = {}) {
+    const { data } = await api.put(`/vinculos/${id}/aprovar`, opts)
     return data as VinculoData
   },
 

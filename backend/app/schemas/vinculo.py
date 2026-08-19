@@ -49,6 +49,7 @@ class VinculoResponse(BaseModel):
     observacoes_financeiro: Optional[str] = None
     justificativa_reprovacao: Optional[str] = None
     destino_reprovacao: Optional[str] = None
+    historico_observacoes: list[dict] = []
     criado_em: datetime
     atualizado_em: datetime
 
@@ -58,13 +59,15 @@ class VinculoResponse(BaseModel):
 
 class AprovarRequest(BaseModel):
     anexos: list[str] = []
-    necessario_financeiro: Optional[bool] = None  # comercial pode sobrescrever
+    necessario_financeiro: Optional[bool] = None  # comercial pode sobrescrever (usado só quando destino nao informado)
     observacoes_financeiro: Optional[str] = None
+    observacao: Optional[str] = None
+    destino: Optional[str] = None  # comercial | financeiro | ti | concluir — None = segue o próximo passo padrão
 
 
 class ReprovarRequest(BaseModel):
     justificativa: str
-    destino: str = "franquia"  # franquia | comercial | financeiro
+    destino: str = "franquia"  # franquia | comercial | financeiro | ti
 
 
 class ReenviarRequest(BaseModel):

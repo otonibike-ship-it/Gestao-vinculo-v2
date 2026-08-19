@@ -1,5 +1,6 @@
 import logging
 import asyncio
+from datetime import datetime, timezone
 from fastapi import APIRouter, Depends, HTTPException, status, Query
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
@@ -9,12 +10,45 @@ from app.core.database import get_db
 from app.models.vinculo import Vinculo, StatusVinculo
 from app.models.pessoa import Empresa
 from app.models.usuario import Usuario, PerfilUsuario
+from app.models.configuracao import Configuracao
 from app.schemas.vinculo import VinculoCreate, VinculoResponse, AprovarRequest, ReprovarRequest, ReenviarRequest
 from app.services import email as email_svc
 
 logger = logging.getLogger(__name__)
 
 router = APIRouter()
+
+_AREA_STATUS = {
+    "comercial": StatusVinculo.validacao_comercial,
+    "financeiro": StatusVinculo.validacao_financeiro,
+    "ti": StatusVinculo.tarefa_ti,
+}
+_AREA_EMAIL_CONFIG = {
+    "comercial": "email_comercial",
+    "financeiro": "email_financeiro",
+    "ti": "email_ti",
+}
+_FINAL_AREA = "ti"
+
+
+def _area_atual(vinculo_status: StatusVinculo) -> Optional[str]:
+    for area, s in _AREA_STATUS.items():
+        if s == vinculo_status:
+            return area
+    return None
+
+
+def _registrar_nota(vinculo: Vinculo, area: str, texto: Optional[str], tipo: str):
+    if not texto or not texto.strip():
+        return
+    historico = list(vinculo.historico_observacoes or [])
+    historico.append({
+        "area": area,
+        "texto": texto.strip(),
+        "tipo": tipo,
+        "data": datetime.now(timezone.utc).isoformat(),
+    })
+    vinculo.historico_observacoes = historico
 
 
 def _serialize(v: Vinculo, empresa: Empresa | None = None) -> dict:
@@ -36,6 +70,7 @@ def _serialize(v: Vinculo, empresa: Empresa | None = None) -> dict:
         "observacoes_financeiro": v.observacoes_financeiro,
         "justificativa_reprovacao": v.justificativa_reprovacao,
         "destino_reprovacao": v.destino_reprovacao,
+        "historico_observacoes": v.historico_observacoes or [],
         "criado_em": v.criado_em.isoformat() if v.criado_em else None,
         "atualizado_em": v.atualizado_em.isoformat() if v.atualizado_em else None,
     }
@@ -161,30 +196,35 @@ async def aprovar_vinculo(vinculo_id: int, payload: AprovarRequest, db: AsyncSes
     if not vinculo:
         raise HTTPException(status_code=404, detail="Vínculo não encontrado")
 
-    if vinculo.status == StatusVinculo.validacao_comercial:
-        # Comercial pode sobrescrever a flag de validacao financeiro
-        precisa_financeiro = payload.necessario_financeiro if payload.necessario_financeiro is not None else vinculo.necessario_validacao
-        if precisa_financeiro:
-            vinculo.status = StatusVinculo.validacao_financeiro
-            vinculo.necessario_validacao = True
-        else:
-            vinculo.status = StatusVinculo.tarefa_ti
-            vinculo.necessario_validacao = False
-        if payload.anexos:
-            vinculo.anexos = (vinculo.anexos or []) + payload.anexos
-
-    elif vinculo.status == StatusVinculo.validacao_financeiro:
-        vinculo.status = StatusVinculo.tarefa_ti
-        if payload.anexos:
-            vinculo.anexos = (vinculo.anexos or []) + payload.anexos
-        if payload.observacoes_financeiro is not None:
-            vinculo.observacoes_financeiro = payload.observacoes_financeiro
-
-    elif vinculo.status == StatusVinculo.tarefa_ti:
-        vinculo.status = StatusVinculo.fechado
-
-    else:
+    area_atual = _area_atual(vinculo.status)
+    if area_atual is None:
         raise HTTPException(status_code=400, detail=f"Não é possível aprovar com status '{vinculo.status.value}'")
+
+    _registrar_nota(vinculo, area_atual, payload.observacao, "aprovacao")
+
+    if payload.destino == "concluir":
+        if area_atual != _FINAL_AREA:
+            raise HTTPException(status_code=422, detail=f"Só é possível concluir a partir de {_FINAL_AREA}")
+        vinculo.status = StatusVinculo.fechado
+    elif payload.destino:
+        if payload.destino not in _AREA_STATUS or payload.destino == area_atual:
+            raise HTTPException(status_code=422, detail="destino inválido")
+        vinculo.status = _AREA_STATUS[payload.destino]
+    else:
+        # Sem destino explícito: segue o próximo passo padrão de cada área
+        if area_atual == "comercial":
+            precisa_financeiro = payload.necessario_financeiro if payload.necessario_financeiro is not None else vinculo.necessario_validacao
+            vinculo.status = StatusVinculo.validacao_financeiro if precisa_financeiro else StatusVinculo.tarefa_ti
+            vinculo.necessario_validacao = precisa_financeiro
+        elif area_atual == "financeiro":
+            vinculo.status = StatusVinculo.tarefa_ti
+        elif area_atual == "ti":
+            vinculo.status = StatusVinculo.fechado
+
+    if payload.anexos:
+        vinculo.anexos = (vinculo.anexos or []) + payload.anexos
+    if area_atual == "financeiro" and payload.observacoes_financeiro is not None:
+        vinculo.observacoes_financeiro = payload.observacoes_financeiro
 
     vinculo.justificativa_reprovacao = None
     vinculo.destino_reprovacao = None
@@ -192,11 +232,15 @@ async def aprovar_vinculo(vinculo_id: int, payload: AprovarRequest, db: AsyncSes
     await db.refresh(vinculo)
     result = await _enrich(vinculo, db)
 
-    # Email em background conforme destino
+    # Email em background conforme novo status
     franquia_nome = result.get("franquia_nome", "")
     numero = vinculo.numero_pedido
     nome_cli = vinculo.nome_cliente
-    if vinculo.status == StatusVinculo.validacao_financeiro:
+    if vinculo.status == StatusVinculo.validacao_comercial:
+        email_comercial = await db.scalar(select(Configuracao.valor).where(Configuracao.chave == "email_comercial"))
+        if email_comercial:
+            asyncio.create_task(email_svc.notificar_reprovado(numero, payload.observacao or "Retornado para revisão do Comercial", email_comercial))
+    elif vinculo.status == StatusVinculo.validacao_financeiro:
         asyncio.create_task(email_svc.notificar_aprovado_financeiro(numero, nome_cli, franquia_nome))
     elif vinculo.status == StatusVinculo.tarefa_ti:
         asyncio.create_task(email_svc.notificar_aprovado_ti(numero, nome_cli, franquia_nome))
@@ -219,19 +263,16 @@ async def reprovar_vinculo(vinculo_id: int, payload: ReprovarRequest, db: AsyncS
     if not vinculo:
         raise HTTPException(status_code=404, detail="Vínculo não encontrado")
 
-    if vinculo.status not in (
-        StatusVinculo.validacao_comercial,
-        StatusVinculo.validacao_financeiro,
-        StatusVinculo.tarefa_ti,
-    ):
+    area_atual = _area_atual(vinculo.status)
+    if area_atual is None:
         raise HTTPException(status_code=400, detail=f"Não é possível reprovar com status '{vinculo.status.value}'")
 
-    _destino_status = {
-        "franquia":   StatusVinculo.aberto,
-        "comercial":  StatusVinculo.validacao_comercial,
-        "financeiro": StatusVinculo.validacao_financeiro,
-    }
-    vinculo.status = _destino_status.get(payload.destino, StatusVinculo.aberto)
+    if payload.destino != "franquia" and (payload.destino not in _AREA_STATUS or payload.destino == area_atual):
+        raise HTTPException(status_code=422, detail="destino inválido")
+
+    _registrar_nota(vinculo, area_atual, payload.justificativa, "reprovacao")
+
+    vinculo.status = StatusVinculo.aberto if payload.destino == "franquia" else _AREA_STATUS[payload.destino]
     vinculo.justificativa_reprovacao = payload.justificativa
     vinculo.destino_reprovacao = payload.destino
     await db.flush()
@@ -239,7 +280,6 @@ async def reprovar_vinculo(vinculo_id: int, payload: ReprovarRequest, db: AsyncS
     result = await _enrich(vinculo, db)
 
     # Email conforme destino da reprovação
-    from app.models.configuracao import Configuracao
     numero = vinculo.numero_pedido
     motivo = payload.justificativa
     if payload.destino == "franquia":
@@ -250,18 +290,12 @@ async def reprovar_vinculo(vinculo_id: int, payload: ReprovarRequest, db: AsyncS
         ))
         if u:
             asyncio.create_task(email_svc.notificar_reprovado(numero, motivo, u.email))
-    elif payload.destino == "financeiro":
-        email_financeiro = await db.scalar(
-            select(Configuracao.valor).where(Configuracao.chave == "email_financeiro")
-        )
-        if email_financeiro:
-            asyncio.create_task(email_svc.notificar_reprovado(numero, motivo, email_financeiro))
     else:
-        email_comercial = await db.scalar(
-            select(Configuracao.valor).where(Configuracao.chave == "email_comercial")
+        email_destino = await db.scalar(
+            select(Configuracao.valor).where(Configuracao.chave == _AREA_EMAIL_CONFIG[payload.destino])
         )
-        if email_comercial:
-            asyncio.create_task(email_svc.notificar_reprovado(numero, motivo, email_comercial))
+        if email_destino:
+            asyncio.create_task(email_svc.notificar_reprovado(numero, motivo, email_destino))
 
     return result
 

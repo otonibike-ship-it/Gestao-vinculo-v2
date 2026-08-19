@@ -6,6 +6,8 @@ import { VinculoData, vinculoService, uploadService } from '@/services/vinculo'
 import { MotivoSelect } from '@/components/motivo-select'
 import { AnexosGrid } from '@/components/anexos-grid'
 import { FluxoStepper } from '@/components/fluxo-stepper'
+import { DestinoPicker } from '@/components/destino-picker'
+import { HistoricoObservacoes } from '@/components/historico-observacoes'
 import { useMutation, useQueryClient, useQuery } from '@tanstack/react-query'
 import api from '@/lib/api'
 
@@ -38,7 +40,8 @@ export function VinculoModal({ vinculo, onClose, modo }: VinculoModalProps) {
   const [arquivosAprovacao, setArquivosAprovacao] = useState<File[]>([])
   const [enviando, setEnviando] = useState(false)
   const [destinoReprovacao, setDestinoReprovacao] = useState('franquia')
-  const [necessarioFinanceiro, setNecessarioFinanceiro] = useState(vinculo.necessario_validacao)
+  const [destinoComercial, setDestinoComercial] = useState<'financeiro' | 'ti'>(vinculo.necessario_validacao ? 'financeiro' : 'ti')
+  const [observacao, setObservacao] = useState('')
   const [observacoesFinanceiro, setObservacoesFinanceiro] = useState('')
 
   // Estado de edicao
@@ -93,12 +96,15 @@ export function VinculoModal({ vinculo, onClose, modo }: VinculoModalProps) {
 
   const aprovarMutation = useMutation({
     mutationFn: async () => {
+      if (modo === 'comercial') {
+        return vinculoService.aprovar(vinculo.id, { destino: destinoComercial, observacao: observacao || undefined })
+      }
       const resultados = await Promise.all(arquivosAprovacao.map(arq => uploadService.upload(arq)))
       const anexoUrls = resultados.map(r => r.url)
-      if (modo === 'comercial') {
-        return vinculoService.aprovar(vinculo.id, [], necessarioFinanceiro)
+      if (modo === 'financeiro') {
+        return vinculoService.aprovar(vinculo.id, { anexos: anexoUrls, observacoes_financeiro: observacoesFinanceiro || undefined })
       }
-      return vinculoService.aprovar(vinculo.id, anexoUrls, undefined, observacoesFinanceiro || undefined)
+      return vinculoService.aprovar(vinculo.id, { anexos: anexoUrls, observacao: observacao || undefined })
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['vinculos'] })
@@ -170,7 +176,7 @@ export function VinculoModal({ vinculo, onClose, modo }: VinculoModalProps) {
   return (
     <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4" onClick={onClose}>
       <div
-        className="bg-white rounded-2xl shadow-2xl w-full max-w-lg max-h-[90vh] overflow-y-auto"
+        className="bg-white rounded-2xl shadow-2xl w-full max-w-3xl max-h-[90vh] overflow-y-auto"
         onClick={(e) => e.stopPropagation()}
       >
         {/* Header */}
@@ -464,24 +470,44 @@ export function VinculoModal({ vinculo, onClose, modo }: VinculoModalProps) {
                 return <FluxoStepper steps={steps} currentIndex={currentIdx} isFechado={vinculo.status === 'fechado'} />
               })()}
 
-              {/* Toggle necessario_financeiro — só para comercial */}
+              {/* Histórico de Observações */}
+              <HistoricoObservacoes historico={vinculo.historico_observacoes} />
+
+              {/* Destino — só comercial (Financeiro ou TI) */}
               {podeAprovarReprovar && modo === 'comercial' && !mostrarReprovar && (
-                <div className="bg-brand-khaki/10 border border-brand-khaki/30 rounded-xl px-4 py-3">
-                  <div className="flex items-center gap-3">
-                    <input
-                      type="checkbox"
-                      id="necessario-financeiro"
-                      checked={necessarioFinanceiro}
-                      onChange={(e) => setNecessarioFinanceiro(e.target.checked)}
-                      className="w-4 h-4 rounded border-slate-300 text-brand-pine focus:ring-brand-teal/50"
+                <>
+                  <DestinoPicker
+                    options={[
+                      { value: 'financeiro', label: 'Financeiro' },
+                      { value: 'ti', label: 'TI' },
+                    ]}
+                    value={destinoComercial}
+                    onChange={(v) => setDestinoComercial(v as 'financeiro' | 'ti')}
+                  />
+                  <div>
+                    <p className="text-xs font-medium text-slate-500 uppercase tracking-wider mb-2">Observação (opcional)</p>
+                    <textarea
+                      value={observacao}
+                      onChange={(e) => setObservacao(e.target.value)}
+                      placeholder="Informação para a área de destino (opcional)..."
+                      className="w-full border border-slate-200 rounded-xl px-4 py-3 text-sm text-slate-700 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-brand-teal/60 transition-all resize-none"
+                      rows={2}
                     />
-                    <label htmlFor="necessario-financeiro" className="text-sm text-brand-umber font-medium">
-                      Enviar para validação do Financeiro antes do TI
-                    </label>
                   </div>
-                  <p className="text-xs text-brand-umber/80 mt-1 ml-7">
-                    {necessarioFinanceiro ? 'Irá para Financeiro → TI' : 'Irá direto para TI'}
-                  </p>
+                </>
+              )}
+
+              {/* Observação — só TI */}
+              {podeAprovarReprovar && modo === 'ti' && !mostrarReprovar && (
+                <div>
+                  <p className="text-xs font-medium text-slate-500 uppercase tracking-wider mb-2">Observação (opcional)</p>
+                  <textarea
+                    value={observacao}
+                    onChange={(e) => setObservacao(e.target.value)}
+                    placeholder="Observação sobre a conclusão (opcional)..."
+                    className="w-full border border-slate-200 rounded-xl px-4 py-3 text-sm text-slate-700 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-brand-teal/60 transition-all resize-none"
+                    rows={2}
+                  />
                 </div>
               )}
 
