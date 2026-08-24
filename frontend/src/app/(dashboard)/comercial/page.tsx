@@ -268,21 +268,6 @@ export default function ComercialPage() {
         </div>
       )}
 
-      {/* Justificativa visivel na tabela quando status=aberto e tem justificativa */}
-      {filtrados && filtrados.some(v => v.justificativa_reprovacao) && (
-        <div className="bg-white rounded-xl border border-slate-200 shadow-sm p-5">
-          <p className="text-xs font-medium text-slate-500 uppercase tracking-wider mb-3">Pedidos com Justificativa de Reprovacao</p>
-          <div className="space-y-2">
-            {filtrados.filter(v => v.justificativa_reprovacao).map(v => (
-              <div key={v.id} className="flex items-start gap-3 bg-brand-khaki/10 border border-brand-khaki/30 rounded-lg px-4 py-3">
-                <span className="text-xs font-medium text-brand-umber shrink-0">{v.numero_pedido}</span>
-                <p className="text-sm text-brand-umber">{v.justificativa_reprovacao}</p>
-              </div>
-            ))}
-          </div>
-        </div>
-      )}
-
       {/* Trocas de Pedido */}
       <div className="pt-2">
         <p className="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-2">Trocas de Pedido</p>
