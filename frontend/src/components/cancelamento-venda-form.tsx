@@ -7,6 +7,8 @@ import { ArrowLeft, Upload, X, AlertTriangle } from 'lucide-react'
 import { cancelamentoVendaService } from '@/services/cancelamento-venda'
 import { uploadService } from '@/services/vinculo'
 import { authService } from '@/services/auth'
+import { MoneyInput } from '@/components/money-input'
+import { SimNaoSelect } from '@/components/sim-nao-select'
 import api from '@/lib/api'
 
 interface Props {
@@ -84,51 +86,13 @@ export default function CancelamentoVendaForm({ voltarPara }: Props) {
     enabled: true,
   })
 
-  const camposObrigatoriosPreenchidos =
-    !!franquiaId &&
-    !!motivo.trim() &&
-    !!vendedor.trim() &&
-    !!numeroPedidoCancelar.trim() &&
-    !!dataPedidoCancelar &&
-    !!statusPortal &&
-    !!numeroNotaFiscal.trim() &&
-    !!dataEmissaoNotaFiscal &&
-    !!bikeNaLoja &&
-    !!sinaisUso &&
-    !!codigoProduto.trim() &&
-    !!descricaoModelo.trim() &&
-    !!nomeCliente.trim() &&
-    cpf.replace(/\D/g, '').length === 11 &&
-    !!valorTotalPagoCliente && parseFloat(valorTotalPagoCliente) > 0 &&
-    !!valorTotalPedido && parseFloat(valorTotalPedido) > 0 &&
-    !!valorCancelar && parseFloat(valorCancelar) > 0 &&
-    !!formaPagamento &&
-    !!pagoMaisUmCartao &&
-    arquivosPortal.length > 0
+  const camposObrigatoriosPreenchidos = !!franquiaId && arquivosPortal.length > 0
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setErro('')
 
     if (!franquiaId) { setErro('Selecione a franquia'); return }
-    if (!motivo.trim()) { setErro('Informe o motivo do cancelamento'); return }
-    if (!vendedor.trim()) { setErro('Nome do vendedor é obrigatório'); return }
-    if (!numeroPedidoCancelar.trim()) { setErro('Número do pedido a cancelar é obrigatório'); return }
-    if (!dataPedidoCancelar) { setErro('Data do pedido a cancelar é obrigatória'); return }
-    if (!statusPortal) { setErro('Selecione o status do pedido no portal'); return }
-    if (!numeroNotaFiscal.trim()) { setErro('Número da nota fiscal é obrigatório'); return }
-    if (!dataEmissaoNotaFiscal) { setErro('Data de emissão da nota fiscal é obrigatória'); return }
-    if (!bikeNaLoja) { setErro('Informe se a bike está fisicamente na loja'); return }
-    if (!sinaisUso) { setErro('Informe se há sinais de uso na bike'); return }
-    if (!codigoProduto.trim()) { setErro('Código do produto é obrigatório'); return }
-    if (!descricaoModelo.trim()) { setErro('Descreva o modelo/cor/tamanho da bike'); return }
-    if (!nomeCliente.trim()) { setErro('Nome do cliente é obrigatório'); return }
-    if (cpf.replace(/\D/g, '').length !== 11) { setErro('CPF inválido'); return }
-    if (!valorTotalPagoCliente || parseFloat(valorTotalPagoCliente) <= 0) { setErro('Valor total pago pelo cliente inválido'); return }
-    if (!valorTotalPedido || parseFloat(valorTotalPedido) <= 0) { setErro('Valor total do pedido inválido'); return }
-    if (!valorCancelar || parseFloat(valorCancelar) <= 0) { setErro('Valor a cancelar inválido'); return }
-    if (!formaPagamento) { setErro('Selecione a forma de pagamento'); return }
-    if (!pagoMaisUmCartao) { setErro('Informe se foi pago em mais de um cartão'); return }
     if (arquivosPortal.length === 0) { setErro('Anexe as imagens do portal e o comprovante de pagamento'); return }
 
     setEnviando(true)
@@ -140,25 +104,25 @@ export default function CancelamentoVendaForm({ voltarPara }: Props) {
 
       await cancelamentoVendaService.criar({
         franquia_id: franquiaId,
-        motivo: motivo.trim(),
-        vendedor: vendedor.trim(),
-        numero_pedido_cancelar: numeroPedidoCancelar.trim(),
-        data_pedido_cancelar: dataPedidoCancelar,
-        status_portal: statusPortal,
-        numero_nota_fiscal: numeroNotaFiscal.trim(),
-        data_emissao_nota_fiscal: dataEmissaoNotaFiscal,
-        bike_na_loja: bikeNaLoja === 'sim',
-        sinais_uso: sinaisUso === 'sim',
+        motivo: motivo.trim() || null,
+        vendedor: vendedor.trim() || null,
+        numero_pedido_cancelar: numeroPedidoCancelar.trim() || null,
+        data_pedido_cancelar: dataPedidoCancelar || null,
+        status_portal: statusPortal || null,
+        numero_nota_fiscal: numeroNotaFiscal.trim() || null,
+        data_emissao_nota_fiscal: dataEmissaoNotaFiscal || null,
+        bike_na_loja: bikeNaLoja === '' ? null : bikeNaLoja === 'sim',
+        sinais_uso: sinaisUso === '' ? null : sinaisUso === 'sim',
         anexos_evidencias_uso: resultadosEvidencias.map(r => r.url),
-        codigo_produto: codigoProduto.trim(),
-        descricao_modelo: descricaoModelo.trim(),
-        nome_cliente: nomeCliente.trim(),
-        cpf: cpf.trim(),
-        valor_total_pago_cliente: parseFloat(valorTotalPagoCliente),
-        valor_total_pedido: parseFloat(valorTotalPedido),
-        valor_cancelar: parseFloat(valorCancelar),
-        forma_pagamento: formaPagamento,
-        pago_mais_um_cartao: pagoMaisUmCartao === 'sim',
+        codigo_produto: codigoProduto.trim() || null,
+        descricao_modelo: descricaoModelo.trim() || null,
+        nome_cliente: nomeCliente.trim() || null,
+        cpf: cpf.trim() || null,
+        valor_total_pago_cliente: valorTotalPagoCliente ? parseFloat(valorTotalPagoCliente) : null,
+        valor_total_pedido: valorTotalPedido ? parseFloat(valorTotalPedido) : null,
+        valor_cancelar: valorCancelar ? parseFloat(valorCancelar) : null,
+        forma_pagamento: formaPagamento || null,
+        pago_mais_um_cartao: pagoMaisUmCartao === '' ? null : pagoMaisUmCartao === 'sim',
         anexos_portal_comprovante: resultadosPortal.map(r => r.url),
       })
 
@@ -183,14 +147,6 @@ export default function CancelamentoVendaForm({ voltarPara }: Props) {
 
   const inputClass = "w-full border border-slate-200 rounded-xl px-4 py-3 text-sm text-slate-700 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-brand-teal/60 transition-all"
   const labelClass = "block text-xs font-semibold text-slate-500 uppercase tracking-wider mb-2"
-
-  const SimNaoSelect = ({ value, onChange }: { value: string; onChange: (v: string) => void }) => (
-    <select value={value} onChange={e => onChange(e.target.value)} className={inputClass + ' bg-white'}>
-      <option value="">Selecione...</option>
-      <option value="sim">Sim</option>
-      <option value="nao">Não</option>
-    </select>
-  )
 
   const FileField = ({
     label, arquivos, setArquivos, inputRef, required,
@@ -340,11 +296,11 @@ export default function CancelamentoVendaForm({ voltarPara }: Props) {
             <div className="grid grid-cols-2 gap-4">
               <div>
                 <label className={labelClass}>Bike está fisicamente na loja?</label>
-                <SimNaoSelect value={bikeNaLoja} onChange={setBikeNaLoja} />
+                <SimNaoSelect value={bikeNaLoja} onChange={setBikeNaLoja} className={inputClass + ' bg-white'} />
               </div>
               <div>
                 <label className={labelClass}>Há sinais de uso na bike?</label>
-                <SimNaoSelect value={sinaisUso} onChange={setSinaisUso} />
+                <SimNaoSelect value={sinaisUso} onChange={setSinaisUso} className={inputClass + ' bg-white'} />
               </div>
             </div>
             <FileField
@@ -383,15 +339,15 @@ export default function CancelamentoVendaForm({ voltarPara }: Props) {
             <div className="grid grid-cols-3 gap-4">
               <div>
                 <label className={labelClass}>Valor Total Pago</label>
-                <input type="number" step="0.01" min="0" value={valorTotalPagoCliente} onChange={e => setValorTotalPagoCliente(e.target.value)} className={inputClass + ' bg-white'} placeholder="0,00" />
+                <MoneyInput value={valorTotalPagoCliente} onChange={setValorTotalPagoCliente} className={inputClass + ' bg-white'} />
               </div>
               <div>
                 <label className={labelClass}>Valor Total do Pedido</label>
-                <input type="number" step="0.01" min="0" value={valorTotalPedido} onChange={e => setValorTotalPedido(e.target.value)} className={inputClass + ' bg-white'} placeholder="0,00" />
+                <MoneyInput value={valorTotalPedido} onChange={setValorTotalPedido} className={inputClass + ' bg-white'} />
               </div>
               <div>
                 <label className={labelClass}>Valor a Cancelar</label>
-                <input type="number" step="0.01" min="0" value={valorCancelar} onChange={e => setValorCancelar(e.target.value)} className={inputClass + ' bg-white'} placeholder="0,00" />
+                <MoneyInput value={valorCancelar} onChange={setValorCancelar} className={inputClass + ' bg-white'} />
               </div>
             </div>
             <div className="grid grid-cols-2 gap-4">
@@ -404,7 +360,7 @@ export default function CancelamentoVendaForm({ voltarPara }: Props) {
               </div>
               <div>
                 <label className={labelClass}>Foi pago em mais de um cartão?</label>
-                <SimNaoSelect value={pagoMaisUmCartao} onChange={setPagoMaisUmCartao} />
+                <SimNaoSelect value={pagoMaisUmCartao} onChange={setPagoMaisUmCartao} className={inputClass + ' bg-white'} />
               </div>
             </div>
           </div>

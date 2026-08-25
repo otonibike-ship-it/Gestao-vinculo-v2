@@ -8,6 +8,7 @@ import { AnexosGrid } from '@/components/anexos-grid'
 import { FluxoStepper } from '@/components/fluxo-stepper'
 import { DestinoPicker } from '@/components/destino-picker'
 import { HistoricoObservacoes } from '@/components/historico-observacoes'
+import { MoneyInput } from '@/components/money-input'
 import { useMutation, useQueryClient, useQuery } from '@tanstack/react-query'
 import api from '@/lib/api'
 
@@ -256,14 +257,8 @@ export function VinculoModal({ vinculo, onClose, modo }: VinculoModalProps) {
 
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <label className={labelClass}>Valor (R$)</label>
-                  <input
-                    type="number"
-                    step="0.01"
-                    value={formValor}
-                    onChange={(e) => setFormValor(e.target.value)}
-                    className={inputClass}
-                  />
+                  <label className={labelClass}>Valor</label>
+                  <MoneyInput value={formValor} onChange={setFormValor} className={inputClass} />
                 </div>
                 <div>
                   <label className={labelClass}>Data do Pedido</label>
@@ -296,20 +291,15 @@ export function VinculoModal({ vinculo, onClose, modo }: VinculoModalProps) {
                     {formValoresCupons.map((v, i) => (
                       <div key={i} className="flex items-center gap-3">
                         <span className="text-xs text-slate-500 w-20 shrink-0">{i + 1}º comprovante:</span>
-                        <div className="relative flex-1">
-                          <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-sm">R$</span>
-                          <input
-                            type="number"
-                            step="0.01"
-                            min="0"
+                        <div className="flex-1">
+                          <MoneyInput
                             value={v}
-                            onChange={e => {
+                            onChange={(val) => {
                               const next = [...formValoresCupons]
-                              next[i] = e.target.value
+                              next[i] = val
                               setFormValoresCupons(next)
                             }}
-                            className="w-full border border-slate-200 rounded-lg pl-10 pr-3 py-2 text-sm text-slate-700 bg-white focus:outline-none focus:ring-2 focus:ring-brand-teal/60 transition-all"
-                            placeholder="0,00"
+                            className="w-full border border-slate-200 rounded-lg pr-3 py-2 text-sm text-slate-700 bg-white focus:outline-none focus:ring-2 focus:ring-brand-teal/60 transition-all"
                           />
                         </div>
                       </div>

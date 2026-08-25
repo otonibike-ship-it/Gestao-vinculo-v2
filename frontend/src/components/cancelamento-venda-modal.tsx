@@ -151,17 +151,17 @@ export function CancelamentoVendaModal({ cancelamento, onClose, modo }: Cancelam
 
           <div className="grid grid-cols-2 gap-4">
             <Campo label="Franquia" valor={cancelamento.franquia_nome} />
-            <Campo label="Vendedor" valor={cancelamento.vendedor} />
+            <Campo label="Vendedor" valor={cancelamento.vendedor || '—'} />
           </div>
-          <Campo label="Motivo do cancelamento" valor={cancelamento.motivo} />
+          <Campo label="Motivo do cancelamento" valor={cancelamento.motivo || '—'} />
 
           <div className="bg-slate-50 border border-slate-100 rounded-xl px-4 py-3 space-y-3">
             <p className="text-xs font-medium text-slate-500 uppercase tracking-wider">Pedido a cancelar</p>
             <div className="grid grid-cols-2 gap-4">
-              <Campo label="N. do Pedido" valor={cancelamento.numero_pedido_cancelar} />
+              <Campo label="N. do Pedido" valor={cancelamento.numero_pedido_cancelar || '—'} />
               <Campo label="Data" valor={cancelamento.data_pedido_cancelar ? new Date(cancelamento.data_pedido_cancelar + 'T00:00:00').toLocaleDateString('pt-BR') : '—'} />
-              <Campo label="Status no Portal" valor={STATUS_PORTAL_LABELS[cancelamento.status_portal] || cancelamento.status_portal} />
-              <Campo label="N. Nota Fiscal" valor={cancelamento.numero_nota_fiscal} />
+              <Campo label="Status no Portal" valor={(cancelamento.status_portal && (STATUS_PORTAL_LABELS[cancelamento.status_portal] || cancelamento.status_portal)) || '—'} />
+              <Campo label="N. Nota Fiscal" valor={cancelamento.numero_nota_fiscal || '—'} />
               <Campo label="Emissão da NF" valor={cancelamento.data_emissao_nota_fiscal ? new Date(cancelamento.data_emissao_nota_fiscal + 'T00:00:00').toLocaleDateString('pt-BR') : '—'} />
             </div>
           </div>
@@ -169,26 +169,26 @@ export function CancelamentoVendaModal({ cancelamento, onClose, modo }: Cancelam
           <div className="bg-slate-50 border border-slate-100 rounded-xl px-4 py-3 space-y-3">
             <p className="text-xs font-medium text-slate-500 uppercase tracking-wider">Bike</p>
             <div className="grid grid-cols-2 gap-4">
-              <Campo label="Está na loja?" valor={cancelamento.bike_na_loja ? 'Sim' : 'Não'} />
-              <Campo label="Sinais de uso?" valor={cancelamento.sinais_uso ? 'Sim' : 'Não'} />
-              <Campo label="Código Produto" valor={cancelamento.codigo_produto} />
+              <Campo label="Está na loja?" valor={cancelamento.bike_na_loja == null ? '—' : (cancelamento.bike_na_loja ? 'Sim' : 'Não')} />
+              <Campo label="Sinais de uso?" valor={cancelamento.sinais_uso == null ? '—' : (cancelamento.sinais_uso ? 'Sim' : 'Não')} />
+              <Campo label="Código Produto" valor={cancelamento.codigo_produto || '—'} />
             </div>
-            <Campo label="Modelo/Cor/Tamanho" valor={cancelamento.descricao_modelo} />
+            <Campo label="Modelo/Cor/Tamanho" valor={cancelamento.descricao_modelo || '—'} />
           </div>
           <AnexosGrid titulo="Evidências de sinais de uso" anexos={cancelamento.anexos_evidencias_uso} />
 
           <div className="bg-slate-50 border border-slate-100 rounded-xl px-4 py-3 space-y-3">
             <p className="text-xs font-medium text-slate-500 uppercase tracking-wider">Cliente e pagamento</p>
-            <Campo label="Cliente" valor={cancelamento.nome_cliente} />
-            <Campo label="CPF" valor={cancelamento.cpf} />
+            <Campo label="Cliente" valor={cancelamento.nome_cliente || '—'} />
+            <Campo label="CPF" valor={cancelamento.cpf || '—'} />
             <div className="grid grid-cols-1 gap-2">
-              <Campo label="Valor Total Pago" valor={`R$ ${Number(cancelamento.valor_total_pago_cliente).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`} />
-              <Campo label="Valor Total do Pedido" valor={`R$ ${Number(cancelamento.valor_total_pedido).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`} />
-              <Campo label="Valor a Cancelar" valor={`R$ ${Number(cancelamento.valor_cancelar).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`} />
+              <Campo label="Valor Total Pago" valor={cancelamento.valor_total_pago_cliente != null ? `R$ ${Number(cancelamento.valor_total_pago_cliente).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}` : '—'} />
+              <Campo label="Valor Total do Pedido" valor={cancelamento.valor_total_pedido != null ? `R$ ${Number(cancelamento.valor_total_pedido).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}` : '—'} />
+              <Campo label="Valor a Cancelar" valor={cancelamento.valor_cancelar != null ? `R$ ${Number(cancelamento.valor_cancelar).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}` : '—'} />
             </div>
             <div className="grid grid-cols-2 gap-4">
-              <Campo label="Forma de Pagamento" valor={FORMA_PAGAMENTO_LABELS[cancelamento.forma_pagamento] || cancelamento.forma_pagamento} />
-              <Campo label="Pago em +1 cartão?" valor={cancelamento.pago_mais_um_cartao ? 'Sim' : 'Não'} />
+              <Campo label="Forma de Pagamento" valor={(cancelamento.forma_pagamento && (FORMA_PAGAMENTO_LABELS[cancelamento.forma_pagamento] || cancelamento.forma_pagamento)) || '—'} />
+              <Campo label="Pago em +1 cartão?" valor={cancelamento.pago_mais_um_cartao == null ? '—' : (cancelamento.pago_mais_um_cartao ? 'Sim' : 'Não')} />
             </div>
           </div>
           <AnexosGrid titulo="Imagens do Portal e Comprovante" anexos={cancelamento.anexos_portal_comprovante} />

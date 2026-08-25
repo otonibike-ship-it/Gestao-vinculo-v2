@@ -56,7 +56,7 @@ export const cartaCorrecaoService = {
     return data as CartaCorrecaoData
   },
 
-  async aprovar(id: number, opts: { observacao?: string; anexos?: string[] } = {}) {
+  async aprovar(id: number, opts: { observacao?: string; anexos?: string[]; destino?: string } = {}) {
     const { data } = await api.put(`/cartas-correcao/${id}/aprovar`, opts)
     return data as CartaCorrecaoData
   },

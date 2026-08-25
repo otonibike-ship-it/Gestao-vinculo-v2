@@ -7,6 +7,7 @@ import { uploadService } from '@/services/vinculo'
 import { AnexosGrid } from '@/components/anexos-grid'
 import { FluxoStepper } from '@/components/fluxo-stepper'
 import { HistoricoObservacoes } from '@/components/historico-observacoes'
+import { MoneyInput } from '@/components/money-input'
 import { useMutation, useQueryClient, useQuery } from '@tanstack/react-query'
 import api from '@/lib/api'
 
@@ -241,15 +242,15 @@ export function SolicitacaoEstornoModal({ estorno, onClose, modo }: SolicitacaoE
               <div className="grid grid-cols-3 gap-4">
                 <div>
                   <label className={labelClass}>Valor Pedido Portal</label>
-                  <input type="number" step="0.01" value={formValorPedidoPortal} onChange={(e) => setFormValorPedidoPortal(e.target.value)} className={inputClass} />
+                  <MoneyInput value={formValorPedidoPortal} onChange={setFormValorPedidoPortal} className={inputClass} />
                 </div>
                 <div>
                   <label className={labelClass}>Valor Total Pago</label>
-                  <input type="number" step="0.01" value={formValorTotalPago} onChange={(e) => setFormValorTotalPago(e.target.value)} className={inputClass} />
+                  <MoneyInput value={formValorTotalPago} onChange={setFormValorTotalPago} className={inputClass} />
                 </div>
                 <div>
                   <label className={labelClass}>Valor a Devolver</label>
-                  <input type="number" step="0.01" value={formValorDevolver} onChange={(e) => setFormValorDevolver(e.target.value)} className={inputClass} />
+                  <MoneyInput value={formValorDevolver} onChange={setFormValorDevolver} className={inputClass} />
                 </div>
               </div>
 

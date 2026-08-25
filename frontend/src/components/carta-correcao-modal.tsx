@@ -12,6 +12,17 @@ import { HistoricoObservacoes } from '@/components/historico-observacoes'
 import { useMutation, useQueryClient, useQuery } from '@tanstack/react-query'
 import api from '@/lib/api'
 
+const AREAS_CARTA = [
+  { value: 'comercial', label: 'Comercial' },
+  { value: 'faturamento', label: 'Faturamento' },
+  { value: 'financeiro', label: 'Financeiro' },
+]
+
+function outrasAreas(modoAtual: string, incluirFranquia: boolean) {
+  const opts = AREAS_CARTA.filter(a => a.value !== modoAtual)
+  return incluirFranquia ? [...opts, { value: 'franquia', label: 'Franquia' }] : opts
+}
+
 interface CartaCorrecaoModalProps {
   carta: CartaCorrecaoData
   onClose: () => void
@@ -44,6 +55,7 @@ export function CartaCorrecaoModal({ carta, onClose, modo }: CartaCorrecaoModalP
   const [enviando, setEnviando] = useState(false)
   const [observacao, setObservacao] = useState('')
   const [destinoReprovacao, setDestinoReprovacao] = useState('comercial')
+  const [destinoAprovacao, setDestinoAprovacao] = useState(modo === 'faturamento' ? 'financeiro' : 'faturamento')
 
   const [editando, setEditando] = useState(false)
   const [formFranquiaId, setFormFranquiaId] = useState(carta.franquia_id)
@@ -82,11 +94,14 @@ export function CartaCorrecaoModal({ carta, onClose, modo }: CartaCorrecaoModalP
   const aprovarMutation = useMutation({
     mutationFn: async () => {
       if (modo === 'comercial') {
-        return cartaCorrecaoService.aprovar(carta.id, { observacao: observacao || undefined })
+        return cartaCorrecaoService.aprovar(carta.id, { observacao: observacao || undefined, destino: destinoAprovacao })
       }
       const resultados = await Promise.all(arquivosAprovacao.map(arq => uploadService.upload(arq)))
       const anexoUrls = resultados.map(r => r.url)
-      return cartaCorrecaoService.aprovar(carta.id, { anexos: anexoUrls })
+      if (modo === 'faturamento') {
+        return cartaCorrecaoService.aprovar(carta.id, { observacao: observacao || undefined, anexos: anexoUrls, destino: destinoAprovacao })
+      }
+      return cartaCorrecaoService.aprovar(carta.id, { anexos: anexoUrls, observacao: observacao || undefined })
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['cartas-correcao'] })
@@ -323,12 +338,14 @@ export function CartaCorrecaoModal({ carta, onClose, modo }: CartaCorrecaoModalP
                 const steps = [
                   { key: 'franquia', label: 'Franquia' },
                   { key: 'comercial', label: 'Comercial' },
+                  { key: 'faturamento', label: 'Faturamento' },
                   { key: 'financeiro', label: 'Financeiro' },
                   { key: 'concluido', label: 'Carta Gerada' },
                 ]
                 const currentKeyMap: Record<string, string> = {
                   aberto: 'franquia',
                   aguardando_comercial: 'comercial',
+                  aguardando_faturamento: 'faturamento',
                   aguardando_financeiro: 'financeiro',
                   fechado: 'concluido',
                 }
@@ -340,12 +357,52 @@ export function CartaCorrecaoModal({ carta, onClose, modo }: CartaCorrecaoModalP
               <HistoricoObservacoes historico={carta.historico_observacoes} />
 
               {podeAprovarReprovar && modo === 'comercial' && !mostrarReprovar && (
+                <>
+                  <DestinoPicker
+                    options={outrasAreas('comercial', false)}
+                    value={destinoAprovacao}
+                    onChange={setDestinoAprovacao}
+                  />
+                  <div>
+                    <p className="text-xs font-medium text-slate-500 uppercase tracking-wider mb-2">Observação (opcional)</p>
+                    <textarea
+                      value={observacao}
+                      onChange={(e) => setObservacao(e.target.value)}
+                      placeholder="Informação para a área de destino (opcional)..."
+                      className="w-full border border-slate-200 rounded-xl px-4 py-3 text-sm text-slate-700 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-brand-teal/60 transition-all resize-none"
+                      rows={2}
+                    />
+                  </div>
+                </>
+              )}
+
+              {podeAprovarReprovar && modo === 'faturamento' && !mostrarReprovar && (
+                <>
+                  <DestinoPicker
+                    options={outrasAreas('faturamento', false)}
+                    value={destinoAprovacao}
+                    onChange={setDestinoAprovacao}
+                  />
+                  <div>
+                    <p className="text-xs font-medium text-slate-500 uppercase tracking-wider mb-2">Observação (opcional)</p>
+                    <textarea
+                      value={observacao}
+                      onChange={(e) => setObservacao(e.target.value)}
+                      placeholder="Informação sobre a correção (opcional)..."
+                      className="w-full border border-slate-200 rounded-xl px-4 py-3 text-sm text-slate-700 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-brand-teal/60 transition-all resize-none"
+                      rows={2}
+                    />
+                  </div>
+                </>
+              )}
+
+              {podeAprovarReprovar && modo === 'financeiro' && !mostrarReprovar && (
                 <div>
                   <p className="text-xs font-medium text-slate-500 uppercase tracking-wider mb-2">Observação (opcional)</p>
                   <textarea
                     value={observacao}
                     onChange={(e) => setObservacao(e.target.value)}
-                    placeholder="Informação para o Financeiro (opcional)..."
+                    placeholder="Observação sobre a carta gerada (opcional)..."
                     className="w-full border border-slate-200 rounded-xl px-4 py-3 text-sm text-slate-700 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-brand-teal/60 transition-all resize-none"
                     rows={2}
                   />
@@ -388,12 +445,9 @@ export function CartaCorrecaoModal({ carta, onClose, modo }: CartaCorrecaoModalP
 
               {podeAprovarReprovar && mostrarReprovar && (
                 <div className="space-y-3">
-                  {modo === 'financeiro' && (
+                  {modo !== 'comercial' && (
                     <DestinoPicker
-                      options={[
-                        { value: 'comercial', label: 'Comercial' },
-                        { value: 'franquia', label: 'Franquia' },
-                      ]}
+                      options={outrasAreas(modo, true)}
                       value={destinoReprovacao}
                       onChange={setDestinoReprovacao}
                     />

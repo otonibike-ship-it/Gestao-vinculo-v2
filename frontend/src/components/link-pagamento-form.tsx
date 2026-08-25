@@ -7,6 +7,7 @@ import { ArrowLeft, Upload, X, AlertTriangle } from 'lucide-react'
 import { linkPagamentoService } from '@/services/link-pagamento'
 import { uploadService } from '@/services/vinculo'
 import { authService } from '@/services/auth'
+import { MoneyInput } from '@/components/money-input'
 import api from '@/lib/api'
 
 interface Props {
@@ -236,28 +237,12 @@ export default function LinkPagamentoForm({ voltarPara }: Props) {
             </div>
             <div className="grid grid-cols-3 gap-4">
               <div>
-                <label className={labelClass}>Valor do Pedido (R$)</label>
-                <input
-                  type="number"
-                  step="0.01"
-                  min="0"
-                  value={valorPedido}
-                  onChange={e => setValorPedido(e.target.value)}
-                  className={inputClass + ' bg-white'}
-                  placeholder="0,00"
-                />
+                <label className={labelClass}>Valor do Pedido</label>
+                <MoneyInput value={valorPedido} onChange={setValorPedido} className={inputClass + ' bg-white'} />
               </div>
               <div>
-                <label className={labelClass}>Valor do Link (R$)</label>
-                <input
-                  type="number"
-                  step="0.01"
-                  min="0"
-                  value={valorLink}
-                  onChange={e => setValorLink(e.target.value)}
-                  className={inputClass + ' bg-white'}
-                  placeholder="0,00"
-                />
+                <label className={labelClass}>Valor do Link</label>
+                <MoneyInput value={valorLink} onChange={setValorLink} className={inputClass + ' bg-white'} />
               </div>
               <div>
                 <label className={labelClass}>Quantidade</label>

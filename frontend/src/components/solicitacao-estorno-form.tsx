@@ -7,6 +7,7 @@ import { ArrowLeft, Upload, X, AlertTriangle } from 'lucide-react'
 import { solicitacaoEstornoService } from '@/services/solicitacao-estorno'
 import { uploadService } from '@/services/vinculo'
 import { authService } from '@/services/auth'
+import { MoneyInput } from '@/components/money-input'
 import api from '@/lib/api'
 
 interface Props {
@@ -224,16 +225,16 @@ export default function SolicitacaoEstornoForm({ voltarPara }: Props) {
           <div className="border border-slate-200 rounded-xl p-4 space-y-4 bg-slate-50">
             <p className="text-xs font-semibold text-slate-600 uppercase tracking-wider">Valores</p>
             <div>
-              <label className={labelClass}>Valor do Pedido no Portal (R$)</label>
-              <input type="number" step="0.01" min="0" value={valorPedidoPortal} onChange={e => setValorPedidoPortal(e.target.value)} className={inputClass + ' bg-white'} placeholder="0,00" />
+              <label className={labelClass}>Valor do Pedido no Portal</label>
+              <MoneyInput value={valorPedidoPortal} onChange={setValorPedidoPortal} className={inputClass + ' bg-white'} />
             </div>
             <div>
-              <label className={labelClass}>Valor total pago pelo Cliente (R$)</label>
-              <input type="number" step="0.01" min="0" value={valorTotalPago} onChange={e => setValorTotalPago(e.target.value)} className={inputClass + ' bg-white'} placeholder="0,00" />
+              <label className={labelClass}>Valor total pago pelo Cliente</label>
+              <MoneyInput value={valorTotalPago} onChange={setValorTotalPago} className={inputClass + ' bg-white'} />
             </div>
             <div>
-              <label className={labelClass}>Valor a devolver ao Cliente (R$)</label>
-              <input type="number" step="0.01" min="0" value={valorDevolver} onChange={e => setValorDevolver(e.target.value)} className={inputClass + ' bg-white'} placeholder="0,00" />
+              <label className={labelClass}>Valor a devolver ao Cliente</label>
+              <MoneyInput value={valorDevolver} onChange={setValorDevolver} className={inputClass + ' bg-white'} />
             </div>
           </div>
 

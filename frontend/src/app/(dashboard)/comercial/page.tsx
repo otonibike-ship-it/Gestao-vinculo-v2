@@ -209,6 +209,8 @@ export default function ComercialPage() {
         </div>
       </div>
 
+      <p className="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-2">Vínculo de Pagamento</p>
+
       {isLoading && (
         <div className="bg-white rounded-xl border border-slate-200 shadow-sm p-12 text-center text-sm text-slate-400">
           Carregando...

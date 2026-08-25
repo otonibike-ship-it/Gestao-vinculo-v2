@@ -8,6 +8,7 @@ import { AnexosGrid } from '@/components/anexos-grid'
 import { FluxoStepper } from '@/components/fluxo-stepper'
 import { DestinoPicker } from '@/components/destino-picker'
 import { HistoricoObservacoes } from '@/components/historico-observacoes'
+import { MoneyInput } from '@/components/money-input'
 import { useMutation, useQueryClient, useQuery } from '@tanstack/react-query'
 import api from '@/lib/api'
 
@@ -250,11 +251,11 @@ export function LinkPagamentoModal({ link, onClose, modo }: LinkPagamentoModalPr
               <div className="grid grid-cols-3 gap-4">
                 <div>
                   <label className={labelClass}>Valor do Pedido</label>
-                  <input type="number" step="0.01" value={formValorPedido} onChange={(e) => setFormValorPedido(e.target.value)} className={inputClass} />
+                  <MoneyInput value={formValorPedido} onChange={setFormValorPedido} className={inputClass} />
                 </div>
                 <div>
                   <label className={labelClass}>Valor do Link</label>
-                  <input type="number" step="0.01" value={formValorLink} onChange={(e) => setFormValorLink(e.target.value)} className={inputClass} />
+                  <MoneyInput value={formValorLink} onChange={setFormValorLink} className={inputClass} />
                 </div>
                 <div>
                   <label className={labelClass}>Quantidade</label>

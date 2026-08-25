@@ -56,11 +56,12 @@ class CartaCorrecaoResponse(BaseModel):
 class AprovarCartaRequest(BaseModel):
     observacao: Optional[str] = None
     anexos: list[str] = []
+    destino: Optional[str] = None  # comercial | faturamento | financeiro | concluir
 
 
 class ReprovarCartaRequest(BaseModel):
     justificativa: str
-    destino: Optional[str] = None  # comercial | franquia
+    destino: Optional[str] = None  # comercial | faturamento | financeiro | franquia
 
 
 class ReenviarCartaRequest(BaseModel):

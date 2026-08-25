@@ -24,12 +24,15 @@ router = APIRouter()
 
 _AREA_STATUS = {
     "comercial": StatusCartaCorrecao.aguardando_comercial,
+    "faturamento": StatusCartaCorrecao.aguardando_faturamento,
     "financeiro": StatusCartaCorrecao.aguardando_financeiro,
 }
 _AREA_EMAIL_CONFIG = {
     "comercial": "email_comercial",
+    "faturamento": "email_faturamento",
     "financeiro": "email_financeiro",
 }
+_FINAL_AREA = "financeiro"
 
 
 def _area_atual(carta_status: StatusCartaCorrecao) -> Optional[str]:
@@ -158,20 +161,32 @@ async def aprovar_carta(carta_id: int, payload: AprovarCartaRequest, db: AsyncSe
         raise HTTPException(status_code=404, detail="Carta de correção não encontrada")
 
     area_atual = _area_atual(carta.status)
-    if area_atual:
-        _registrar_nota(carta, area_atual, payload.observacao, "aprovacao")
+    if area_atual is None:
+        raise HTTPException(status_code=400, detail=f"Não é possível aprovar com status '{carta.status.value}'")
 
-    if carta.status == StatusCartaCorrecao.aguardando_comercial:
-        carta.status = StatusCartaCorrecao.aguardando_financeiro
+    _registrar_nota(carta, area_atual, payload.observacao, "aprovacao")
+    if area_atual == "comercial":
         carta.observacao_comercial = payload.observacao
 
-    elif carta.status == StatusCartaCorrecao.aguardando_financeiro:
-        if payload.anexos:
-            carta.anexos = (carta.anexos or []) + payload.anexos
+    if payload.destino == "concluir":
+        if area_atual != _FINAL_AREA:
+            raise HTTPException(status_code=422, detail=f"Só é possível concluir a partir de {_FINAL_AREA}")
         carta.status = StatusCartaCorrecao.fechado
-
+    elif payload.destino:
+        if payload.destino not in _AREA_STATUS or payload.destino == area_atual:
+            raise HTTPException(status_code=422, detail="destino inválido")
+        carta.status = _AREA_STATUS[payload.destino]
     else:
-        raise HTTPException(status_code=400, detail=f"Não é possível aprovar com status '{carta.status.value}'")
+        # Sem destino explícito: segue o próximo passo padrão
+        if area_atual == "comercial":
+            carta.status = StatusCartaCorrecao.aguardando_faturamento
+        elif area_atual == "faturamento":
+            carta.status = StatusCartaCorrecao.aguardando_financeiro
+        elif area_atual == "financeiro":
+            carta.status = StatusCartaCorrecao.fechado
+
+    if payload.anexos:
+        carta.anexos = (carta.anexos or []) + payload.anexos
 
     carta.justificativa_reprovacao = None
     carta.destino_reprovacao = None
@@ -182,13 +197,8 @@ async def aprovar_carta(carta_id: int, payload: AprovarCartaRequest, db: AsyncSe
     franquia_nome = result.get("franquia_nome", "")
     numero = carta.numero_pedido
     cliente = carta.nome_cliente_pedido
-    if carta.status == StatusCartaCorrecao.aguardando_financeiro:
-        email_financeiro = await db.scalar(
-            select(Configuracao.valor).where(Configuracao.chave == "email_financeiro")
-        )
-        if email_financeiro:
-            asyncio.create_task(email_svc.notificar_triagem_carta(numero, cliente, franquia_nome, email_financeiro))
-    elif carta.status == StatusCartaCorrecao.fechado:
+    novo_status = carta.status
+    if novo_status == StatusCartaCorrecao.fechado:
         u = await db.scalar(select(Usuario).where(
             Usuario.franquia_id == carta.franquia_id,
             Usuario.perfil == PerfilUsuario.franquia,
@@ -196,6 +206,14 @@ async def aprovar_carta(carta_id: int, payload: AprovarCartaRequest, db: AsyncSe
         ))
         if u:
             asyncio.create_task(email_svc.notificar_concluido_carta(numero, cliente, u.email))
+    else:
+        nova_area = _area_atual(novo_status)
+        if nova_area:
+            email_destino = await db.scalar(
+                select(Configuracao.valor).where(Configuracao.chave == _AREA_EMAIL_CONFIG[nova_area])
+            )
+            if email_destino:
+                asyncio.create_task(email_svc.notificar_triagem_carta(numero, cliente, franquia_nome, email_destino))
 
     return result
 

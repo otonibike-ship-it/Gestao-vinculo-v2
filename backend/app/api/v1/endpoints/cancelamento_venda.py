@@ -138,6 +138,9 @@ async def criar_cancelamento(payload: CancelamentoVendaCreate, db: AsyncSession 
     if not emp:
         raise HTTPException(status_code=422, detail=f"Franquia {payload.franquia_id} não encontrada")
 
+    if not payload.anexos_portal_comprovante:
+        raise HTTPException(status_code=422, detail="Anexe ao menos uma imagem do portal / comprovante de pagamento")
+
     cancelamento = CancelamentoVenda(
         franquia_id=payload.franquia_id,
         motivo=payload.motivo,
@@ -168,7 +171,7 @@ async def criar_cancelamento(payload: CancelamentoVendaCreate, db: AsyncSession 
     result = await _enrich(cancelamento, db)
 
     asyncio.create_task(email_svc.notificar_novo_pedido_cancelamento(
-        payload.numero_pedido_cancelar, payload.vendedor, result.get("franquia_nome", "")
+        payload.numero_pedido_cancelar or "—", payload.vendedor or "—", result.get("franquia_nome", "")
     ))
     return result
 
@@ -215,8 +218,8 @@ async def aprovar_cancelamento(cancelamento_id: int, payload: AprovarCancelament
     result = await _enrich(cancelamento, db)
 
     franquia_nome = result.get("franquia_nome", "")
-    numero = cancelamento.numero_pedido_cancelar
-    vendedor = cancelamento.vendedor
+    numero = cancelamento.numero_pedido_cancelar or "—"
+    vendedor = cancelamento.vendedor or "—"
     novo_status = cancelamento.status
     if novo_status == StatusCancelamentoVenda.fechado:
         u = await db.scalar(select(Usuario).where(
@@ -265,7 +268,7 @@ async def reprovar_cancelamento(cancelamento_id: int, payload: ReprovarCancelame
     await db.refresh(cancelamento)
     result = await _enrich(cancelamento, db)
 
-    numero = cancelamento.numero_pedido_cancelar
+    numero = cancelamento.numero_pedido_cancelar or "—"
     if destino == "franquia":
         u = await db.scalar(select(Usuario).where(
             Usuario.franquia_id == cancelamento.franquia_id,

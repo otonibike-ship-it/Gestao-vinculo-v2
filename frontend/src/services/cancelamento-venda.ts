@@ -4,25 +4,25 @@ export interface CancelamentoVendaData {
   id: number
   franquia_id: number
   franquia_nome: string
-  motivo: string
-  vendedor: string
-  numero_pedido_cancelar: string
-  data_pedido_cancelar: string
-  status_portal: string
-  numero_nota_fiscal: string
-  data_emissao_nota_fiscal: string
-  bike_na_loja: boolean
-  sinais_uso: boolean
+  motivo: string | null
+  vendedor: string | null
+  numero_pedido_cancelar: string | null
+  data_pedido_cancelar: string | null
+  status_portal: string | null
+  numero_nota_fiscal: string | null
+  data_emissao_nota_fiscal: string | null
+  bike_na_loja: boolean | null
+  sinais_uso: boolean | null
   anexos_evidencias_uso: string[]
-  codigo_produto: string
-  descricao_modelo: string
-  nome_cliente: string
-  cpf: string
-  valor_total_pago_cliente: number
-  valor_total_pedido: number
-  valor_cancelar: number
-  forma_pagamento: string
-  pago_mais_um_cartao: boolean
+  codigo_produto: string | null
+  descricao_modelo: string | null
+  nome_cliente: string | null
+  cpf: string | null
+  valor_total_pago_cliente: number | null
+  valor_total_pedido: number | null
+  valor_cancelar: number | null
+  forma_pagamento: string | null
+  pago_mais_um_cartao: boolean | null
   anexos_portal_comprovante: string[]
   status: 'aberto' | 'aguardando_comercial' | 'aguardando_faturamento' | 'aguardando_financeiro' | 'aguardando_ti' | 'fechado'
   observacao_comercial: string | null
@@ -35,25 +35,25 @@ export interface CancelamentoVendaData {
 
 export interface CancelamentoVendaCreatePayload {
   franquia_id: number
-  motivo: string
-  vendedor: string
-  numero_pedido_cancelar: string
-  data_pedido_cancelar: string
-  status_portal: string
-  numero_nota_fiscal: string
-  data_emissao_nota_fiscal: string
-  bike_na_loja: boolean
-  sinais_uso: boolean
+  motivo?: string | null
+  vendedor?: string | null
+  numero_pedido_cancelar?: string | null
+  data_pedido_cancelar?: string | null
+  status_portal?: string | null
+  numero_nota_fiscal?: string | null
+  data_emissao_nota_fiscal?: string | null
+  bike_na_loja?: boolean | null
+  sinais_uso?: boolean | null
   anexos_evidencias_uso?: string[]
-  codigo_produto: string
-  descricao_modelo: string
-  nome_cliente: string
-  cpf: string
-  valor_total_pago_cliente: number
-  valor_total_pedido: number
-  valor_cancelar: number
-  forma_pagamento: string
-  pago_mais_um_cartao: boolean
+  codigo_produto?: string | null
+  descricao_modelo?: string | null
+  nome_cliente?: string | null
+  cpf?: string | null
+  valor_total_pago_cliente?: number | null
+  valor_total_pedido?: number | null
+  valor_cancelar?: number | null
+  forma_pagamento?: string | null
+  pago_mais_um_cartao?: boolean | null
   anexos_portal_comprovante?: string[]
 }
 

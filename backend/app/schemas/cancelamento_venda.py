@@ -16,25 +16,25 @@ class StatusCancelamentoVenda(str, Enum):
 
 class CancelamentoVendaCreate(BaseModel):
     franquia_id: int
-    motivo: str
-    vendedor: str
-    numero_pedido_cancelar: str
-    data_pedido_cancelar: date
-    status_portal: str
-    numero_nota_fiscal: str
-    data_emissao_nota_fiscal: date
-    bike_na_loja: bool
-    sinais_uso: bool
+    motivo: Optional[str] = None
+    vendedor: Optional[str] = None
+    numero_pedido_cancelar: Optional[str] = None
+    data_pedido_cancelar: Optional[date] = None
+    status_portal: Optional[str] = None
+    numero_nota_fiscal: Optional[str] = None
+    data_emissao_nota_fiscal: Optional[date] = None
+    bike_na_loja: Optional[bool] = None
+    sinais_uso: Optional[bool] = None
     anexos_evidencias_uso: list[str] = []
-    codigo_produto: str
-    descricao_modelo: str
-    nome_cliente: str
-    cpf: str
-    valor_total_pago_cliente: Decimal
-    valor_total_pedido: Decimal
-    valor_cancelar: Decimal
-    forma_pagamento: str
-    pago_mais_um_cartao: bool
+    codigo_produto: Optional[str] = None
+    descricao_modelo: Optional[str] = None
+    nome_cliente: Optional[str] = None
+    cpf: Optional[str] = None
+    valor_total_pago_cliente: Optional[Decimal] = None
+    valor_total_pedido: Optional[Decimal] = None
+    valor_cancelar: Optional[Decimal] = None
+    forma_pagamento: Optional[str] = None
+    pago_mais_um_cartao: Optional[bool] = None
     anexos_portal_comprovante: list[str] = []
 
 
@@ -42,25 +42,25 @@ class CancelamentoVendaResponse(BaseModel):
     id: int
     franquia_id: int
     franquia_nome: Optional[str] = None
-    motivo: str
-    vendedor: str
-    numero_pedido_cancelar: str
-    data_pedido_cancelar: date
-    status_portal: str
-    numero_nota_fiscal: str
-    data_emissao_nota_fiscal: date
-    bike_na_loja: bool
-    sinais_uso: bool
+    motivo: Optional[str] = None
+    vendedor: Optional[str] = None
+    numero_pedido_cancelar: Optional[str] = None
+    data_pedido_cancelar: Optional[date] = None
+    status_portal: Optional[str] = None
+    numero_nota_fiscal: Optional[str] = None
+    data_emissao_nota_fiscal: Optional[date] = None
+    bike_na_loja: Optional[bool] = None
+    sinais_uso: Optional[bool] = None
     anexos_evidencias_uso: list[str] = []
-    codigo_produto: str
-    descricao_modelo: str
-    nome_cliente: str
-    cpf: str
-    valor_total_pago_cliente: Decimal
-    valor_total_pedido: Decimal
-    valor_cancelar: Decimal
-    forma_pagamento: str
-    pago_mais_um_cartao: bool
+    codigo_produto: Optional[str] = None
+    descricao_modelo: Optional[str] = None
+    nome_cliente: Optional[str] = None
+    cpf: Optional[str] = None
+    valor_total_pago_cliente: Optional[Decimal] = None
+    valor_total_pedido: Optional[Decimal] = None
+    valor_cancelar: Optional[Decimal] = None
+    forma_pagamento: Optional[str] = None
+    pago_mais_um_cartao: Optional[bool] = None
     anexos_portal_comprovante: list[str] = []
     status: StatusCancelamentoVenda
     observacao_comercial: Optional[str] = None

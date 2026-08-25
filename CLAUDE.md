@@ -64,7 +64,7 @@ Each form's area set and final area (the one that can additionally choose **"con
 | Vinculo | comercial, financeiro, ti | ti | `vinculo.py` |
 | Troca de Pedido | comercial, faturamento, ti | ti | `troca_pedido.py` |
 | Link de Pagamento | comercial, financeiro | financeiro | `link_pagamento.py` |
-| Carta de Correção | comercial, financeiro | financeiro | `carta_correcao.py` |
+| Carta de Correção | comercial, faturamento, financeiro | financeiro | `carta_correcao.py` |
 | Solicitação de Estorno | comercial, financeiro | financeiro | `solicitacao_estorno.py` |
 | Cancelamento de Venda | comercial, faturamento, financeiro | financeiro | `cancelamento_venda.py` |
 
@@ -76,8 +76,8 @@ Pop-up width: all 6 modals use `max-w-3xl` (bumped from `max-w-lg` on 2026-08-19
 
 Three things worth knowing before adding a 7th form:
 - **Dropdown "motivo" fields** store the full option text as the value (see `frontend/src/components/carta-correcao-selects.tsx` for the two-select pattern), matching `MotivoSelect`/`TrocaMotivoSelect` — not a coded enum.
-- **`CancelamentoVenda` has two independent attachment arrays** (`anexos_evidencias_uso`, `anexos_portal_comprovante`) instead of the single `anexos` every other form uses — its `AprovarCancelamentoRequest.anexos` payload merges into `anexos_portal_comprovante` on approve. Its modal also skips the inline "Editar e Reenviar" flow (too many fields split across two attachment types); a reprovado record just tells the franquia to submit a new one. The `/reenviar` endpoint still exists for API consistency but the frontend doesn't call it.
-- **Free routing is the standard now** (see the area-set table above) — copy an existing endpoint's `_AREA_STATUS`/`_registrar_nota` pattern and an existing modal's `DestinoPicker`/`HistoricoObservacoes` usage rather than building a fixed pipeline from scratch.
+- **`CancelamentoVenda` has two independent attachment arrays** (`anexos_evidencias_uso`, `anexos_portal_comprovante`) instead of the single `anexos` every other form uses — its `AprovarCancelamentoRequest.anexos` payload merges into `anexos_portal_comprovante` on approve. Its modal also skips the inline "Editar e Reenviar" flow (too many fields split across two attachment types); a reprovado record just tells the franquia to submit a new one. The `/reenviar` endpoint still exists for API consistency but the frontend doesn't call it. **Since 2026-08-25, every field on this form except `franquia_id` and `anexos_portal_comprovante` (at least one file) is optional** — model columns are `nullable=True` (migration `0018`), the create/response schemas wrap every other field in `Optional[...]`, and the frontend's `camposObrigatoriosPreenchidos` only checks franquia + the portal attachment, sending `null` for anything left blank.
+- **Free routing is the standard now** (see the area-set table above) — copy an existing endpoint's `_AREA_STATUS`/`_registrar_nota` pattern and an existing modal's `DestinoPicker`/`HistoricoObservacoes` usage rather than building a fixed pipeline from scratch. `MoneyInput` (`frontend/src/components/money-input.tsx`) and `SimNaoSelect` (`frontend/src/components/sim-nao-select.tsx`) are shared components — every currency field across all 6 create-forms/modals uses `MoneyInput` (R$ prefix) and every Sim/Não question uses `SimNaoSelect`.
 
 ### User Profiles & Routing
 
@@ -142,7 +142,7 @@ Uploads go **directly from the browser to Cloudinary** using an unsigned preset 
 | `app/services/email.py` | Email sending (creates own DB session) |
 | `app/services/auth_service.py` | JWT generation + password validation |
 | `app/core/database.py` | Async engine, `get_db` dependency, `AsyncSessionLocal` |
-| `alembic/versions/` | 16 migrations; latest is `0016_historico_observacoes.py` |
+| `alembic/versions/` | 18 migrations; latest is `0018_cancelamento_venda_campos_opcionais.py` |
 
 ### Key Frontend Files
 
