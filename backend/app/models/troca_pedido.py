@@ -1,4 +1,4 @@
-from sqlalchemy import Column, Integer, String, DateTime, Enum, ForeignKey, Text, Date, Numeric
+from sqlalchemy import Column, Integer, String, DateTime, Enum, ForeignKey, Text, Date, Numeric, Boolean
 from sqlalchemy.dialects.postgresql import JSON
 from sqlalchemy.sql import func
 from app.core.database import Base
@@ -30,6 +30,9 @@ class TrocaPedido(Base):
     codigo_produto_novo = Column(String(100), nullable=False)
     descricao_novo_pedido = Column(Text, nullable=False)
     status_portal = Column(String(50), nullable=False)  # processando_pagamento | em_separacao | faturado
+    data_emissao_nota_fiscal = Column(Date, nullable=True)
+    pedido_gerou_reposicao_estoque = Column(Boolean, nullable=True)
+    sinais_uso_pedido_cancelar = Column(Boolean, nullable=True)
     nome_cliente = Column(String(300), nullable=True)
     cpf = Column(String(14), nullable=True)
     valor_novo_pedido = Column(Numeric(12, 2), nullable=True)

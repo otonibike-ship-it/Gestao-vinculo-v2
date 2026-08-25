@@ -8,6 +8,8 @@ import { trocaPedidoService } from '@/services/troca-pedido'
 import { uploadService } from '@/services/vinculo'
 import { authService } from '@/services/auth'
 import { TrocaMotivoSelect } from '@/components/troca-motivo-select'
+import { MoneyInput } from '@/components/money-input'
+import { SimNaoSelect } from '@/components/sim-nao-select'
 import api from '@/lib/api'
 
 interface Props {
@@ -46,6 +48,9 @@ export default function TrocaPedidoForm({ voltarPara }: Props) {
   const [codigoProdutoNovo, setCodigoProdutoNovo] = useState('')
   const [descricaoNovoPedido, setDescricaoNovoPedido] = useState('')
   const [statusPortal, setStatusPortal] = useState('')
+  const [dataEmissaoNotaFiscal, setDataEmissaoNotaFiscal] = useState('')
+  const [pedidoGerouReposicaoEstoque, setPedidoGerouReposicaoEstoque] = useState('')
+  const [sinaisUsoPedidoCancelar, setSinaisUsoPedidoCancelar] = useState('')
   const [nomeCliente, setNomeCliente] = useState('')
   const [cpf, setCpf] = useState('')
   const [valorNovoPedido, setValorNovoPedido] = useState('')
@@ -86,6 +91,9 @@ export default function TrocaPedidoForm({ voltarPara }: Props) {
     !!codigoProdutoNovo.trim() &&
     !!descricaoNovoPedido.trim() &&
     !!statusPortal &&
+    !!dataEmissaoNotaFiscal &&
+    !!pedidoGerouReposicaoEstoque &&
+    !!sinaisUsoPedidoCancelar &&
     !!nomeCliente.trim() &&
     cpf.replace(/\D/g, '').length === 11 &&
     !!valorNovoPedido &&
@@ -108,6 +116,9 @@ export default function TrocaPedidoForm({ voltarPara }: Props) {
     if (!codigoProdutoNovo.trim()) { setErro('Código do produto do novo pedido é obrigatório'); return }
     if (!descricaoNovoPedido.trim()) { setErro('Descreva o modelo/cor/tamanho do novo pedido'); return }
     if (!statusPortal) { setErro('Selecione o status do pedido no portal'); return }
+    if (!dataEmissaoNotaFiscal) { setErro('Data de emissão da nota fiscal é obrigatória'); return }
+    if (!pedidoGerouReposicaoEstoque) { setErro('Informe se o pedido gerou reposição do estoque S2 Distribuidora'); return }
+    if (!sinaisUsoPedidoCancelar) { setErro('Informe se há sinais de uso na bike do 1º pedido'); return }
     if (!nomeCliente.trim()) { setErro('Nome completo do cliente é obrigatório'); return }
     if (cpf.replace(/\D/g, '').length !== 11) { setErro('CPF do cliente inválido'); return }
     if (!valorNovoPedido) { setErro('Valor do novo pedido é obrigatório'); return }
@@ -132,6 +143,9 @@ export default function TrocaPedidoForm({ voltarPara }: Props) {
         codigo_produto_novo: codigoProdutoNovo.trim(),
         descricao_novo_pedido: descricaoNovoPedido.trim(),
         status_portal: statusPortal,
+        data_emissao_nota_fiscal: dataEmissaoNotaFiscal,
+        pedido_gerou_reposicao_estoque: pedidoGerouReposicaoEstoque === 'sim',
+        sinais_uso_pedido_cancelar: sinaisUsoPedidoCancelar === 'sim',
         nome_cliente: nomeCliente.trim(),
         cpf,
         valor_novo_pedido: parseFloat(valorNovoPedido),
@@ -310,18 +324,38 @@ export default function TrocaPedidoForm({ voltarPara }: Props) {
           </div>
 
           {/* Status do Pedido no portal */}
-          <div>
-            <label className={labelClass}>Status do Pedido no portal</label>
-            <select
-              value={statusPortal}
-              onChange={e => setStatusPortal(e.target.value)}
-              className={inputClass + ' bg-white'}
-            >
-              <option value="">Selecione...</option>
-              {STATUS_PORTAL_OPCOES.map(o => (
-                <option key={o.value} value={o.value}>{o.label}</option>
-              ))}
-            </select>
+          <div className="border border-slate-200 rounded-xl p-4 space-y-4 bg-slate-50">
+            <p className="text-xs font-semibold text-slate-600 uppercase tracking-wider">Status do pedido</p>
+            <div>
+              <label className={labelClass}>Status do Pedido no portal</label>
+              <select
+                value={statusPortal}
+                onChange={e => setStatusPortal(e.target.value)}
+                className={inputClass + ' bg-white'}
+              >
+                <option value="">Selecione...</option>
+                {STATUS_PORTAL_OPCOES.map(o => (
+                  <option key={o.value} value={o.value}>{o.label}</option>
+                ))}
+              </select>
+            </div>
+            <div>
+              <label className={labelClass}>Data de emissão da nota fiscal</label>
+              <input
+                type="date"
+                value={dataEmissaoNotaFiscal}
+                onChange={e => setDataEmissaoNotaFiscal(e.target.value)}
+                className={inputClass + ' bg-white'}
+              />
+            </div>
+            <div>
+              <label className={labelClass}>Pedido gerou Reposição do estoque S2 Distribuidora</label>
+              <SimNaoSelect value={pedidoGerouReposicaoEstoque} onChange={setPedidoGerouReposicaoEstoque} className={inputClass + ' bg-white'} />
+            </div>
+            <div>
+              <label className={labelClass}>Há sinais de uso na Bike do 1º pedido?</label>
+              <SimNaoSelect value={sinaisUsoPedidoCancelar} onChange={setSinaisUsoPedidoCancelar} className={inputClass + ' bg-white'} />
+            </div>
           </div>
 
           {/* Cliente e valores */}
@@ -349,25 +383,11 @@ export default function TrocaPedidoForm({ voltarPara }: Props) {
             <div className="grid grid-cols-2 gap-4">
               <div>
                 <label className={labelClass}>Valor do novo Pedido no portal</label>
-                <input
-                  type="number"
-                  step="0.01"
-                  value={valorNovoPedido}
-                  onChange={e => setValorNovoPedido(e.target.value)}
-                  className={inputClass + ' bg-white'}
-                  placeholder="0,00"
-                />
+                <MoneyInput value={valorNovoPedido} onChange={setValorNovoPedido} className={inputClass + ' bg-white'} />
               </div>
               <div>
                 <label className={labelClass}>Valor pago pelo Cliente</label>
-                <input
-                  type="number"
-                  step="0.01"
-                  value={valorPagoCliente}
-                  onChange={e => setValorPagoCliente(e.target.value)}
-                  className={inputClass + ' bg-white'}
-                  placeholder="0,00"
-                />
+                <MoneyInput value={valorPagoCliente} onChange={setValorPagoCliente} className={inputClass + ' bg-white'} />
               </div>
             </div>
           </div>

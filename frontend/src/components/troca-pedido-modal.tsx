@@ -9,6 +9,8 @@ import { AnexosGrid } from '@/components/anexos-grid'
 import { FluxoStepper } from '@/components/fluxo-stepper'
 import { DestinoPicker } from '@/components/destino-picker'
 import { HistoricoObservacoes } from '@/components/historico-observacoes'
+import { MoneyInput } from '@/components/money-input'
+import { SimNaoSelect } from '@/components/sim-nao-select'
 import { useMutation, useQueryClient, useQuery } from '@tanstack/react-query'
 import api from '@/lib/api'
 
@@ -85,6 +87,13 @@ export function TrocaPedidoModal({ troca, onClose, modo }: TrocaPedidoModalProps
   const [formCodigoProdutoNovo, setFormCodigoProdutoNovo] = useState(troca.codigo_produto_novo)
   const [formDescricaoNovoPedido, setFormDescricaoNovoPedido] = useState(troca.descricao_novo_pedido)
   const [formStatusPortal, setFormStatusPortal] = useState(troca.status_portal)
+  const [formDataEmissaoNotaFiscal, setFormDataEmissaoNotaFiscal] = useState(troca.data_emissao_nota_fiscal || '')
+  const [formPedidoGerouReposicaoEstoque, setFormPedidoGerouReposicaoEstoque] = useState(
+    troca.pedido_gerou_reposicao_estoque == null ? '' : (troca.pedido_gerou_reposicao_estoque ? 'sim' : 'nao')
+  )
+  const [formSinaisUsoPedidoCancelar, setFormSinaisUsoPedidoCancelar] = useState(
+    troca.sinais_uso_pedido_cancelar == null ? '' : (troca.sinais_uso_pedido_cancelar ? 'sim' : 'nao')
+  )
   const [formNomeCliente, setFormNomeCliente] = useState(troca.nome_cliente || '')
   const [formCpf, setFormCpf] = useState(troca.cpf || '')
   const [formValorNovoPedido, setFormValorNovoPedido] = useState(String(troca.valor_novo_pedido ?? ''))
@@ -159,6 +168,9 @@ export function TrocaPedidoModal({ troca, onClose, modo }: TrocaPedidoModalProps
         codigo_produto_novo: formCodigoProdutoNovo,
         descricao_novo_pedido: formDescricaoNovoPedido,
         status_portal: formStatusPortal,
+        data_emissao_nota_fiscal: formDataEmissaoNotaFiscal,
+        pedido_gerou_reposicao_estoque: formPedidoGerouReposicaoEstoque === 'sim',
+        sinais_uso_pedido_cancelar: formSinaisUsoPedidoCancelar === 'sim',
         nome_cliente: formNomeCliente,
         cpf: formCpf,
         valor_novo_pedido: parseFloat(formValorNovoPedido),
@@ -187,7 +199,8 @@ export function TrocaPedidoModal({ troca, onClose, modo }: TrocaPedidoModalProps
     if (
       !formNomeVendedor.trim() || !formNumeroPedidoCancelar.trim() || !formDataPedidoCancelar || !formStatusPortal ||
       !formMotivoDetalhado.trim() || !formNomeCliente.trim() || formCpf.replace(/\D/g, '').length !== 11 ||
-      !formValorNovoPedido || !formValorPagoCliente
+      !formValorNovoPedido || !formValorPagoCliente ||
+      !formDataEmissaoNotaFiscal || !formPedidoGerouReposicaoEstoque || !formSinaisUsoPedidoCancelar
     ) return
     setEnviando(true)
     try { await reenviarMutation.mutateAsync() } finally { setEnviando(false) }
@@ -311,6 +324,21 @@ export function TrocaPedidoModal({ troca, onClose, modo }: TrocaPedidoModalProps
               </div>
 
               <div>
+                <label className={labelClass}>Data de emissão da nota fiscal</label>
+                <input type="date" value={formDataEmissaoNotaFiscal} onChange={(e) => setFormDataEmissaoNotaFiscal(e.target.value)} className={inputClass} />
+              </div>
+
+              <div>
+                <label className={labelClass}>Pedido gerou Reposição do estoque S2 Distribuidora</label>
+                <SimNaoSelect value={formPedidoGerouReposicaoEstoque} onChange={setFormPedidoGerouReposicaoEstoque} className={inputClass + ' bg-white'} />
+              </div>
+
+              <div>
+                <label className={labelClass}>Há sinais de uso na Bike do 1º pedido?</label>
+                <SimNaoSelect value={formSinaisUsoPedidoCancelar} onChange={setFormSinaisUsoPedidoCancelar} className={inputClass + ' bg-white'} />
+              </div>
+
+              <div>
                 <label className={labelClass}>Nome completo do Cliente</label>
                 <input value={formNomeCliente} onChange={(e) => setFormNomeCliente(e.target.value)} className={inputClass} />
               </div>
@@ -323,11 +351,11 @@ export function TrocaPedidoModal({ troca, onClose, modo }: TrocaPedidoModalProps
               <div className="grid grid-cols-2 gap-4">
                 <div>
                   <label className={labelClass}>Valor do novo Pedido no portal</label>
-                  <input type="number" step="0.01" value={formValorNovoPedido} onChange={(e) => setFormValorNovoPedido(e.target.value)} className={inputClass} />
+                  <MoneyInput value={formValorNovoPedido} onChange={setFormValorNovoPedido} className={inputClass} />
                 </div>
                 <div>
                   <label className={labelClass}>Valor pago pelo Cliente</label>
-                  <input type="number" step="0.01" value={formValorPagoCliente} onChange={(e) => setFormValorPagoCliente(e.target.value)} className={inputClass} />
+                  <MoneyInput value={formValorPagoCliente} onChange={setFormValorPagoCliente} className={inputClass} />
                 </div>
               </div>
 
@@ -392,12 +420,21 @@ export function TrocaPedidoModal({ troca, onClose, modo }: TrocaPedidoModalProps
                 <Campo label="Franquia" valor={troca.franquia_nome} />
                 <Campo label="Vendedor" valor={troca.nome_vendedor} />
                 <Campo label="Motivo" valor={troca.motivo} />
-                <Campo label="Status no Portal" valor={STATUS_PORTAL_OPCOES.find(o => o.value === troca.status_portal)?.label || troca.status_portal} />
               </div>
 
               {troca.motivo_detalhado && (
                 <Campo label="Motivo detalhado" valor={troca.motivo_detalhado} />
               )}
+
+              <div className="bg-slate-50 border border-slate-100 rounded-xl px-4 py-3 space-y-3">
+                <p className="text-xs font-medium text-slate-500 uppercase tracking-wider">Status do pedido</p>
+                <div className="grid grid-cols-2 gap-4">
+                  <Campo label="Status no Portal" valor={STATUS_PORTAL_OPCOES.find(o => o.value === troca.status_portal)?.label || troca.status_portal} />
+                  <Campo label="Emissão da NF" valor={troca.data_emissao_nota_fiscal ? new Date(troca.data_emissao_nota_fiscal + 'T00:00:00').toLocaleDateString('pt-BR') : '—'} />
+                  <Campo label="Gerou Reposição de estoque S2" valor={troca.pedido_gerou_reposicao_estoque == null ? '—' : (troca.pedido_gerou_reposicao_estoque ? 'Sim' : 'Não')} />
+                  <Campo label="Sinais de uso na Bike do 1º pedido" valor={troca.sinais_uso_pedido_cancelar == null ? '—' : (troca.sinais_uso_pedido_cancelar ? 'Sim' : 'Não')} />
+                </div>
+              </div>
 
               <div className="bg-slate-50 border border-slate-100 rounded-xl px-4 py-3 space-y-3">
                 <p className="text-xs font-medium text-slate-500 uppercase tracking-wider">Cliente</p>
@@ -596,7 +633,8 @@ export function TrocaPedidoModal({ troca, onClose, modo }: TrocaPedidoModalProps
                 disabled={
                   enviando || !formNomeVendedor.trim() || !formNumeroPedidoCancelar.trim() || !formDataPedidoCancelar || !formStatusPortal ||
                   !formMotivoDetalhado.trim() || !formNomeCliente.trim() || formCpf.replace(/\D/g, '').length !== 11 ||
-                  !formValorNovoPedido || !formValorPagoCliente
+                  !formValorNovoPedido || !formValorPagoCliente ||
+                  !formDataEmissaoNotaFiscal || !formPedidoGerouReposicaoEstoque || !formSinaisUsoPedidoCancelar
                 }
                 className="flex-1 py-2.5 px-4 rounded-xl text-sm font-medium text-white bg-brand-pine hover:bg-brand-forest transition-colors disabled:opacity-50 flex items-center justify-center gap-2"
               >
