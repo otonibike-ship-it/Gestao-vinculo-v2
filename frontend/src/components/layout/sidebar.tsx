@@ -12,6 +12,7 @@ import {
   Store,
   Settings,
   Receipt,
+  CheckCircle2,
 } from 'lucide-react'
 import { authService, Perfil } from '@/services/auth'
 import { useEffect, useState } from 'react'
@@ -22,6 +23,7 @@ const allNavItems = [
   { href: '/financeiro', label: 'Financeiro', icon: DollarSign, perfis: ['financeiro', 'admin'] },
   { href: '/ti', label: 'TI', icon: Monitor, perfis: ['ti', 'admin'] },
   { href: '/franquia', label: 'Meus Pedidos', icon: Store, perfis: ['franquia'] },
+  { href: '/atendimentos-concluidos', label: 'Atendimentos Concluídos', icon: CheckCircle2, perfis: ['comercial', 'faturamento', 'financeiro', 'ti', 'admin', 'franquia'] },
   { href: '/empresas', label: 'Franquias', icon: Building2, perfis: ['comercial', 'financeiro', 'ti', 'admin'] },
   { href: '/admin', label: 'Admin', icon: Shield, perfis: ['admin'] },
   { href: '/configuracoes', label: 'Configurações', icon: Settings, perfis: ['admin'] },

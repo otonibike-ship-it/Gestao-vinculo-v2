@@ -1,8 +1,9 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useQuery } from '@tanstack/react-query'
-import { Search, Plus, ShoppingCart, Repeat, Link2, FileEdit, RotateCcw, Ban } from 'lucide-react'
+import { Search, ShoppingCart } from 'lucide-react'
+import { authService } from '@/services/auth'
 import { vinculoService, VinculoData } from '@/services/vinculo'
 import { VinculoModal } from '@/components/vinculo-modal'
 import { trocaPedidoService, TrocaPedidoData } from '@/services/troca-pedido'
@@ -15,44 +16,16 @@ import { solicitacaoEstornoService, SolicitacaoEstornoData } from '@/services/so
 import { SolicitacaoEstornoModal } from '@/components/solicitacao-estorno-modal'
 import { cancelamentoVendaService, CancelamentoVendaData } from '@/services/cancelamento-venda'
 import { CancelamentoVendaModal } from '@/components/cancelamento-venda-modal'
-import Link from 'next/link'
 
-const statusTriagemLabels: Record<string, string> = {
-  aberto: 'Reprovado',
-  aguardando_comercial: 'Aguard. Comercial',
-  aguardando_faturamento: 'Aguard. Faturamento',
-  aguardando_financeiro: 'Aguard. Financeiro',
-  aguardando_ti: 'Aguard. TI',
-  fechado: 'Concluído',
-}
+const statusTriagemLabels: Record<string, string> = { fechado: 'Concluído' }
+const statusTriagemColors: Record<string, string> = { fechado: 'bg-brand-lime/25 text-brand-forest' }
+const statusLabels: Record<string, string> = { fechado: 'Vinculado' }
+const statusColors: Record<string, string> = { fechado: 'bg-brand-lime/25 text-brand-forest' }
 
-const statusTriagemColors: Record<string, string> = {
-  aberto: 'bg-brand-khaki/20 text-brand-umber',
-  aguardando_comercial: 'bg-brand-olive/20 text-brand-forest',
-  aguardando_faturamento: 'bg-brand-teal/25 text-brand-pine',
-  aguardando_financeiro: 'bg-brand-pine/15 text-brand-pine',
-  aguardando_ti: 'bg-brand-forest/10 text-brand-forest',
-  fechado: 'bg-brand-lime/25 text-brand-forest',
-}
-
-const statusLabels: Record<string, string> = {
-  aberto: 'Reprovado',
-  validacao_comercial: 'Aguard. Comercial',
-  validacao_financeiro: 'Aguard. Financeiro',
-  tarefa_ti: 'Aguard. TI',
-  fechado: 'Vinculado',
-}
-
-const statusColors: Record<string, string> = {
-  aberto: 'bg-brand-khaki/20 text-brand-umber',
-  validacao_comercial: 'bg-brand-olive/20 text-brand-forest',
-  validacao_financeiro: 'bg-brand-pine/15 text-brand-pine',
-  tarefa_ti: 'bg-brand-forest/10 text-brand-forest',
-  fechado: 'bg-brand-lime/25 text-brand-forest',
-}
-
-export default function ComercialPage() {
+export default function AtendimentosConcluidosPage() {
   const [busca, setBusca] = useState('')
+  const [perfil, setPerfil] = useState<string | null>(null)
+  const [franquiaId, setFranquiaId] = useState<number | null>(null)
   const [selecionado, setSelecionado] = useState<VinculoData | null>(null)
   const [selecionadoTroca, setSelecionadoTroca] = useState<TrocaPedidoData | null>(null)
   const [selecionadoLink, setSelecionadoLink] = useState<LinkPagamentoData | null>(null)
@@ -60,38 +33,52 @@ export default function ComercialPage() {
   const [selecionadoEstorno, setSelecionadoEstorno] = useState<SolicitacaoEstornoData | null>(null)
   const [selecionadoCancelamento, setSelecionadoCancelamento] = useState<CancelamentoVendaData | null>(null)
 
+  useEffect(() => {
+    setPerfil(authService.getPerfil())
+    setFranquiaId(authService.getFranquiaId())
+  }, [])
+
+  const isFranquia = perfil === 'franquia'
+  const franquiaFiltro = isFranquia ? franquiaId ?? undefined : undefined
+  const habilitado = perfil !== null && (!isFranquia || franquiaId !== null)
+
   const { data, isLoading } = useQuery({
-    queryKey: ['vinculos'],
-    queryFn: () => vinculoService.listar(),
+    queryKey: ['vinculos', 'concluidos', franquiaFiltro],
+    queryFn: () => vinculoService.listar('fechado', franquiaFiltro),
+    enabled: habilitado,
   })
 
   const { data: trocas, isLoading: isLoadingTrocas } = useQuery({
-    queryKey: ['trocas-pedido'],
-    queryFn: () => trocaPedidoService.listar(),
+    queryKey: ['trocas-pedido', 'concluidos', franquiaFiltro],
+    queryFn: () => trocaPedidoService.listar('fechado', franquiaFiltro),
+    enabled: habilitado,
   })
 
   const { data: links, isLoading: isLoadingLinks } = useQuery({
-    queryKey: ['links-pagamento'],
-    queryFn: () => linkPagamentoService.listar(),
+    queryKey: ['links-pagamento', 'concluidos', franquiaFiltro],
+    queryFn: () => linkPagamentoService.listar('fechado', franquiaFiltro),
+    enabled: habilitado,
   })
 
   const { data: cartas, isLoading: isLoadingCartas } = useQuery({
-    queryKey: ['cartas-correcao'],
-    queryFn: () => cartaCorrecaoService.listar(),
+    queryKey: ['cartas-correcao', 'concluidos', franquiaFiltro],
+    queryFn: () => cartaCorrecaoService.listar('fechado', franquiaFiltro),
+    enabled: habilitado,
   })
 
   const { data: estornos, isLoading: isLoadingEstornos } = useQuery({
-    queryKey: ['solicitacoes-estorno'],
-    queryFn: () => solicitacaoEstornoService.listar(),
+    queryKey: ['solicitacoes-estorno', 'concluidos', franquiaFiltro],
+    queryFn: () => solicitacaoEstornoService.listar('fechado', franquiaFiltro),
+    enabled: habilitado,
   })
 
   const { data: cancelamentos, isLoading: isLoadingCancelamentos } = useQuery({
-    queryKey: ['cancelamentos-venda'],
-    queryFn: () => cancelamentoVendaService.listar(),
+    queryKey: ['cancelamentos-venda', 'concluidos', franquiaFiltro],
+    queryFn: () => cancelamentoVendaService.listar('fechado', franquiaFiltro),
+    enabled: habilitado,
   })
 
   const filtrados = data?.filter((v) => {
-    if (v.status === 'fechado') return false
     if (!busca) return true
     const termo = busca.toLowerCase()
     return (
@@ -102,7 +89,6 @@ export default function ComercialPage() {
   })
 
   const trocasFiltradas = trocas?.filter((t) => {
-    if (t.status === 'fechado') return false
     if (!busca) return true
     const termo = busca.toLowerCase()
     return (
@@ -113,7 +99,6 @@ export default function ComercialPage() {
   })
 
   const linksFiltrados = links?.filter((l) => {
-    if (l.status === 'fechado') return false
     if (!busca) return true
     const termo = busca.toLowerCase()
     return (
@@ -124,7 +109,6 @@ export default function ComercialPage() {
   })
 
   const cartasFiltradas = cartas?.filter((c) => {
-    if (c.status === 'fechado') return false
     if (!busca) return true
     const termo = busca.toLowerCase()
     return (
@@ -135,7 +119,6 @@ export default function ComercialPage() {
   })
 
   const estornosFiltrados = estornos?.filter((e) => {
-    if (e.status === 'fechado') return false
     if (!busca) return true
     const termo = busca.toLowerCase()
     return (
@@ -146,7 +129,6 @@ export default function ComercialPage() {
   })
 
   const cancelamentosFiltrados = cancelamentos?.filter((c) => {
-    if (c.status === 'fechado') return false
     if (!busca) return true
     const termo = busca.toLowerCase()
     return (
@@ -158,61 +140,15 @@ export default function ComercialPage() {
 
   return (
     <div className="space-y-4">
-      <div className="flex items-center justify-between gap-4 flex-wrap">
-        <div className="relative max-w-xs flex-1">
-          <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
-          <input
-            type="text"
-            placeholder="Buscar pedido, cliente, franquia..."
-            value={busca}
-            onChange={(e) => setBusca(e.target.value)}
-            className="w-full pl-9 pr-3 py-2 rounded-lg border border-slate-200 bg-white text-sm placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-brand-teal/60 focus:border-brand-teal transition-all"
-          />
-        </div>
-        <div className="flex gap-2 flex-wrap">
-          <Link
-            href="/comercial/novo"
-            className="flex items-center justify-center gap-2 w-32 text-center leading-tight bg-brand-pine hover:bg-brand-forest text-white text-sm font-medium px-3 py-2 rounded-lg transition-colors"
-          >
-            <Plus size={16} className="shrink-0" />
-            <span>Pedido de<br />Vínculo</span>
-          </Link>
-          <Link
-            href="/comercial/nova-troca"
-            className="flex items-center justify-center gap-2 w-32 text-center leading-tight bg-white hover:bg-brand-mist text-brand-pine border border-brand-pine/30 text-sm font-medium px-3 py-2 rounded-lg transition-colors"
-          >
-            <Repeat size={16} className="shrink-0" />
-            <span>Troca de<br />Pedido</span>
-          </Link>
-          <Link
-            href="/comercial/novo-link"
-            className="flex items-center justify-center gap-2 w-32 text-center leading-tight bg-white hover:bg-brand-mist text-brand-pine border border-brand-pine/30 text-sm font-medium px-3 py-2 rounded-lg transition-colors"
-          >
-            <Link2 size={16} className="shrink-0" />
-            <span>Link de<br />Pagamento</span>
-          </Link>
-          <Link
-            href="/comercial/nova-carta"
-            className="flex items-center justify-center gap-2 w-32 text-center leading-tight bg-white hover:bg-brand-mist text-brand-pine border border-brand-pine/30 text-sm font-medium px-3 py-2 rounded-lg transition-colors"
-          >
-            <FileEdit size={16} className="shrink-0" />
-            <span>Carta de<br />Correção</span>
-          </Link>
-          <Link
-            href="/comercial/novo-estorno"
-            className="flex items-center justify-center gap-2 w-32 text-center leading-tight bg-white hover:bg-brand-mist text-brand-pine border border-brand-pine/30 text-sm font-medium px-3 py-2 rounded-lg transition-colors"
-          >
-            <RotateCcw size={16} className="shrink-0" />
-            <span>Solicitação<br />de Estorno</span>
-          </Link>
-          <Link
-            href="/comercial/novo-cancelamento"
-            className="flex items-center justify-center gap-2 w-32 text-center leading-tight bg-white hover:bg-brand-mist text-brand-pine border border-brand-pine/30 text-sm font-medium px-3 py-2 rounded-lg transition-colors"
-          >
-            <Ban size={16} className="shrink-0" />
-            <span>Cancelamento<br />de Venda</span>
-          </Link>
-        </div>
+      <div className="relative max-w-xs">
+        <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
+        <input
+          type="text"
+          placeholder="Buscar pedido, cliente, franquia..."
+          value={busca}
+          onChange={(e) => setBusca(e.target.value)}
+          className="w-full pl-9 pr-3 py-2 rounded-lg border border-slate-200 bg-white text-sm placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-brand-teal/60 focus:border-brand-teal transition-all"
+        />
       </div>
 
       <p className="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-2">Vínculo de Pagamento</p>
@@ -226,7 +162,7 @@ export default function ComercialPage() {
       {filtrados && filtrados.length === 0 && (
         <div className="bg-white rounded-xl border border-slate-200 shadow-sm p-12 text-center">
           <ShoppingCart size={24} className="text-slate-300 mx-auto mb-2" />
-          <p className="text-sm text-slate-500">Nenhum pedido encontrado</p>
+          <p className="text-sm text-slate-500">Nenhum pedido concluído</p>
         </div>
       )}
 
@@ -284,7 +220,7 @@ export default function ComercialPage() {
         )}
         {trocasFiltradas && trocasFiltradas.length === 0 && (
           <div className="bg-white rounded-xl border border-slate-200 shadow-sm p-8 text-center">
-            <p className="text-sm text-slate-500">Nenhuma troca de pedido encontrada</p>
+            <p className="text-sm text-slate-500">Nenhuma troca de pedido concluída</p>
           </div>
         )}
         {trocasFiltradas && trocasFiltradas.length > 0 && (
@@ -332,7 +268,7 @@ export default function ComercialPage() {
         )}
         {linksFiltrados && linksFiltrados.length === 0 && (
           <div className="bg-white rounded-xl border border-slate-200 shadow-sm p-8 text-center">
-            <p className="text-sm text-slate-500">Nenhum link de pagamento encontrado</p>
+            <p className="text-sm text-slate-500">Nenhum link de pagamento concluído</p>
           </div>
         )}
         {linksFiltrados && linksFiltrados.length > 0 && (
@@ -382,7 +318,7 @@ export default function ComercialPage() {
         )}
         {cartasFiltradas && cartasFiltradas.length === 0 && (
           <div className="bg-white rounded-xl border border-slate-200 shadow-sm p-8 text-center">
-            <p className="text-sm text-slate-500">Nenhuma carta de correção encontrada</p>
+            <p className="text-sm text-slate-500">Nenhuma carta de correção concluída</p>
           </div>
         )}
         {cartasFiltradas && cartasFiltradas.length > 0 && (
@@ -430,7 +366,7 @@ export default function ComercialPage() {
         )}
         {estornosFiltrados && estornosFiltrados.length === 0 && (
           <div className="bg-white rounded-xl border border-slate-200 shadow-sm p-8 text-center">
-            <p className="text-sm text-slate-500">Nenhuma solicitação de estorno encontrada</p>
+            <p className="text-sm text-slate-500">Nenhuma solicitação de estorno concluída</p>
           </div>
         )}
         {estornosFiltrados && estornosFiltrados.length > 0 && (
@@ -480,7 +416,7 @@ export default function ComercialPage() {
         )}
         {cancelamentosFiltrados && cancelamentosFiltrados.length === 0 && (
           <div className="bg-white rounded-xl border border-slate-200 shadow-sm p-8 text-center">
-            <p className="text-sm text-slate-500">Nenhum cancelamento de venda encontrado</p>
+            <p className="text-sm text-slate-500">Nenhum cancelamento de venda concluído</p>
           </div>
         )}
         {cancelamentosFiltrados && cancelamentosFiltrados.length > 0 && (
@@ -499,7 +435,7 @@ export default function ComercialPage() {
                 <tbody className="divide-y divide-slate-50">
                   {cancelamentosFiltrados.map((c) => (
                     <tr key={c.id} onClick={() => setSelecionadoCancelamento(c)} className="hover:bg-brand-mist/60 transition-colors cursor-pointer">
-                      <td className="px-5 py-3 font-medium text-slate-800">{c.numero_pedido_cancelar || '—'}</td>
+                      <td className="px-5 py-3 font-medium text-slate-800">{c.numero_pedido_cancelar}</td>
                       <td className="px-5 py-3 text-slate-600">{c.franquia_nome}</td>
                       <td className="px-5 py-3 text-slate-600">{c.nome_cliente || '—'}</td>
                       <td className="px-5 py-3 text-slate-600">
@@ -523,22 +459,22 @@ export default function ComercialPage() {
       </div>
 
       {selecionado && (
-        <VinculoModal vinculo={selecionado} onClose={() => setSelecionado(null)} modo="comercial" />
+        <VinculoModal vinculo={selecionado} onClose={() => setSelecionado(null)} modo="visualizar" />
       )}
       {selecionadoTroca && (
-        <TrocaPedidoModal troca={selecionadoTroca} onClose={() => setSelecionadoTroca(null)} modo="comercial" />
+        <TrocaPedidoModal troca={selecionadoTroca} onClose={() => setSelecionadoTroca(null)} modo="visualizar" />
       )}
       {selecionadoLink && (
-        <LinkPagamentoModal link={selecionadoLink} onClose={() => setSelecionadoLink(null)} modo="comercial" />
+        <LinkPagamentoModal link={selecionadoLink} onClose={() => setSelecionadoLink(null)} modo="visualizar" />
       )}
       {selecionadoCarta && (
-        <CartaCorrecaoModal carta={selecionadoCarta} onClose={() => setSelecionadoCarta(null)} modo="comercial" />
+        <CartaCorrecaoModal carta={selecionadoCarta} onClose={() => setSelecionadoCarta(null)} modo="visualizar" />
       )}
       {selecionadoEstorno && (
-        <SolicitacaoEstornoModal estorno={selecionadoEstorno} onClose={() => setSelecionadoEstorno(null)} modo="comercial" />
+        <SolicitacaoEstornoModal estorno={selecionadoEstorno} onClose={() => setSelecionadoEstorno(null)} modo="visualizar" />
       )}
       {selecionadoCancelamento && (
-        <CancelamentoVendaModal cancelamento={selecionadoCancelamento} onClose={() => setSelecionadoCancelamento(null)} modo="comercial" />
+        <CancelamentoVendaModal cancelamento={selecionadoCancelamento} onClose={() => setSelecionadoCancelamento(null)} modo="visualizar" />
       )}
     </div>
   )

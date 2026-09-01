@@ -93,6 +93,8 @@ Each profile lands on a different dashboard after login:
 
 `franquia` profile users have `franquia_id` set on their `Usuario` record; this is stored in `localStorage` at login and used to pre-fill and filter forms.
 
+**`/atendimentos-concluidos` (added 2026-08-26)** is a 7th nav item visible to every profile (sidebar entry in `layout/sidebar.tsx` with `perfis` covering all six). It mirrors the Comercial dashboard's layout — same 6 form sections, same table columns — but calls every `.listar()` with `status: 'fechado'` explicitly instead of no filter, and is read-only (`modo="visualizar"` on every modal, no "create new" buttons). Non-franquia profiles see closed records across every franquia; a `franquia` user gets their own `franquia_id` passed through, same as `/franquia` does. Its `useQuery` calls stay `enabled: false` until the profile is read from `authService` — this avoids a real bug class: gating only on "is this a franquia user" (rather than "do we know yet whether this is a franquia user") leaks one unscoped fetch across all franchises before the franquia-scoped refetch replaces it. To keep dashboards from duplicating what's now on this page, `/comercial`'s six list filters and `/franquia`'s six "ativos" filters both now explicitly exclude `status === 'fechado'` (closed records no longer render in either — this was the original complaint: closed and reproved records were cluttering the same list). `/faturamento`, `/financeiro`, `/ti` didn't need this change since they already query one specific in-progress status per form.
+
 ### Authentication Flow
 
 1. POST `/api/v1/auth/login` (OAuth2 form) → returns `access_token`, `refresh_token`, `perfil`, `nome`, `franquia_id`

@@ -70,7 +70,7 @@ export default function FaturamentoPage() {
   const cancelamentosFiltrados = cancelamentos?.filter((c) => {
     if (!busca) return true
     const t = busca.toLowerCase()
-    return c.numero_pedido_cancelar.toLowerCase().includes(t) || c.nome_cliente.toLowerCase().includes(t) || c.franquia_nome.toLowerCase().includes(t)
+    return (c.numero_pedido_cancelar || '').toLowerCase().includes(t) || (c.nome_cliente || '').toLowerCase().includes(t) || c.franquia_nome.toLowerCase().includes(t)
   })
 
   const Secao = <T extends { id: number }>({
@@ -229,10 +229,10 @@ export default function FaturamentoPage() {
         colunas={['N. Pedido', 'Franquia', 'Cliente', 'Valor a Cancelar']}
         renderRow={(c) => (
           <>
-            <td className="px-5 py-3 font-medium text-slate-800">{c.numero_pedido_cancelar}</td>
+            <td className="px-5 py-3 font-medium text-slate-800">{c.numero_pedido_cancelar || '—'}</td>
             <td className="px-5 py-3 text-slate-600">{c.franquia_nome}</td>
-            <td className="px-5 py-3 text-slate-600">{c.nome_cliente}</td>
-            <td className="px-5 py-3 text-slate-600">R$ {Number(c.valor_cancelar).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</td>
+            <td className="px-5 py-3 text-slate-600">{c.nome_cliente || '—'}</td>
+            <td className="px-5 py-3 text-slate-600">{c.valor_cancelar != null ? `R$ ${Number(c.valor_cancelar).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}` : '—'}</td>
           </>
         )}
       />

@@ -107,7 +107,7 @@ export default function FranquiaPage() {
     const t = busca.toLowerCase()
     return v.numero_pedido.toLowerCase().includes(t) || v.nome_cliente.toLowerCase().includes(t)
   })
-  const ativos = filtrados?.filter(v => v.status !== 'aberto') ?? []
+  const ativos = filtrados?.filter(v => v.status !== 'aberto' && v.status !== 'fechado') ?? []
   const reprovados = filtrados?.filter(v => v.status === 'aberto') ?? []
 
   const trocasFiltradas = trocas?.filter((t) => {
@@ -115,7 +115,7 @@ export default function FranquiaPage() {
     const termo = busca.toLowerCase()
     return t.numero_pedido_cancelar.toLowerCase().includes(termo) || t.nome_vendedor.toLowerCase().includes(termo)
   })
-  const trocasAtivas = trocasFiltradas?.filter(t => t.status !== 'aberto') ?? []
+  const trocasAtivas = trocasFiltradas?.filter(t => t.status !== 'aberto' && t.status !== 'fechado') ?? []
   const trocasReprovadas = trocasFiltradas?.filter(t => t.status === 'aberto') ?? []
 
   const linksFiltrados = links?.filter((l) => {
@@ -123,7 +123,7 @@ export default function FranquiaPage() {
     const t = busca.toLowerCase()
     return l.numero_pedido.toLowerCase().includes(t) || l.nome_cliente.toLowerCase().includes(t)
   })
-  const linksAtivos = linksFiltrados?.filter(l => l.status !== 'aberto') ?? []
+  const linksAtivos = linksFiltrados?.filter(l => l.status !== 'aberto' && l.status !== 'fechado') ?? []
   const linksReprovados = linksFiltrados?.filter(l => l.status === 'aberto') ?? []
 
   const cartasFiltradas = cartas?.filter((c) => {
@@ -131,7 +131,7 @@ export default function FranquiaPage() {
     const t = busca.toLowerCase()
     return c.numero_pedido.toLowerCase().includes(t) || c.nome_cliente_pedido.toLowerCase().includes(t)
   })
-  const cartasAtivas = cartasFiltradas?.filter(c => c.status !== 'aberto') ?? []
+  const cartasAtivas = cartasFiltradas?.filter(c => c.status !== 'aberto' && c.status !== 'fechado') ?? []
   const cartasReprovadas = cartasFiltradas?.filter(c => c.status === 'aberto') ?? []
 
   const estornosFiltrados = estornos?.filter((e) => {
@@ -139,15 +139,15 @@ export default function FranquiaPage() {
     const t = busca.toLowerCase()
     return (e.numero_pedido || '').toLowerCase().includes(t) || e.nome_cliente.toLowerCase().includes(t)
   })
-  const estornosAtivos = estornosFiltrados?.filter(e => e.status !== 'aberto') ?? []
+  const estornosAtivos = estornosFiltrados?.filter(e => e.status !== 'aberto' && e.status !== 'fechado') ?? []
   const estornosReprovados = estornosFiltrados?.filter(e => e.status === 'aberto') ?? []
 
   const cancelamentosFiltrados = cancelamentos?.filter((c) => {
     if (!busca) return true
     const t = busca.toLowerCase()
-    return c.numero_pedido_cancelar.toLowerCase().includes(t) || c.nome_cliente.toLowerCase().includes(t)
+    return (c.numero_pedido_cancelar || '').toLowerCase().includes(t) || (c.nome_cliente || '').toLowerCase().includes(t)
   })
-  const cancelamentosAtivos = cancelamentosFiltrados?.filter(c => c.status !== 'aberto') ?? []
+  const cancelamentosAtivos = cancelamentosFiltrados?.filter(c => c.status !== 'aberto' && c.status !== 'fechado') ?? []
   const cancelamentosReprovados = cancelamentosFiltrados?.filter(c => c.status === 'aberto') ?? []
 
   const TabelaVinculos = ({ vinculos, vazio }: { vinculos: VinculoData[]; vazio: string }) => (
@@ -472,10 +472,10 @@ export default function FranquiaPage() {
         vazio="Nenhum cancelamento de venda em andamento"
         renderRow={(c) => (
           <>
-            <td className="px-5 py-3 font-medium text-slate-800">{c.numero_pedido_cancelar}</td>
-            <td className="px-5 py-3 text-slate-600">{c.nome_cliente}</td>
+            <td className="px-5 py-3 font-medium text-slate-800">{c.numero_pedido_cancelar || '—'}</td>
+            <td className="px-5 py-3 text-slate-600">{c.nome_cliente || '—'}</td>
             <td className="px-5 py-3 text-slate-600">
-              R$ {Number(c.valor_cancelar).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
+              {c.valor_cancelar != null ? `R$ ${Number(c.valor_cancelar).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}` : '—'}
             </td>
             <td className="px-5 py-3">
               <span className={`text-xs font-medium px-2.5 py-1 rounded-full ${statusTriagemColors[c.status] || 'bg-slate-100 text-slate-600'}`}>
