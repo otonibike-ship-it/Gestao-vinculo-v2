@@ -16,6 +16,7 @@ import { solicitacaoEstornoService, SolicitacaoEstornoData } from '@/services/so
 import { SolicitacaoEstornoModal } from '@/components/solicitacao-estorno-modal'
 import { cancelamentoVendaService, CancelamentoVendaData } from '@/services/cancelamento-venda'
 import { CancelamentoVendaModal } from '@/components/cancelamento-venda-modal'
+import { REPROVADO_BADGE_CLASS, statusLabelExibicao } from '@/components/historico-observacoes'
 import Link from 'next/link'
 
 const statusTriagemLabels: Record<string, string> = {
@@ -180,8 +181,8 @@ export default function FranquiaPage() {
                     {v.data_pedido ? new Date(v.data_pedido + 'T00:00:00').toLocaleDateString('pt-BR') : '—'}
                   </td>
                   <td className="px-5 py-3">
-                    <span className={`text-xs font-medium px-2.5 py-1 rounded-full ${statusColors[v.status] || 'bg-slate-100 text-slate-600'}`}>
-                      {statusLabels[v.status] || v.status}
+                    <span className={`text-xs font-medium px-2.5 py-1 rounded-full ${v.justificativa_reprovacao ? REPROVADO_BADGE_CLASS : (statusColors[v.status] || 'bg-slate-100 text-slate-600')}`}>
+                      {statusLabelExibicao(v.status, v.justificativa_reprovacao) || statusLabels[v.status] || v.status}
                     </span>
                   </td>
                 </tr>
@@ -352,7 +353,9 @@ export default function FranquiaPage() {
                       {v.data_pedido ? new Date(v.data_pedido + 'T00:00:00').toLocaleDateString('pt-BR') : '—'}
                     </td>
                     <td className="px-5 py-3">
-                      <span className="text-xs font-medium px-2.5 py-1 rounded-full bg-brand-khaki/20 text-brand-umber">Novo Pedido</span>
+                      <span className="text-xs font-medium px-2.5 py-1 rounded-full bg-brand-khaki/20 text-brand-umber">
+                        {statusLabelExibicao(v.status, v.justificativa_reprovacao) || 'Novo Pedido'}
+                      </span>
                     </td>
                   </tr>
                 ))}
@@ -380,8 +383,8 @@ export default function FranquiaPage() {
             <td className="px-5 py-3 text-slate-600">{t.nome_vendedor}</td>
             <td className="px-5 py-3 text-slate-600">{t.numero_novo_pedido}</td>
             <td className="px-5 py-3">
-              <span className={`text-xs font-medium px-2.5 py-1 rounded-full ${statusTriagemColors[t.status] || 'bg-slate-100 text-slate-600'}`}>
-                {statusTriagemLabels[t.status] || t.status}
+              <span className={`text-xs font-medium px-2.5 py-1 rounded-full ${t.justificativa_reprovacao ? REPROVADO_BADGE_CLASS : (statusTriagemColors[t.status] || 'bg-slate-100 text-slate-600')}`}>
+                {statusLabelExibicao(t.status, t.justificativa_reprovacao) || statusTriagemLabels[t.status] || t.status}
               </span>
             </td>
           </>
@@ -405,8 +408,8 @@ export default function FranquiaPage() {
               R$ {Number(l.valor_link).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
             </td>
             <td className="px-5 py-3">
-              <span className={`text-xs font-medium px-2.5 py-1 rounded-full ${statusTriagemColors[l.status] || 'bg-slate-100 text-slate-600'}`}>
-                {statusTriagemLabels[l.status] || l.status}
+              <span className={`text-xs font-medium px-2.5 py-1 rounded-full ${l.justificativa_reprovacao ? REPROVADO_BADGE_CLASS : (statusTriagemColors[l.status] || 'bg-slate-100 text-slate-600')}`}>
+                {statusLabelExibicao(l.status, l.justificativa_reprovacao) || statusTriagemLabels[l.status] || l.status}
               </span>
             </td>
           </>
@@ -428,8 +431,8 @@ export default function FranquiaPage() {
             <td className="px-5 py-3 text-slate-600">{c.nome_cliente_pedido}</td>
             <td className="px-5 py-3 text-slate-600">{c.numero_nota_fiscal}</td>
             <td className="px-5 py-3">
-              <span className={`text-xs font-medium px-2.5 py-1 rounded-full ${statusTriagemColors[c.status] || 'bg-slate-100 text-slate-600'}`}>
-                {statusTriagemLabels[c.status] || c.status}
+              <span className={`text-xs font-medium px-2.5 py-1 rounded-full ${c.justificativa_reprovacao ? REPROVADO_BADGE_CLASS : (statusTriagemColors[c.status] || 'bg-slate-100 text-slate-600')}`}>
+                {statusLabelExibicao(c.status, c.justificativa_reprovacao) || statusTriagemLabels[c.status] || c.status}
               </span>
             </td>
           </>
@@ -453,8 +456,8 @@ export default function FranquiaPage() {
               R$ {Number(e.valor_devolver).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
             </td>
             <td className="px-5 py-3">
-              <span className={`text-xs font-medium px-2.5 py-1 rounded-full ${statusTriagemColors[e.status] || 'bg-slate-100 text-slate-600'}`}>
-                {statusTriagemLabels[e.status] || e.status}
+              <span className={`text-xs font-medium px-2.5 py-1 rounded-full ${e.justificativa_reprovacao ? REPROVADO_BADGE_CLASS : (statusTriagemColors[e.status] || 'bg-slate-100 text-slate-600')}`}>
+                {statusLabelExibicao(e.status, e.justificativa_reprovacao) || statusTriagemLabels[e.status] || e.status}
               </span>
             </td>
           </>
@@ -478,8 +481,8 @@ export default function FranquiaPage() {
               {c.valor_cancelar != null ? `R$ ${Number(c.valor_cancelar).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}` : '—'}
             </td>
             <td className="px-5 py-3">
-              <span className={`text-xs font-medium px-2.5 py-1 rounded-full ${statusTriagemColors[c.status] || 'bg-slate-100 text-slate-600'}`}>
-                {statusTriagemLabels[c.status] || c.status}
+              <span className={`text-xs font-medium px-2.5 py-1 rounded-full ${c.justificativa_reprovacao ? REPROVADO_BADGE_CLASS : (statusTriagemColors[c.status] || 'bg-slate-100 text-slate-600')}`}>
+                {statusLabelExibicao(c.status, c.justificativa_reprovacao) || statusTriagemLabels[c.status] || c.status}
               </span>
             </td>
           </>

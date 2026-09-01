@@ -8,7 +8,7 @@ import { TrocaMotivoSelect } from '@/components/troca-motivo-select'
 import { AnexosGrid } from '@/components/anexos-grid'
 import { FluxoStepper } from '@/components/fluxo-stepper'
 import { DestinoPicker } from '@/components/destino-picker'
-import { HistoricoObservacoes } from '@/components/historico-observacoes'
+import { HistoricoObservacoes, REPROVADO_BADGE_CLASS, statusLabelExibicao } from '@/components/historico-observacoes'
 import { MoneyInput } from '@/components/money-input'
 import { SimNaoSelect } from '@/components/sim-nao-select'
 import { useMutation, useQueryClient, useQuery } from '@tanstack/react-query'
@@ -222,8 +222,8 @@ export function TrocaPedidoModal({ troca, onClose, modo }: TrocaPedidoModalProps
               Troca {troca.numero_pedido_cancelar}
               {editando && <span className="text-sm font-normal text-brand-umber ml-2">— Editando</span>}
             </h3>
-            <span className={`inline-block mt-1 text-xs font-medium px-2.5 py-1 rounded-full ${statusColors[troca.status] || 'bg-slate-100 text-slate-600'}`}>
-              {statusLabels[troca.status] || troca.status}
+            <span className={`inline-block mt-1 text-xs font-medium px-2.5 py-1 rounded-full ${troca.justificativa_reprovacao ? REPROVADO_BADGE_CLASS : (statusColors[troca.status] || 'bg-slate-100 text-slate-600')}`}>
+              {statusLabelExibicao(troca.status, troca.justificativa_reprovacao) || statusLabels[troca.status] || troca.status}
             </span>
           </div>
           <button onClick={onClose} className="text-slate-400 hover:text-slate-600 transition-colors">

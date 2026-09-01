@@ -7,7 +7,7 @@ import { uploadService } from '@/services/vinculo'
 import { AnexosGrid } from '@/components/anexos-grid'
 import { FluxoStepper } from '@/components/fluxo-stepper'
 import { DestinoPicker } from '@/components/destino-picker'
-import { HistoricoObservacoes } from '@/components/historico-observacoes'
+import { HistoricoObservacoes, REPROVADO_BADGE_CLASS, statusLabelExibicao } from '@/components/historico-observacoes'
 import { MoneyInput } from '@/components/money-input'
 import { useMutation, useQueryClient, useQuery } from '@tanstack/react-query'
 import api from '@/lib/api'
@@ -193,8 +193,8 @@ export function LinkPagamentoModal({ link, onClose, modo }: LinkPagamentoModalPr
               Link {link.numero_pedido}
               {editando && <span className="text-sm font-normal text-brand-umber ml-2">— Editando</span>}
             </h3>
-            <span className={`inline-block mt-1 text-xs font-medium px-2.5 py-1 rounded-full ${statusColors[link.status] || 'bg-slate-100 text-slate-600'}`}>
-              {statusLabels[link.status] || link.status}
+            <span className={`inline-block mt-1 text-xs font-medium px-2.5 py-1 rounded-full ${link.justificativa_reprovacao ? REPROVADO_BADGE_CLASS : (statusColors[link.status] || 'bg-slate-100 text-slate-600')}`}>
+              {statusLabelExibicao(link.status, link.justificativa_reprovacao) || statusLabels[link.status] || link.status}
             </span>
           </div>
           <button onClick={onClose} className="text-slate-400 hover:text-slate-600 transition-colors">

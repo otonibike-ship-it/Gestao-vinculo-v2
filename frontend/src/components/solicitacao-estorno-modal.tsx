@@ -6,7 +6,7 @@ import { SolicitacaoEstornoData, solicitacaoEstornoService } from '@/services/so
 import { uploadService } from '@/services/vinculo'
 import { AnexosGrid } from '@/components/anexos-grid'
 import { FluxoStepper } from '@/components/fluxo-stepper'
-import { HistoricoObservacoes } from '@/components/historico-observacoes'
+import { HistoricoObservacoes, REPROVADO_BADGE_CLASS, statusLabelExibicao } from '@/components/historico-observacoes'
 import { MoneyInput } from '@/components/money-input'
 import { useMutation, useQueryClient, useQuery } from '@tanstack/react-query'
 import api from '@/lib/api'
@@ -171,8 +171,8 @@ export function SolicitacaoEstornoModal({ estorno, onClose, modo }: SolicitacaoE
               Estorno {estorno.numero_pedido || 'Sinal/Garantia'}
               {editando && <span className="text-sm font-normal text-brand-umber ml-2">— Editando</span>}
             </h3>
-            <span className={`inline-block mt-1 text-xs font-medium px-2.5 py-1 rounded-full ${statusColors[estorno.status] || 'bg-slate-100 text-slate-600'}`}>
-              {statusLabels[estorno.status] || estorno.status}
+            <span className={`inline-block mt-1 text-xs font-medium px-2.5 py-1 rounded-full ${estorno.justificativa_reprovacao ? REPROVADO_BADGE_CLASS : (statusColors[estorno.status] || 'bg-slate-100 text-slate-600')}`}>
+              {statusLabelExibicao(estorno.status, estorno.justificativa_reprovacao) || statusLabels[estorno.status] || estorno.status}
             </span>
           </div>
           <button onClick={onClose} className="text-slate-400 hover:text-slate-600 transition-colors">

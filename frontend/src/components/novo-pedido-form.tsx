@@ -8,6 +8,7 @@ import { vinculoService, uploadService } from '@/services/vinculo'
 import { authService } from '@/services/auth'
 import { MotivoSelect } from '@/components/motivo-select'
 import { MoneyInput } from '@/components/money-input'
+import { SimNaoSelect } from '@/components/sim-nao-select'
 import api from '@/lib/api'
 
 interface Props {
@@ -33,6 +34,7 @@ export default function NovoPedidoForm({ voltarPara }: Props) {
   // Cupons
   const [quantidadeCupons, setQuantidadeCupons] = useState<number>(0)
   const [valoresCupons, setValoresCupons] = useState<string[]>([])
+  const [valorPagoSuperior, setValorPagoSuperior] = useState('')
 
   const [enviando, setEnviando] = useState(false)
   const [erro, setErro] = useState('')
@@ -70,7 +72,9 @@ export default function NovoPedidoForm({ voltarPara }: Props) {
 
   const somaCupons = valoresCupons.reduce((acc, v) => acc + (parseFloat(v) || 0), 0)
   const valorTotal = parseFloat(valorPedido) || 0
-  const cuponsValidos = quantidadeCupons === 0 || Math.abs(somaCupons - valorTotal) < 0.01
+  const diferencaCupons = somaCupons - valorTotal
+  const divergenciaPermitida = valorPagoSuperior === 'sim' && diferencaCupons > 0.01
+  const cuponsValidos = quantidadeCupons === 0 || Math.abs(diferencaCupons) < 0.01 || divergenciaPermitida
 
   const formatCpf = (value: string) => {
     const digits = value.replace(/\D/g, '').slice(0, 11)
@@ -111,6 +115,10 @@ export default function NovoPedidoForm({ voltarPara }: Props) {
         ? valoresCupons.map(v => ({ valor: parseFloat(v) }))
         : undefined
 
+      const observacaoInicial = divergenciaPermitida
+        ? `Valor de R$ ${diferencaCupons.toFixed(2).replace('.', ',')} a mais, solicitação de reembolso deverá ser aplicada.`
+        : undefined
+
       await vinculoService.criar({
         numero_pedido: numeroPedido.trim(),
         franquia_id: franquiaId,
@@ -123,6 +131,7 @@ export default function NovoPedidoForm({ voltarPara }: Props) {
         quantidade_cupons: quantidadeCupons > 0 ? quantidadeCupons : undefined,
         cupons: cuponsList,
         anexos: anexoUrls,
+        observacao_inicial: observacaoInicial,
       })
 
       queryClient.invalidateQueries({ queryKey: ['vinculos'] })
@@ -253,6 +262,15 @@ export default function NovoPedidoForm({ voltarPara }: Props) {
             </div>
           </div>
 
+          {/* Divergência de valor pago x pedido */}
+          <div>
+            <label className={labelClass}>Valor pago pelo cliente superior ao Pedido?</label>
+            <SimNaoSelect value={valorPagoSuperior} onChange={setValorPagoSuperior} className={inputClass + ' bg-white'} />
+            <p className="text-[11px] text-slate-400 mt-1.5">
+              Se sim, a soma dos comprovantes pode ficar acima do valor do pedido (ex: cupom promocional não aplicado, mais de um pagamento) — a diferença vira uma observação no pedido em vez de bloquear o envio.
+            </p>
+          </div>
+
           {/* ── CUPONS ─────────────────────────────────────── */}
           <div className="border border-slate-200 rounded-xl p-4 space-y-4 bg-slate-50">
             <div>
@@ -304,6 +322,12 @@ export default function NovoPedidoForm({ voltarPara }: Props) {
                   <div className="flex items-center gap-2 text-xs text-red-600">
                     <AlertTriangle size={13} />
                     A soma dos comprovantes deve ser igual ao valor do pedido (R$ {valorTotal.toLocaleString('pt-BR', { minimumFractionDigits: 2 })})
+                  </div>
+                )}
+
+                {divergenciaPermitida && (
+                  <div className="bg-brand-teal/10 border border-brand-teal/30 text-brand-pine text-xs px-3 py-2 rounded-lg">
+                    Será registrado como observação: "Valor de R$ {diferencaCupons.toFixed(2).replace('.', ',')} a mais, solicitação de reembolso deverá ser aplicada."
                   </div>
                 )}
               </div>

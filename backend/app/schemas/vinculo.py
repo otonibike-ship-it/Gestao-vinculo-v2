@@ -29,6 +29,7 @@ class VinculoCreate(BaseModel):
     quantidade_cupons: Optional[int] = None
     cupons: Optional[list[CupomItem]] = None
     anexos: list[str] = []
+    observacao_inicial: Optional[str] = None  # ex.: nota de divergência de valor pago x pedido
 
 
 class VinculoResponse(BaseModel):

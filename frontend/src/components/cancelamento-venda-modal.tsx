@@ -7,7 +7,7 @@ import { uploadService } from '@/services/vinculo'
 import { AnexosGrid } from '@/components/anexos-grid'
 import { FluxoStepper } from '@/components/fluxo-stepper'
 import { DestinoPicker } from '@/components/destino-picker'
-import { HistoricoObservacoes } from '@/components/historico-observacoes'
+import { HistoricoObservacoes, REPROVADO_BADGE_CLASS, statusLabelExibicao } from '@/components/historico-observacoes'
 import { useMutation, useQueryClient, useQuery } from '@tanstack/react-query'
 import api from '@/lib/api'
 
@@ -132,8 +132,8 @@ export function CancelamentoVendaModal({ cancelamento, onClose, modo }: Cancelam
             <h3 className="text-lg font-semibold text-slate-800">
               Cancelamento {cancelamento.numero_pedido_cancelar}
             </h3>
-            <span className={`inline-block mt-1 text-xs font-medium px-2.5 py-1 rounded-full ${statusColors[cancelamento.status] || 'bg-slate-100 text-slate-600'}`}>
-              {statusLabels[cancelamento.status] || cancelamento.status}
+            <span className={`inline-block mt-1 text-xs font-medium px-2.5 py-1 rounded-full ${cancelamento.justificativa_reprovacao ? REPROVADO_BADGE_CLASS : (statusColors[cancelamento.status] || 'bg-slate-100 text-slate-600')}`}>
+              {statusLabelExibicao(cancelamento.status, cancelamento.justificativa_reprovacao) || statusLabels[cancelamento.status] || cancelamento.status}
             </span>
           </div>
           <button onClick={onClose} className="text-slate-400 hover:text-slate-600 transition-colors">

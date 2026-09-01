@@ -171,6 +171,9 @@ export default function ConfiguracoesPage() {
           <p className="text-xs font-semibold text-slate-600 uppercase tracking-wider">Destinatários</p>
         </div>
         <div className="px-5 py-5 grid grid-cols-1 gap-4">
+          <p className="text-[11px] text-slate-400 -mt-1">
+            Para notificar mais de uma pessoa, separe os emails por vírgula (ex: <code className="bg-slate-100 px-1 rounded">joao@sensebike.com.br, maria@sensebike.com.br</code>).
+          </p>
           {[
             { chave: 'email_comercial', label: 'Email Comercial' },
             { chave: 'email_faturamento', label: 'Email Faturamento' },
@@ -181,6 +184,8 @@ export default function ConfiguracoesPage() {
               <label className={labelClass}>{label}</label>
               <input
                 type="email"
+                multiple
+                placeholder="email@sensebike.com.br, outro@sensebike.com.br"
                 className={inputClass}
                 value={valores[chave] || ''}
                 onChange={e => set(chave, e.target.value)}

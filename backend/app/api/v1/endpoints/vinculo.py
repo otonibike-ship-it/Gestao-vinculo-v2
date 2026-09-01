@@ -168,6 +168,7 @@ async def criar_vinculo(payload: VinculoCreate, db: AsyncSession = Depends(get_d
         status=StatusVinculo.validacao_comercial,
         anexos=payload.anexos,
     )
+    _registrar_nota(vinculo, "franquia", payload.observacao_inicial, "observacao")
     db.add(vinculo)
     try:
         await db.flush()

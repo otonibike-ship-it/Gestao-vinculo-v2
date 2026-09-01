@@ -29,10 +29,15 @@ def _send(cfg: dict, destinatario: str, assunto: str, corpo: str):
     password = cfg.get("smtp_password", "")
     tls = cfg.get("smtp_tls", "true").lower() == "true"
 
+    # destinatario pode ser "a@x.com, b@y.com" ou "a@x.com; b@y.com" — um ou mais emails
+    destinatarios = [d.strip() for d in destinatario.replace(";", ",").split(",") if d.strip()]
+    if not destinatarios:
+        return
+
     msg = MIMEMultipart("alternative")
     msg["Subject"] = assunto
     msg["From"] = f"Gestão de Vínculo <{user}>"
-    msg["To"] = destinatario
+    msg["To"] = ", ".join(destinatarios)
     msg.attach(MIMEText(corpo, "plain", "utf-8"))
 
     try:
@@ -40,10 +45,10 @@ def _send(cfg: dict, destinatario: str, assunto: str, corpo: str):
             if tls:
                 server.starttls()
             server.login(user, password)
-            server.sendmail(user, [destinatario], msg.as_string())
-        logger.info("Email enviado para %s | %s", destinatario, assunto)
+            server.sendmail(user, destinatarios, msg.as_string())
+        logger.info("Email enviado para %s | %s", ", ".join(destinatarios), assunto)
     except Exception as e:
-        logger.error("Falha ao enviar email para %s: %s", destinatario, str(e))
+        logger.error("Falha ao enviar email para %s: %s", ", ".join(destinatarios), str(e))
 
 
 async def notificar_novo_pedido(numero_pedido: str, nome_cliente: str, franquia_nome: str):
@@ -152,7 +157,7 @@ async def notificar_concluido_link(numero_pedido: str, vendedor: str, email_fran
 
 async def notificar_novo_pedido_carta(numero_pedido: str, nome_cliente: str, franquia_nome: str):
     cfg = await _get_configs()
-    destinatario = cfg.get("email_comercial", "")
+    destinatario = cfg.get("email_faturamento", "")
     if not destinatario:
         return
     corpo = _render(cfg.get("tpl_novo_pedido_carta", "Nova carta de correção solicitada: {numero_pedido}"),

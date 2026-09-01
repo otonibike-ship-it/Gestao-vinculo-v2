@@ -7,7 +7,7 @@ import { MotivoSelect } from '@/components/motivo-select'
 import { AnexosGrid } from '@/components/anexos-grid'
 import { FluxoStepper } from '@/components/fluxo-stepper'
 import { DestinoPicker } from '@/components/destino-picker'
-import { HistoricoObservacoes } from '@/components/historico-observacoes'
+import { HistoricoObservacoes, REPROVADO_BADGE_CLASS, statusLabelExibicao } from '@/components/historico-observacoes'
 import { MoneyInput } from '@/components/money-input'
 import { useMutation, useQueryClient, useQuery } from '@tanstack/react-query'
 import api from '@/lib/api'
@@ -187,8 +187,8 @@ export function VinculoModal({ vinculo, onClose, modo }: VinculoModalProps) {
               Pedido {vinculo.numero_pedido}
               {editando && <span className="text-sm font-normal text-brand-umber ml-2">— Editando</span>}
             </h3>
-            <span className={`inline-block mt-1 text-xs font-medium px-2.5 py-1 rounded-full ${statusColors[vinculo.status] || 'bg-slate-100 text-slate-600'}`}>
-              {statusLabels[vinculo.status] || vinculo.status}
+            <span className={`inline-block mt-1 text-xs font-medium px-2.5 py-1 rounded-full ${vinculo.justificativa_reprovacao ? REPROVADO_BADGE_CLASS : (statusColors[vinculo.status] || 'bg-slate-100 text-slate-600')}`}>
+              {statusLabelExibicao(vinculo.status, vinculo.justificativa_reprovacao) || statusLabels[vinculo.status] || vinculo.status}
             </span>
           </div>
           <button onClick={onClose} className="text-slate-400 hover:text-slate-600 transition-colors">

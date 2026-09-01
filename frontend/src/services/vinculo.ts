@@ -18,7 +18,7 @@ export interface VinculoData {
   observacoes_financeiro: string | null
   justificativa_reprovacao: string | null
   destino_reprovacao: string | null
-  historico_observacoes: { area: string; texto: string; tipo: 'aprovacao' | 'reprovacao'; data: string }[]
+  historico_observacoes: { area: string; texto: string; tipo: 'aprovacao' | 'reprovacao' | 'observacao'; data: string }[]
   criado_em: string
   atualizado_em: string
 }
@@ -35,6 +35,7 @@ export interface VinculoCreatePayload {
   quantidade_cupons?: number
   cupons?: { valor: number }[]
   anexos?: string[]
+  observacao_inicial?: string
 }
 
 export const vinculoService = {
