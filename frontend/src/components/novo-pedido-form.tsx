@@ -266,9 +266,6 @@ export default function NovoPedidoForm({ voltarPara }: Props) {
           <div>
             <label className={labelClass}>Valor pago pelo cliente superior ao Pedido?</label>
             <SimNaoSelect value={valorPagoSuperior} onChange={setValorPagoSuperior} className={inputClass + ' bg-white'} />
-            <p className="text-[11px] text-slate-400 mt-1.5">
-              Se sim, a soma dos comprovantes pode ficar acima do valor do pedido (ex: cupom promocional não aplicado, mais de um pagamento) — a diferença vira uma observação no pedido em vez de bloquear o envio.
-            </p>
           </div>
 
           {/* ── CUPONS ─────────────────────────────────────── */}
