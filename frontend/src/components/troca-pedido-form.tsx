@@ -48,6 +48,7 @@ export default function TrocaPedidoForm({ voltarPara }: Props) {
   const [codigoProdutoNovo, setCodigoProdutoNovo] = useState('')
   const [descricaoNovoPedido, setDescricaoNovoPedido] = useState('')
   const [statusPortal, setStatusPortal] = useState('')
+  const [numeroNotaFiscal, setNumeroNotaFiscal] = useState('')
   const [dataEmissaoNotaFiscal, setDataEmissaoNotaFiscal] = useState('')
   const [pedidoGerouReposicaoEstoque, setPedidoGerouReposicaoEstoque] = useState('')
   const [sinaisUsoPedidoCancelar, setSinaisUsoPedidoCancelar] = useState('')
@@ -143,6 +144,7 @@ export default function TrocaPedidoForm({ voltarPara }: Props) {
         codigo_produto_novo: codigoProdutoNovo.trim(),
         descricao_novo_pedido: descricaoNovoPedido.trim(),
         status_portal: statusPortal,
+        numero_nota_fiscal: numeroNotaFiscal.trim() || undefined,
         data_emissao_nota_fiscal: dataEmissaoNotaFiscal,
         pedido_gerou_reposicao_estoque: pedidoGerouReposicaoEstoque === 'sim',
         sinais_uso_pedido_cancelar: sinaisUsoPedidoCancelar === 'sim',
@@ -338,6 +340,14 @@ export default function TrocaPedidoForm({ voltarPara }: Props) {
                   <option key={o.value} value={o.value}>{o.label}</option>
                 ))}
               </select>
+            </div>
+            <div>
+              <label className={labelClass}>Número da Nota Fiscal</label>
+              <input
+                value={numeroNotaFiscal}
+                onChange={e => setNumeroNotaFiscal(e.target.value)}
+                className={inputClass + ' bg-white'}
+              />
             </div>
             <div>
               <label className={labelClass}>Data de emissão da nota fiscal</label>

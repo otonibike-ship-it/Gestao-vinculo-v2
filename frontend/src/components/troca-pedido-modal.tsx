@@ -87,6 +87,7 @@ export function TrocaPedidoModal({ troca, onClose, modo }: TrocaPedidoModalProps
   const [formCodigoProdutoNovo, setFormCodigoProdutoNovo] = useState(troca.codigo_produto_novo)
   const [formDescricaoNovoPedido, setFormDescricaoNovoPedido] = useState(troca.descricao_novo_pedido)
   const [formStatusPortal, setFormStatusPortal] = useState(troca.status_portal)
+  const [formNumeroNotaFiscal, setFormNumeroNotaFiscal] = useState(troca.numero_nota_fiscal || '')
   const [formDataEmissaoNotaFiscal, setFormDataEmissaoNotaFiscal] = useState(troca.data_emissao_nota_fiscal || '')
   const [formPedidoGerouReposicaoEstoque, setFormPedidoGerouReposicaoEstoque] = useState(
     troca.pedido_gerou_reposicao_estoque == null ? '' : (troca.pedido_gerou_reposicao_estoque ? 'sim' : 'nao')
@@ -168,6 +169,7 @@ export function TrocaPedidoModal({ troca, onClose, modo }: TrocaPedidoModalProps
         codigo_produto_novo: formCodigoProdutoNovo,
         descricao_novo_pedido: formDescricaoNovoPedido,
         status_portal: formStatusPortal,
+        numero_nota_fiscal: formNumeroNotaFiscal.trim() || undefined,
         data_emissao_nota_fiscal: formDataEmissaoNotaFiscal,
         pedido_gerou_reposicao_estoque: formPedidoGerouReposicaoEstoque === 'sim',
         sinais_uso_pedido_cancelar: formSinaisUsoPedidoCancelar === 'sim',
@@ -324,6 +326,11 @@ export function TrocaPedidoModal({ troca, onClose, modo }: TrocaPedidoModalProps
               </div>
 
               <div>
+                <label className={labelClass}>Número da Nota Fiscal</label>
+                <input value={formNumeroNotaFiscal} onChange={(e) => setFormNumeroNotaFiscal(e.target.value)} className={inputClass} />
+              </div>
+
+              <div>
                 <label className={labelClass}>Data de emissão da nota fiscal</label>
                 <input type="date" value={formDataEmissaoNotaFiscal} onChange={(e) => setFormDataEmissaoNotaFiscal(e.target.value)} className={inputClass} />
               </div>
@@ -430,6 +437,7 @@ export function TrocaPedidoModal({ troca, onClose, modo }: TrocaPedidoModalProps
                 <p className="text-xs font-medium text-slate-500 uppercase tracking-wider">Status do pedido</p>
                 <div className="grid grid-cols-2 gap-4">
                   <Campo label="Status no Portal" valor={STATUS_PORTAL_OPCOES.find(o => o.value === troca.status_portal)?.label || troca.status_portal} />
+                  <Campo label="N. Nota Fiscal" valor={troca.numero_nota_fiscal || '—'} />
                   <Campo label="Emissão da NF" valor={troca.data_emissao_nota_fiscal ? new Date(troca.data_emissao_nota_fiscal + 'T00:00:00').toLocaleDateString('pt-BR') : '—'} />
                   <Campo label="Gerou Reposição de estoque S2" valor={troca.pedido_gerou_reposicao_estoque == null ? '—' : (troca.pedido_gerou_reposicao_estoque ? 'Sim' : 'Não')} />
                   <Campo label="Sinais de uso na Bike do 1º pedido" valor={troca.sinais_uso_pedido_cancelar == null ? '—' : (troca.sinais_uso_pedido_cancelar ? 'Sim' : 'Não')} />

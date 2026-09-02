@@ -15,6 +15,7 @@ export interface TrocaPedidoData {
   codigo_produto_novo: string
   descricao_novo_pedido: string
   status_portal: string
+  numero_nota_fiscal: string | null
   data_emissao_nota_fiscal: string | null
   pedido_gerou_reposicao_estoque: boolean | null
   sinais_uso_pedido_cancelar: boolean | null
@@ -46,6 +47,7 @@ export interface TrocaPedidoCreatePayload {
   codigo_produto_novo: string
   descricao_novo_pedido: string
   status_portal: string
+  numero_nota_fiscal?: string
   data_emissao_nota_fiscal: string
   pedido_gerou_reposicao_estoque: boolean
   sinais_uso_pedido_cancelar: boolean

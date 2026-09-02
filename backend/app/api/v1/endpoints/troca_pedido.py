@@ -71,6 +71,7 @@ def _serialize(t: TrocaPedido, empresa: Empresa | None = None) -> dict:
         "codigo_produto_novo": t.codigo_produto_novo,
         "descricao_novo_pedido": t.descricao_novo_pedido,
         "status_portal": t.status_portal,
+        "numero_nota_fiscal": t.numero_nota_fiscal,
         "data_emissao_nota_fiscal": t.data_emissao_nota_fiscal.isoformat() if t.data_emissao_nota_fiscal else None,
         "pedido_gerou_reposicao_estoque": t.pedido_gerou_reposicao_estoque,
         "sinais_uso_pedido_cancelar": t.sinais_uso_pedido_cancelar,
@@ -151,6 +152,7 @@ async def criar_troca(payload: TrocaPedidoCreate, db: AsyncSession = Depends(get
         codigo_produto_novo=payload.codigo_produto_novo,
         descricao_novo_pedido=payload.descricao_novo_pedido,
         status_portal=payload.status_portal,
+        numero_nota_fiscal=payload.numero_nota_fiscal,
         data_emissao_nota_fiscal=payload.data_emissao_nota_fiscal,
         pedido_gerou_reposicao_estoque=payload.pedido_gerou_reposicao_estoque,
         sinais_uso_pedido_cancelar=payload.sinais_uso_pedido_cancelar,
@@ -308,6 +310,7 @@ async def reenviar_troca(troca_id: int, payload: ReenviarTrocaRequest, db: Async
     troca.codigo_produto_novo = payload.codigo_produto_novo
     troca.descricao_novo_pedido = payload.descricao_novo_pedido
     troca.status_portal = payload.status_portal
+    troca.numero_nota_fiscal = payload.numero_nota_fiscal
     troca.data_emissao_nota_fiscal = payload.data_emissao_nota_fiscal
     troca.pedido_gerou_reposicao_estoque = payload.pedido_gerou_reposicao_estoque
     troca.sinais_uso_pedido_cancelar = payload.sinais_uso_pedido_cancelar

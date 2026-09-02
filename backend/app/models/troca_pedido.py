@@ -30,6 +30,7 @@ class TrocaPedido(Base):
     codigo_produto_novo = Column(String(100), nullable=False)
     descricao_novo_pedido = Column(Text, nullable=False)
     status_portal = Column(String(50), nullable=False)  # processando_pagamento | em_separacao | faturado
+    numero_nota_fiscal = Column(String(50), nullable=True)
     data_emissao_nota_fiscal = Column(Date, nullable=True)
     pedido_gerou_reposicao_estoque = Column(Boolean, nullable=True)
     sinais_uso_pedido_cancelar = Column(Boolean, nullable=True)

@@ -27,6 +27,7 @@ class TrocaPedidoCreate(BaseModel):
     codigo_produto_novo: str
     descricao_novo_pedido: str
     status_portal: str
+    numero_nota_fiscal: Optional[str] = None
     data_emissao_nota_fiscal: date
     pedido_gerou_reposicao_estoque: bool
     sinais_uso_pedido_cancelar: bool
@@ -52,6 +53,7 @@ class TrocaPedidoResponse(BaseModel):
     codigo_produto_novo: str
     descricao_novo_pedido: str
     status_portal: str
+    numero_nota_fiscal: Optional[str] = None
     data_emissao_nota_fiscal: Optional[date] = None
     pedido_gerou_reposicao_estoque: Optional[bool] = None
     sinais_uso_pedido_cancelar: Optional[bool] = None
@@ -97,6 +99,7 @@ class ReenviarTrocaRequest(BaseModel):
     codigo_produto_novo: str
     descricao_novo_pedido: str
     status_portal: str
+    numero_nota_fiscal: Optional[str] = None
     data_emissao_nota_fiscal: date
     pedido_gerou_reposicao_estoque: bool
     sinais_uso_pedido_cancelar: bool
