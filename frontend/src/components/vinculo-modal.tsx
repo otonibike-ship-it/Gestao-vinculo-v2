@@ -422,7 +422,7 @@ export function VinculoModal({ vinculo, onClose, modo }: VinculoModalProps) {
                     ))}
                     <div className="flex justify-between text-sm font-semibold text-slate-800 border-t border-slate-200 pt-1 mt-1">
                       <span>Total</span>
-                      <span>R$ {Number(vinculo.valor_pedido).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</span>
+                      <span>R$ {(vinculo.cupons || []).reduce((acc, c) => acc + Number(c.valor), 0).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</span>
                     </div>
                   </div>
                 </div>

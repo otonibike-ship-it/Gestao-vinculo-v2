@@ -108,30 +108,7 @@ async def listar_vinculos(
     else:
         empresas_map = {}
 
-    def _build(v: Vinculo) -> dict:
-        empresa = empresas_map.get(v.franquia_id)
-        return {
-            "id": v.id,
-            "numero_pedido": v.numero_pedido,
-            "franquia_id": v.franquia_id,
-            "franquia_nome": empresa.nome_fantasia or empresa.razao_social if empresa else "—",
-            "nome_cliente": v.nome_cliente,
-            "cpf": v.cpf,
-            "valor_pedido": v.valor_pedido,
-            "data_pedido": v.data_pedido.isoformat() if v.data_pedido else None,
-            "motivo": v.motivo,
-            "necessario_validacao": v.necessario_validacao,
-            "quantidade_cupons": v.quantidade_cupons,
-            "cupons": v.cupons,
-            "status": v.status.value if v.status else None,
-            "anexos": v.anexos or [],
-            "justificativa_reprovacao": v.justificativa_reprovacao,
-            "destino_reprovacao": v.destino_reprovacao,
-            "criado_em": v.criado_em.isoformat() if v.criado_em else None,
-            "atualizado_em": v.atualizado_em.isoformat() if v.atualizado_em else None,
-        }
-
-    return [_build(v) for v in vinculos]
+    return [_serialize(v, empresas_map.get(v.franquia_id)) for v in vinculos]
 
 
 @router.get("/{vinculo_id}")
