@@ -68,8 +68,8 @@ export const vinculoService = {
     return data as VinculoData
   },
 
-  async reprovar(id: number, justificativa: string, destino: string = 'franquia') {
-    const { data } = await api.put(`/vinculos/${id}/reprovar`, { justificativa, destino })
+  async reprovar(id: number, justificativa: string, destino: string = 'franquia', anexos: string[] = []) {
+    const { data } = await api.put(`/vinculos/${id}/reprovar`, { justificativa, destino, anexos })
     return data as VinculoData
   },
 

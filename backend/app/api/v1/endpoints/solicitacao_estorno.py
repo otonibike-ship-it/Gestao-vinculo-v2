@@ -209,6 +209,9 @@ async def reprovar_estorno(estorno_id: int, payload: ReprovarEstornoRequest, db:
     else:
         raise HTTPException(status_code=400, detail=f"Não é possível reprovar com status '{estorno.status.value}'")
 
+    if payload.anexos:
+        estorno.anexos = (estorno.anexos or []) + payload.anexos
+
     estorno.justificativa_reprovacao = payload.justificativa
     estorno.destino_reprovacao = destino
     await db.flush()

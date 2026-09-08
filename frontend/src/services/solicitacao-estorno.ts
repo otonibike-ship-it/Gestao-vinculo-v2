@@ -63,8 +63,8 @@ export const solicitacaoEstornoService = {
     return data as SolicitacaoEstornoData
   },
 
-  async reprovar(id: number, justificativa: string, destino?: 'comercial' | 'franquia') {
-    const { data } = await api.put(`/solicitacoes-estorno/${id}/reprovar`, { justificativa, destino })
+  async reprovar(id: number, justificativa: string, destino?: 'comercial' | 'franquia', anexos: string[] = []) {
+    const { data } = await api.put(`/solicitacoes-estorno/${id}/reprovar`, { justificativa, destino, anexos })
     return data as SolicitacaoEstornoData
   },
 

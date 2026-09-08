@@ -84,6 +84,7 @@ class AprovarTrocaRequest(BaseModel):
 class ReprovarTrocaRequest(BaseModel):
     justificativa: Optional[str] = None
     destino: Optional[str] = None  # comercial | faturamento | ti | franquia
+    anexos: list[str] = []
 
 
 class ReenviarTrocaRequest(BaseModel):

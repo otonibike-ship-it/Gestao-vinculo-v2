@@ -219,6 +219,8 @@ async def reprovar_carta(carta_id: int, payload: ReprovarCartaRequest, db: Async
         raise HTTPException(status_code=422, detail="destino inválido")
 
     _registrar_nota(carta, area_atual, payload.justificativa, "reprovacao")
+    if payload.anexos:
+        carta.anexos = (carta.anexos or []) + payload.anexos
 
     carta.status = StatusCartaCorrecao.aberto if destino == "franquia" else _AREA_STATUS[destino]
     carta.justificativa_reprovacao = payload.justificativa

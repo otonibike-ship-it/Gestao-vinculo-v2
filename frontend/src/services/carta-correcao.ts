@@ -61,8 +61,8 @@ export const cartaCorrecaoService = {
     return data as CartaCorrecaoData
   },
 
-  async reprovar(id: number, justificativa: string, destino?: string) {
-    const { data } = await api.put(`/cartas-correcao/${id}/reprovar`, { justificativa, destino })
+  async reprovar(id: number, justificativa: string, destino?: string, anexos: string[] = []) {
+    const { data } = await api.put(`/cartas-correcao/${id}/reprovar`, { justificativa, destino, anexos })
     return data as CartaCorrecaoData
   },
 

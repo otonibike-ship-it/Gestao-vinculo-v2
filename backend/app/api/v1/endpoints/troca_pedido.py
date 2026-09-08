@@ -260,6 +260,8 @@ async def reprovar_troca(troca_id: int, payload: ReprovarTrocaRequest, db: Async
         raise HTTPException(status_code=422, detail="destino inválido")
 
     _registrar_nota(troca, area_atual, payload.justificativa, "reprovacao")
+    if payload.anexos:
+        troca.anexos = (troca.anexos or []) + payload.anexos
 
     troca.status = StatusTrocaPedido.aberto if destino == "franquia" else _AREA_STATUS[destino]
     troca.justificativa_reprovacao = payload.justificativa

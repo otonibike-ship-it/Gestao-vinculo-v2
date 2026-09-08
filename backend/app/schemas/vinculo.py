@@ -69,6 +69,7 @@ class AprovarRequest(BaseModel):
 class ReprovarRequest(BaseModel):
     justificativa: str
     destino: str = "franquia"  # franquia | comercial | financeiro | ti
+    anexos: list[str] = []
 
 
 class ReenviarRequest(BaseModel):

@@ -260,6 +260,8 @@ async def reprovar_cancelamento(cancelamento_id: int, payload: ReprovarCancelame
         raise HTTPException(status_code=422, detail="destino inválido")
 
     _registrar_nota(cancelamento, area_atual, payload.justificativa, "reprovacao")
+    if payload.anexos:
+        cancelamento.anexos_portal_comprovante = (cancelamento.anexos_portal_comprovante or []) + payload.anexos
 
     cancelamento.status = StatusCancelamentoVenda.aberto if destino == "franquia" else _AREA_STATUS[destino]
     cancelamento.justificativa_reprovacao = payload.justificativa

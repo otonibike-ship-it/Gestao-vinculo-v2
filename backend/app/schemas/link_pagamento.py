@@ -74,6 +74,7 @@ class AprovarLinkRequest(BaseModel):
 class ReprovarLinkRequest(BaseModel):
     justificativa: str
     destino: Optional[str] = None  # comercial | franquia
+    anexos: list[str] = []
 
 
 class ReenviarLinkRequest(BaseModel):

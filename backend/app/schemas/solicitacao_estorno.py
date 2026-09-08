@@ -64,6 +64,7 @@ class AprovarEstornoRequest(BaseModel):
 class ReprovarEstornoRequest(BaseModel):
     justificativa: str
     destino: Optional[Literal["comercial", "franquia"]] = None
+    anexos: list[str] = []
 
 
 class ReenviarEstornoRequest(BaseModel):

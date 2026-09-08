@@ -83,6 +83,7 @@ class AprovarCancelamentoRequest(BaseModel):
 class ReprovarCancelamentoRequest(BaseModel):
     justificativa: str
     destino: Optional[str] = None  # comercial | faturamento | financeiro | franquia
+    anexos: list[str] = []  # entram em anexos_portal_comprovante
 
 
 class ReenviarCancelamentoRequest(BaseModel):

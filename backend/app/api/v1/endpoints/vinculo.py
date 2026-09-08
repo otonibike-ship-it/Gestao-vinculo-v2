@@ -249,6 +249,8 @@ async def reprovar_vinculo(vinculo_id: int, payload: ReprovarRequest, db: AsyncS
         raise HTTPException(status_code=422, detail="destino inválido")
 
     _registrar_nota(vinculo, area_atual, payload.justificativa, "reprovacao")
+    if payload.anexos:
+        vinculo.anexos = (vinculo.anexos or []) + payload.anexos
 
     vinculo.status = StatusVinculo.aberto if payload.destino == "franquia" else _AREA_STATUS[payload.destino]
     vinculo.justificativa_reprovacao = payload.justificativa

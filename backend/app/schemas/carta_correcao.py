@@ -61,6 +61,7 @@ class AprovarCartaRequest(BaseModel):
 class ReprovarCartaRequest(BaseModel):
     justificativa: str
     destino: Optional[str] = None  # faturamento | franquia
+    anexos: list[str] = []
 
 
 class ReenviarCartaRequest(BaseModel):

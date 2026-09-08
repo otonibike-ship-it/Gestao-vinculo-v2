@@ -81,8 +81,8 @@ export const cancelamentoVendaService = {
     return data as CancelamentoVendaData
   },
 
-  async reprovar(id: number, justificativa: string, destino?: string) {
-    const { data } = await api.put(`/cancelamentos-venda/${id}/reprovar`, { justificativa, destino })
+  async reprovar(id: number, justificativa: string, destino?: string, anexos: string[] = []) {
+    const { data } = await api.put(`/cancelamentos-venda/${id}/reprovar`, { justificativa, destino, anexos })
     return data as CancelamentoVendaData
   },
 

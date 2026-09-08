@@ -82,8 +82,8 @@ export const trocaPedidoService = {
     return data as TrocaPedidoData
   },
 
-  async reprovar(id: number, justificativa?: string, destino?: string) {
-    const { data } = await api.put(`/trocas-pedido/${id}/reprovar`, { justificativa, destino })
+  async reprovar(id: number, justificativa?: string, destino?: string, anexos: string[] = []) {
+    const { data } = await api.put(`/trocas-pedido/${id}/reprovar`, { justificativa, destino, anexos })
     return data as TrocaPedidoData
   },
 

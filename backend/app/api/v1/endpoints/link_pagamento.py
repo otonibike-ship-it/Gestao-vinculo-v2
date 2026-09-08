@@ -231,6 +231,8 @@ async def reprovar_link(link_id: int, payload: ReprovarLinkRequest, db: AsyncSes
         raise HTTPException(status_code=422, detail="destino inválido")
 
     _registrar_nota(link, area_atual, payload.justificativa, "reprovacao")
+    if payload.anexos:
+        link.anexos = (link.anexos or []) + payload.anexos
 
     link.status = StatusLinkPagamento.aberto if destino == "franquia" else _AREA_STATUS[destino]
     link.justificativa_reprovacao = payload.justificativa

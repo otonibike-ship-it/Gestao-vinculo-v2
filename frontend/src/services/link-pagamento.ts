@@ -72,8 +72,8 @@ export const linkPagamentoService = {
     return data as LinkPagamentoData
   },
 
-  async reprovar(id: number, justificativa: string, destino?: string) {
-    const { data } = await api.put(`/links-pagamento/${id}/reprovar`, { justificativa, destino })
+  async reprovar(id: number, justificativa: string, destino?: string, anexos: string[] = []) {
+    const { data } = await api.put(`/links-pagamento/${id}/reprovar`, { justificativa, destino, anexos })
     return data as LinkPagamentoData
   },
 

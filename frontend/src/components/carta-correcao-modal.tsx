@@ -51,6 +51,7 @@ export function CartaCorrecaoModal({ carta, onClose, modo }: CartaCorrecaoModalP
   const [justificativa, setJustificativa] = useState('')
   const [mostrarReprovar, setMostrarReprovar] = useState(false)
   const [arquivosAprovacao, setArquivosAprovacao] = useState<File[]>([])
+  const [arquivosReprovacao, setArquivosReprovacao] = useState<File[]>([])
   const [enviando, setEnviando] = useState(false)
   const [observacao, setObservacao] = useState('')
   const [destinoReprovacao, setDestinoReprovacao] = useState('faturamento')
@@ -90,11 +91,11 @@ export function CartaCorrecaoModal({ carta, onClose, modo }: CartaCorrecaoModalP
 
   const aprovarMutation = useMutation({
     mutationFn: async () => {
-      if (modo === 'faturamento') {
-        return cartaCorrecaoService.aprovar(carta.id, { observacao: observacao || undefined })
-      }
       const resultados = await Promise.all(arquivosAprovacao.map(arq => uploadService.upload(arq)))
       const anexoUrls = resultados.map(r => r.url)
+      if (modo === 'faturamento') {
+        return cartaCorrecaoService.aprovar(carta.id, { observacao: observacao || undefined, anexos: anexoUrls })
+      }
       return cartaCorrecaoService.aprovar(carta.id, { anexos: anexoUrls, observacao: observacao || undefined })
     },
     onSuccess: () => {
@@ -104,11 +105,16 @@ export function CartaCorrecaoModal({ carta, onClose, modo }: CartaCorrecaoModalP
   })
 
   const reprovarMutation = useMutation({
-    mutationFn: () => cartaCorrecaoService.reprovar(
-      carta.id,
-      justificativa,
-      modo === 'faturamento' ? undefined : destinoReprovacao
-    ),
+    mutationFn: async () => {
+      const resultados = await Promise.all(arquivosReprovacao.map(arq => uploadService.upload(arq)))
+      const anexoUrls = resultados.map(r => r.url)
+      return cartaCorrecaoService.reprovar(
+        carta.id,
+        justificativa,
+        modo === 'faturamento' ? undefined : destinoReprovacao,
+        anexoUrls
+      )
+    },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['cartas-correcao'] })
       onClose()
@@ -374,7 +380,7 @@ export function CartaCorrecaoModal({ carta, onClose, modo }: CartaCorrecaoModalP
                 </div>
               )}
 
-              {podeAprovarReprovar && modo !== 'faturamento' && !mostrarReprovar && (
+              {podeAprovarReprovar && !mostrarReprovar && (
                 <div>
                   <p className="text-xs font-medium text-slate-500 uppercase tracking-wider mb-2">Anexar documentos (opcional)</p>
                   <label className="flex items-center gap-2 px-4 py-3 border-2 border-dashed border-slate-200 rounded-xl cursor-pointer hover:border-slate-300 transition-colors">
@@ -428,6 +434,38 @@ export function CartaCorrecaoModal({ carta, onClose, modo }: CartaCorrecaoModalP
                       className="w-full border border-slate-200 rounded-xl px-4 py-3 text-sm text-slate-700 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-red-300 focus:border-red-300 transition-all resize-none"
                       rows={3}
                     />
+                  </div>
+
+                  <div>
+                    <p className="text-xs font-medium text-slate-500 uppercase tracking-wider mb-2">Anexar documentos (opcional)</p>
+                    <label className="flex items-center gap-2 px-4 py-3 border-2 border-dashed border-slate-200 rounded-xl cursor-pointer hover:border-slate-300 transition-colors">
+                      <Upload size={16} className="text-slate-400" />
+                      <span className="text-sm text-slate-400">Selecionar arquivos...</span>
+                      <input
+                        type="file"
+                        accept=".jpg,.jpeg,.png,.gif,.webp,.pdf"
+                        multiple
+                        className="hidden"
+                        onChange={(e) => {
+                          const files = Array.from(e.target.files || [])
+                          if (files.length > 0) setArquivosReprovacao(prev => [...prev, ...files])
+                          e.target.value = ''
+                        }}
+                      />
+                    </label>
+                    {arquivosReprovacao.length > 0 && (
+                      <div className="mt-2 space-y-1">
+                        {arquivosReprovacao.map((arq, i) => (
+                          <div key={i} className="flex items-center gap-2 text-sm text-slate-600 bg-slate-50 rounded-lg px-3 py-2">
+                            <ImageIcon size={14} className="text-brand-pine shrink-0" />
+                            <span className="flex-1 truncate">{arq.name}</span>
+                            <button type="button" onClick={() => setArquivosReprovacao(prev => prev.filter((_, idx) => idx !== i))} className="text-slate-400 hover:text-red-500">
+                              <X size={14} />
+                            </button>
+                          </div>
+                        ))}
+                      </div>
+                    )}
                   </div>
                 </div>
               )}
