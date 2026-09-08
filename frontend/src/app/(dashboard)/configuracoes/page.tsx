@@ -15,6 +15,18 @@ const TEMPLATES = [
   { chave: 'tpl_novo_pedido_troca', label: 'Nova troca de pedido criada (→ Comercial)', vars: '{numero_pedido_cancelar}, {nome_vendedor}, {franquia_nome}' },
   { chave: 'tpl_triagem_troca', label: 'Troca de pedido roteada (→ Faturamento/Financeiro/TI)', vars: '{numero_pedido_cancelar}, {nome_vendedor}, {franquia_nome}' },
   { chave: 'tpl_concluido_troca', label: 'Troca de pedido concluída (→ Franquia)', vars: '{numero_pedido_cancelar}, {nome_vendedor}' },
+  { chave: 'tpl_novo_pedido_link', label: 'Novo link de pagamento criado (→ Comercial)', vars: '{numero_pedido}, {vendedor}, {franquia_nome}' },
+  { chave: 'tpl_triagem_link', label: 'Link de pagamento roteado (→ Financeiro)', vars: '{numero_pedido}, {vendedor}, {franquia_nome}' },
+  { chave: 'tpl_concluido_link', label: 'Link de pagamento concluído (→ Franquia)', vars: '{numero_pedido}, {vendedor}' },
+  { chave: 'tpl_novo_pedido_carta', label: 'Nova carta de correção criada (→ Faturamento)', vars: '{numero_pedido}, {nome_cliente}, {franquia_nome}' },
+  { chave: 'tpl_triagem_carta', label: 'Carta de correção roteada (→ Financeiro)', vars: '{numero_pedido}, {nome_cliente}, {franquia_nome}' },
+  { chave: 'tpl_concluido_carta', label: 'Carta de correção concluída (→ Franquia)', vars: '{numero_pedido}, {nome_cliente}' },
+  { chave: 'tpl_novo_pedido_estorno', label: 'Nova solicitação de estorno criada (→ Comercial)', vars: '{numero_pedido}, {vendedor}, {franquia_nome}' },
+  { chave: 'tpl_triagem_estorno', label: 'Solicitação de estorno roteada (→ Financeiro)', vars: '{numero_pedido}, {vendedor}, {franquia_nome}' },
+  { chave: 'tpl_concluido_estorno', label: 'Solicitação de estorno concluída (→ Franquia)', vars: '{numero_pedido}, {vendedor}' },
+  { chave: 'tpl_novo_pedido_cancelamento', label: 'Novo cancelamento de venda criado (→ Comercial)', vars: '{numero_pedido}, {vendedor}, {franquia_nome}' },
+  { chave: 'tpl_triagem_cancelamento', label: 'Cancelamento de venda roteado (→ Faturamento/Financeiro)', vars: '{numero_pedido}, {vendedor}, {franquia_nome}' },
+  { chave: 'tpl_concluido_cancelamento', label: 'Cancelamento de venda concluído (→ Franquia)', vars: '{numero_pedido}, {vendedor}' },
 ]
 
 export default function ConfiguracoesPage() {
