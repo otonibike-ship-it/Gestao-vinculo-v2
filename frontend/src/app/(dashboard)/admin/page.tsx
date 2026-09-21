@@ -540,12 +540,13 @@ export default function AdminPage() {
                 <th className="text-left px-5 py-2.5 font-medium text-slate-500 text-xs uppercase tracking-wider">Franquia</th>
                 <th className="text-left px-5 py-2.5 font-medium text-slate-500 text-xs uppercase tracking-wider">Cliente</th>
                 <th className="text-left px-5 py-2.5 font-medium text-slate-500 text-xs uppercase tracking-wider">Valor</th>
+                <th className="text-left px-5 py-2.5 font-medium text-slate-500 text-xs uppercase tracking-wider">Valid. Financeiro</th>
                 <th className="text-left px-5 py-2.5 font-medium text-slate-500 text-xs uppercase tracking-wider">Status</th>
                 <th className="text-right px-5 py-2.5 font-medium text-slate-500 text-xs uppercase tracking-wider w-20">Ações</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-50">
-              {loadingVinc && <tr><td colSpan={6} className="px-5 py-6 text-center text-xs text-slate-400">Carregando...</td></tr>}
+              {loadingVinc && <tr><td colSpan={7} className="px-5 py-6 text-center text-xs text-slate-400">Carregando...</td></tr>}
               {filteredVinc?.map(v => (
                 <tr key={v.id} className="hover:bg-brand-mist/60 transition-colors">
                   <td className="px-5 py-2.5 font-medium text-slate-800 cursor-pointer hover:text-brand-pine" onClick={() => setSelecionado(v)}>
@@ -555,6 +556,11 @@ export default function AdminPage() {
                   <td className="px-5 py-2.5 text-slate-600">{v.nome_cliente}</td>
                   <td className="px-5 py-2.5 text-slate-600">
                     R$ {Number(v.valor_pedido).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
+                  </td>
+                  <td className="px-5 py-2.5">
+                    <span className={`text-xs font-medium ${v.necessario_validacao ? 'text-brand-umber' : 'text-slate-400'}`}>
+                      {v.necessario_validacao ? 'Sim' : 'Não'}
+                    </span>
                   </td>
                   <td className="px-5 py-2.5">
                     <span className={`text-xs font-medium px-2.5 py-1 rounded-full ${statusColors[v.status] || 'bg-slate-100 text-slate-600'}`}>

@@ -176,6 +176,7 @@ export default function FinanceiroPage() {
                   <th className="text-left px-5 py-3 font-medium text-slate-500 text-xs uppercase tracking-wider">Cliente</th>
                   <th className="text-left px-5 py-3 font-medium text-slate-500 text-xs uppercase tracking-wider">Valor</th>
                   <th className="text-left px-5 py-3 font-medium text-slate-500 text-xs uppercase tracking-wider">Data</th>
+                  <th className="text-left px-5 py-3 font-medium text-slate-500 text-xs uppercase tracking-wider">Valid. Financeiro</th>
                   <th className="text-left px-5 py-3 font-medium text-slate-500 text-xs uppercase tracking-wider">Anexos</th>
                 </tr>
               </thead>
@@ -190,6 +191,11 @@ export default function FinanceiroPage() {
                     </td>
                     <td className="px-5 py-3 text-slate-500 text-xs">
                       {v.data_pedido ? new Date(v.data_pedido + 'T00:00:00').toLocaleDateString('pt-BR') : '—'}
+                    </td>
+                    <td className="px-5 py-3">
+                      <span className={`text-xs font-medium ${v.necessario_validacao ? 'text-brand-umber' : 'text-slate-400'}`}>
+                        {v.necessario_validacao ? 'Sim' : 'Não'}
+                      </span>
                     </td>
                     <td className="px-5 py-3 text-slate-400 text-xs">{v.anexos?.length || 0} arquivo(s)</td>
                   </tr>

@@ -242,6 +242,7 @@ export default function ComercialPage() {
                   <th className="text-left px-5 py-3 font-medium text-slate-500 text-xs uppercase tracking-wider">Cliente</th>
                   <th className="text-left px-5 py-3 font-medium text-slate-500 text-xs uppercase tracking-wider">Valor</th>
                   <th className="text-left px-5 py-3 font-medium text-slate-500 text-xs uppercase tracking-wider">Data</th>
+                  <th className="text-left px-5 py-3 font-medium text-slate-500 text-xs uppercase tracking-wider">Valid. Financeiro</th>
                   <th className="text-left px-5 py-3 font-medium text-slate-500 text-xs uppercase tracking-wider">Status</th>
                 </tr>
               </thead>
@@ -260,6 +261,11 @@ export default function ComercialPage() {
                     </td>
                     <td className="px-5 py-3 text-slate-500 text-xs">
                       {v.data_pedido ? new Date(v.data_pedido + 'T00:00:00').toLocaleDateString('pt-BR') : '—'}
+                    </td>
+                    <td className="px-5 py-3">
+                      <span className={`text-xs font-medium ${v.necessario_validacao ? 'text-brand-umber' : 'text-slate-400'}`}>
+                        {v.necessario_validacao ? 'Sim' : 'Não'}
+                      </span>
                     </td>
                     <td className="px-5 py-3">
                       <span className={`text-xs font-medium px-2.5 py-1 rounded-full ${v.justificativa_reprovacao ? REPROVADO_BADGE_CLASS : (statusColors[v.status] || 'bg-slate-100 text-slate-600')}`}>
