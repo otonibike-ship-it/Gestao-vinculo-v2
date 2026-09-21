@@ -7,6 +7,7 @@ from sqlalchemy import select
 from typing import List, Optional
 from pydantic import BaseModel
 from app.core.database import get_db
+from app.core.security import CurrentUser, get_current_user, require_perfis
 from app.models.pessoa import Empresa
 from app.schemas.pessoa import EmpresaCreate, EmpresaResponse
 
@@ -19,15 +20,22 @@ class EmpresaUpdate(BaseModel):
 
 router = APIRouter()
 
+_pode_editar = require_perfis("admin", "comercial", "financeiro", "ti")
+
 
 @router.get("", response_model=List[EmpresaResponse])
-async def listar_empresas(skip: int = 0, limit: int = 500, db: AsyncSession = Depends(get_db)):
-    result = await db.execute(select(Empresa).offset(skip).limit(limit))
+async def listar_empresas(skip: int = 0, limit: int = 500, db: AsyncSession = Depends(get_db), user: CurrentUser = Depends(get_current_user)):
+    query = select(Empresa)
+    if user.perfil == "franquia":
+        query = query.where(Empresa.id == (user.franquia_id or -1))
+    result = await db.execute(query.offset(skip).limit(limit))
     return result.scalars().all()
 
 
 @router.get("/{empresa_id}", response_model=EmpresaResponse)
-async def obter_empresa(empresa_id: int, db: AsyncSession = Depends(get_db)):
+async def obter_empresa(empresa_id: int, db: AsyncSession = Depends(get_db), user: CurrentUser = Depends(get_current_user)):
+    if user.perfil == "franquia" and user.franquia_id != empresa_id:
+        raise HTTPException(status_code=404, detail="Empresa não encontrada")
     result = await db.execute(select(Empresa).where(Empresa.id == empresa_id))
     empresa = result.scalar_one_or_none()
     if not empresa:
@@ -36,7 +44,7 @@ async def obter_empresa(empresa_id: int, db: AsyncSession = Depends(get_db)):
 
 
 @router.post("", response_model=EmpresaResponse, status_code=status.HTTP_201_CREATED)
-async def criar_empresa(payload: EmpresaCreate, db: AsyncSession = Depends(get_db)):
+async def criar_empresa(payload: EmpresaCreate, db: AsyncSession = Depends(get_db), _: CurrentUser = Depends(_pode_editar)):
     try:
         # Verificar CNPJ duplicado
         existing = await db.execute(select(Empresa).where(Empresa.cnpj == payload.cnpj))
@@ -56,7 +64,7 @@ async def criar_empresa(payload: EmpresaCreate, db: AsyncSession = Depends(get_d
 
 
 @router.put("/{empresa_id}", response_model=EmpresaResponse)
-async def atualizar_empresa(empresa_id: int, payload: EmpresaUpdate, db: AsyncSession = Depends(get_db)):
+async def atualizar_empresa(empresa_id: int, payload: EmpresaUpdate, db: AsyncSession = Depends(get_db), _: CurrentUser = Depends(_pode_editar)):
     try:
         result = await db.execute(select(Empresa).where(Empresa.id == empresa_id))
         empresa = result.scalar_one_or_none()
@@ -88,7 +96,7 @@ async def atualizar_empresa(empresa_id: int, payload: EmpresaUpdate, db: AsyncSe
 
 
 @router.delete("/{empresa_id}", status_code=status.HTTP_204_NO_CONTENT)
-async def remover_empresa(empresa_id: int, db: AsyncSession = Depends(get_db)):
+async def remover_empresa(empresa_id: int, db: AsyncSession = Depends(get_db), _: CurrentUser = Depends(_pode_editar)):
     result = await db.execute(select(Empresa).where(Empresa.id == empresa_id))
     empresa = result.scalar_one_or_none()
     if not empresa:
@@ -100,6 +108,7 @@ async def remover_empresa(empresa_id: int, db: AsyncSession = Depends(get_db)):
 async def importar_franquias(
     arquivo: UploadFile = File(...),
     db: AsyncSession = Depends(get_db),
+    _: CurrentUser = Depends(_pode_editar),
 ):
     """Importa franquias a partir de um arquivo CSV.
 

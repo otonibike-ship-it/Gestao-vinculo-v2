@@ -6,6 +6,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
 from typing import Optional
 from app.core.database import get_db
+from app.core.security import CurrentUser, get_current_user, escopo_franquia, checar_franquia, bloquear_franquia
 from app.models.carta_correcao import CartaCorrecao, StatusCartaCorrecao
 from app.models.pessoa import Empresa
 from app.models.usuario import Usuario, PerfilUsuario
@@ -89,11 +90,12 @@ async def listar_cartas(
     franquia_id: Optional[int] = Query(None),
     skip: int = 0,
     limit: int = Query(1000, ge=1, le=5000),
-    db: AsyncSession = Depends(get_db),
+    db: AsyncSession = Depends(get_db), user: CurrentUser = Depends(get_current_user),
 ):
     query = select(CartaCorrecao)
     if status_filter:
         query = query.where(CartaCorrecao.status == status_filter)
+    franquia_id = escopo_franquia(user, franquia_id)
     if franquia_id:
         query = query.where(CartaCorrecao.franquia_id == franquia_id)
     query = query.order_by(CartaCorrecao.criado_em.desc()).offset(skip).limit(limit)
@@ -111,16 +113,18 @@ async def listar_cartas(
 
 
 @router.get("/{carta_id}")
-async def obter_carta(carta_id: int, db: AsyncSession = Depends(get_db)):
+async def obter_carta(carta_id: int, db: AsyncSession = Depends(get_db), user: CurrentUser = Depends(get_current_user)):
     result = await db.execute(select(CartaCorrecao).where(CartaCorrecao.id == carta_id))
     carta = result.scalar_one_or_none()
     if not carta:
         raise HTTPException(status_code=404, detail="Carta de correção não encontrada")
+    checar_franquia(user, carta.franquia_id)
     return await _enrich(carta, db)
 
 
 @router.post("", status_code=status.HTTP_201_CREATED)
-async def criar_carta(payload: CartaCorrecaoCreate, db: AsyncSession = Depends(get_db)):
+async def criar_carta(payload: CartaCorrecaoCreate, db: AsyncSession = Depends(get_db), user: CurrentUser = Depends(get_current_user)):
+    payload.franquia_id = escopo_franquia(user, payload.franquia_id)
     emp = await db.scalar(select(Empresa).where(Empresa.id == payload.franquia_id))
     if not emp:
         raise HTTPException(status_code=422, detail=f"Franquia {payload.franquia_id} não encontrada")
@@ -151,7 +155,8 @@ async def criar_carta(payload: CartaCorrecaoCreate, db: AsyncSession = Depends(g
 
 
 @router.put("/{carta_id}/aprovar")
-async def aprovar_carta(carta_id: int, payload: AprovarCartaRequest, db: AsyncSession = Depends(get_db)):
+async def aprovar_carta(carta_id: int, payload: AprovarCartaRequest, db: AsyncSession = Depends(get_db), user: CurrentUser = Depends(get_current_user)):
+    bloquear_franquia(user)
     result = await db.execute(select(CartaCorrecao).where(CartaCorrecao.id == carta_id))
     carta = result.scalar_one_or_none()
     if not carta:
@@ -204,7 +209,8 @@ async def aprovar_carta(carta_id: int, payload: AprovarCartaRequest, db: AsyncSe
 
 
 @router.put("/{carta_id}/reprovar")
-async def reprovar_carta(carta_id: int, payload: ReprovarCartaRequest, db: AsyncSession = Depends(get_db)):
+async def reprovar_carta(carta_id: int, payload: ReprovarCartaRequest, db: AsyncSession = Depends(get_db), user: CurrentUser = Depends(get_current_user)):
+    bloquear_franquia(user)
     result = await db.execute(select(CartaCorrecao).where(CartaCorrecao.id == carta_id))
     carta = result.scalar_one_or_none()
     if not carta:
@@ -249,16 +255,17 @@ async def reprovar_carta(carta_id: int, payload: ReprovarCartaRequest, db: Async
 
 
 @router.put("/{carta_id}/reenviar")
-async def reenviar_carta(carta_id: int, payload: ReenviarCartaRequest, db: AsyncSession = Depends(get_db)):
+async def reenviar_carta(carta_id: int, payload: ReenviarCartaRequest, db: AsyncSession = Depends(get_db), user: CurrentUser = Depends(get_current_user)):
     result = await db.execute(select(CartaCorrecao).where(CartaCorrecao.id == carta_id))
     carta = result.scalar_one_or_none()
     if not carta:
         raise HTTPException(status_code=404, detail="Carta de correção não encontrada")
+    checar_franquia(user, carta.franquia_id)
 
     if carta.status != StatusCartaCorrecao.aberto:
         raise HTTPException(status_code=400, detail="Só é possível reenviar solicitações com status 'aberto'")
 
-    carta.franquia_id = payload.franquia_id
+    carta.franquia_id = escopo_franquia(user, payload.franquia_id)
     carta.numero_nota_fiscal = payload.numero_nota_fiscal
     carta.numero_pedido = payload.numero_pedido
     carta.nome_cliente_pedido = payload.nome_cliente_pedido
@@ -279,11 +286,12 @@ async def reenviar_carta(carta_id: int, payload: ReenviarCartaRequest, db: Async
 
 
 @router.delete("/{carta_id}", status_code=status.HTTP_204_NO_CONTENT)
-async def deletar_carta(carta_id: int, db: AsyncSession = Depends(get_db)):
+async def deletar_carta(carta_id: int, db: AsyncSession = Depends(get_db), user: CurrentUser = Depends(get_current_user)):
     result = await db.execute(select(CartaCorrecao).where(CartaCorrecao.id == carta_id))
     carta = result.scalar_one_or_none()
     if not carta:
         raise HTTPException(status_code=404, detail="Carta de correção não encontrada")
+    checar_franquia(user, carta.franquia_id)
     if carta.status == StatusCartaCorrecao.fechado:
         raise HTTPException(status_code=400, detail="Cartas concluídas não podem ser excluídas")
     await db.delete(carta)

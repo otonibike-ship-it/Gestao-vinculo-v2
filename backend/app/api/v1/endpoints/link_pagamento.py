@@ -6,6 +6,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
 from typing import Optional
 from app.core.database import get_db
+from app.core.security import CurrentUser, get_current_user, escopo_franquia, checar_franquia, bloquear_franquia
 from app.models.link_pagamento import LinkPagamento, StatusLinkPagamento
 from app.models.pessoa import Empresa
 from app.models.usuario import Usuario, PerfilUsuario
@@ -95,11 +96,12 @@ async def listar_links(
     franquia_id: Optional[int] = Query(None),
     skip: int = 0,
     limit: int = Query(1000, ge=1, le=5000),
-    db: AsyncSession = Depends(get_db),
+    db: AsyncSession = Depends(get_db), user: CurrentUser = Depends(get_current_user),
 ):
     query = select(LinkPagamento)
     if status_filter:
         query = query.where(LinkPagamento.status == status_filter)
+    franquia_id = escopo_franquia(user, franquia_id)
     if franquia_id:
         query = query.where(LinkPagamento.franquia_id == franquia_id)
     query = query.order_by(LinkPagamento.criado_em.desc()).offset(skip).limit(limit)
@@ -117,16 +119,18 @@ async def listar_links(
 
 
 @router.get("/{link_id}")
-async def obter_link(link_id: int, db: AsyncSession = Depends(get_db)):
+async def obter_link(link_id: int, db: AsyncSession = Depends(get_db), user: CurrentUser = Depends(get_current_user)):
     result = await db.execute(select(LinkPagamento).where(LinkPagamento.id == link_id))
     link = result.scalar_one_or_none()
     if not link:
         raise HTTPException(status_code=404, detail="Link de pagamento não encontrado")
+    checar_franquia(user, link.franquia_id)
     return await _enrich(link, db)
 
 
 @router.post("", status_code=status.HTTP_201_CREATED)
-async def criar_link(payload: LinkPagamentoCreate, db: AsyncSession = Depends(get_db)):
+async def criar_link(payload: LinkPagamentoCreate, db: AsyncSession = Depends(get_db), user: CurrentUser = Depends(get_current_user)):
+    payload.franquia_id = escopo_franquia(user, payload.franquia_id)
     emp = await db.scalar(select(Empresa).where(Empresa.id == payload.franquia_id))
     if not emp:
         raise HTTPException(status_code=422, detail=f"Franquia {payload.franquia_id} não encontrada")
@@ -162,7 +166,8 @@ async def criar_link(payload: LinkPagamentoCreate, db: AsyncSession = Depends(ge
 
 
 @router.put("/{link_id}/aprovar")
-async def aprovar_link(link_id: int, payload: AprovarLinkRequest, db: AsyncSession = Depends(get_db)):
+async def aprovar_link(link_id: int, payload: AprovarLinkRequest, db: AsyncSession = Depends(get_db), user: CurrentUser = Depends(get_current_user)):
+    bloquear_franquia(user)
     result = await db.execute(select(LinkPagamento).where(LinkPagamento.id == link_id))
     link = result.scalar_one_or_none()
     if not link:
@@ -216,7 +221,8 @@ async def aprovar_link(link_id: int, payload: AprovarLinkRequest, db: AsyncSessi
 
 
 @router.put("/{link_id}/reprovar")
-async def reprovar_link(link_id: int, payload: ReprovarLinkRequest, db: AsyncSession = Depends(get_db)):
+async def reprovar_link(link_id: int, payload: ReprovarLinkRequest, db: AsyncSession = Depends(get_db), user: CurrentUser = Depends(get_current_user)):
+    bloquear_franquia(user)
     result = await db.execute(select(LinkPagamento).where(LinkPagamento.id == link_id))
     link = result.scalar_one_or_none()
     if not link:
@@ -261,16 +267,17 @@ async def reprovar_link(link_id: int, payload: ReprovarLinkRequest, db: AsyncSes
 
 
 @router.put("/{link_id}/reenviar")
-async def reenviar_link(link_id: int, payload: ReenviarLinkRequest, db: AsyncSession = Depends(get_db)):
+async def reenviar_link(link_id: int, payload: ReenviarLinkRequest, db: AsyncSession = Depends(get_db), user: CurrentUser = Depends(get_current_user)):
     result = await db.execute(select(LinkPagamento).where(LinkPagamento.id == link_id))
     link = result.scalar_one_or_none()
     if not link:
         raise HTTPException(status_code=404, detail="Link de pagamento não encontrado")
+    checar_franquia(user, link.franquia_id)
 
     if link.status != StatusLinkPagamento.aberto:
         raise HTTPException(status_code=400, detail="Só é possível reenviar solicitações com status 'aberto'")
 
-    link.franquia_id = payload.franquia_id
+    link.franquia_id = escopo_franquia(user, payload.franquia_id)
     link.motivo = payload.motivo
     link.numero_pedido = payload.numero_pedido
     link.data_pedido = payload.data_pedido
@@ -296,11 +303,12 @@ async def reenviar_link(link_id: int, payload: ReenviarLinkRequest, db: AsyncSes
 
 
 @router.delete("/{link_id}", status_code=status.HTTP_204_NO_CONTENT)
-async def deletar_link(link_id: int, db: AsyncSession = Depends(get_db)):
+async def deletar_link(link_id: int, db: AsyncSession = Depends(get_db), user: CurrentUser = Depends(get_current_user)):
     result = await db.execute(select(LinkPagamento).where(LinkPagamento.id == link_id))
     link = result.scalar_one_or_none()
     if not link:
         raise HTTPException(status_code=404, detail="Link de pagamento não encontrado")
+    checar_franquia(user, link.franquia_id)
     if link.status == StatusLinkPagamento.fechado:
         raise HTTPException(status_code=400, detail="Links concluídos não podem ser excluídos")
     await db.delete(link)

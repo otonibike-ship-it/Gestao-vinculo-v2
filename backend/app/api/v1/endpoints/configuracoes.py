@@ -15,8 +15,13 @@ router = APIRouter()
 
 @router.get("")
 async def listar_configuracoes(db: AsyncSession = Depends(get_db)):
+    return await _todas(db)
+
+
+async def _todas(db: AsyncSession) -> dict:
     result = await db.execute(select(Configuracao))
-    return {row.chave: row.valor for row in result.scalars().all()}
+    # A senha SMTP nunca volta para o navegador; o PUT só a altera quando vier preenchida.
+    return {row.chave: row.valor for row in result.scalars().all() if row.chave != "smtp_password"}
 
 
 class ConfiguracaoPayload(BaseModel):
@@ -26,6 +31,8 @@ class ConfiguracaoPayload(BaseModel):
 @router.put("")
 async def salvar_configuracoes(payload: ConfiguracaoPayload, db: AsyncSession = Depends(get_db)):
     for chave, valor in payload.valores.items():
+        if chave == "smtp_password" and not valor:
+            continue
         result = await db.execute(select(Configuracao).where(Configuracao.chave == chave))
         cfg = result.scalar_one_or_none()
         if cfg:
@@ -33,8 +40,7 @@ async def salvar_configuracoes(payload: ConfiguracaoPayload, db: AsyncSession = 
         else:
             db.add(Configuracao(chave=chave, valor=valor))
     await db.flush()
-    result = await db.execute(select(Configuracao))
-    return {row.chave: row.valor for row in result.scalars().all()}
+    return await _todas(db)
 
 
 class TesteEmailPayload(BaseModel):

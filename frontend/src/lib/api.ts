@@ -22,7 +22,10 @@ api.interceptors.response.use(
     const urlDaChamada: string = error.config?.url || ''
     const chamadaDeAuth = urlDaChamada.startsWith('/auth/')
     if (error.response?.status === 401 && typeof window !== 'undefined' && !chamadaDeAuth) {
+      // Limpa também o cookie, senão o middleware devolve o usuário do /login para o dashboard em loop
       localStorage.removeItem('access_token')
+      document.cookie = 'access_token=; path=/; max-age=0'
+      document.cookie = 'perfil=; path=/; max-age=0'
       window.location.href = '/login'
     }
     return Promise.reject(error)

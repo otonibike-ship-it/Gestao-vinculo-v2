@@ -6,6 +6,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
 from typing import Optional
 from app.core.database import get_db
+from app.core.security import CurrentUser, get_current_user, escopo_franquia, checar_franquia, bloquear_franquia
 from app.models.troca_pedido import TrocaPedido, StatusTrocaPedido
 from app.models.pessoa import Empresa
 from app.models.usuario import Usuario, PerfilUsuario
@@ -103,11 +104,12 @@ async def listar_trocas(
     franquia_id: Optional[int] = Query(None),
     skip: int = 0,
     limit: int = Query(1000, ge=1, le=5000),
-    db: AsyncSession = Depends(get_db),
+    db: AsyncSession = Depends(get_db), user: CurrentUser = Depends(get_current_user),
 ):
     query = select(TrocaPedido)
     if status_filter:
         query = query.where(TrocaPedido.status == status_filter)
+    franquia_id = escopo_franquia(user, franquia_id)
     if franquia_id:
         query = query.where(TrocaPedido.franquia_id == franquia_id)
     query = query.order_by(TrocaPedido.criado_em.desc()).offset(skip).limit(limit)
@@ -125,16 +127,18 @@ async def listar_trocas(
 
 
 @router.get("/{troca_id}")
-async def obter_troca(troca_id: int, db: AsyncSession = Depends(get_db)):
+async def obter_troca(troca_id: int, db: AsyncSession = Depends(get_db), user: CurrentUser = Depends(get_current_user)):
     result = await db.execute(select(TrocaPedido).where(TrocaPedido.id == troca_id))
     troca = result.scalar_one_or_none()
     if not troca:
         raise HTTPException(status_code=404, detail="Troca de pedido não encontrada")
+    checar_franquia(user, troca.franquia_id)
     return await _enrich(troca, db)
 
 
 @router.post("", status_code=status.HTTP_201_CREATED)
-async def criar_troca(payload: TrocaPedidoCreate, db: AsyncSession = Depends(get_db)):
+async def criar_troca(payload: TrocaPedidoCreate, db: AsyncSession = Depends(get_db), user: CurrentUser = Depends(get_current_user)):
+    payload.franquia_id = escopo_franquia(user, payload.franquia_id)
     emp = await db.scalar(select(Empresa).where(Empresa.id == payload.franquia_id))
     if not emp:
         raise HTTPException(status_code=422, detail=f"Franquia {payload.franquia_id} não encontrada")
@@ -175,7 +179,8 @@ async def criar_troca(payload: TrocaPedidoCreate, db: AsyncSession = Depends(get
 
 
 @router.put("/{troca_id}/aprovar")
-async def aprovar_troca(troca_id: int, payload: AprovarTrocaRequest, db: AsyncSession = Depends(get_db)):
+async def aprovar_troca(troca_id: int, payload: AprovarTrocaRequest, db: AsyncSession = Depends(get_db), user: CurrentUser = Depends(get_current_user)):
+    bloquear_franquia(user)
     result = await db.execute(select(TrocaPedido).where(TrocaPedido.id == troca_id))
     troca = result.scalar_one_or_none()
     if not troca:
@@ -242,7 +247,8 @@ async def aprovar_troca(troca_id: int, payload: AprovarTrocaRequest, db: AsyncSe
 
 
 @router.put("/{troca_id}/reprovar")
-async def reprovar_troca(troca_id: int, payload: ReprovarTrocaRequest, db: AsyncSession = Depends(get_db)):
+async def reprovar_troca(troca_id: int, payload: ReprovarTrocaRequest, db: AsyncSession = Depends(get_db), user: CurrentUser = Depends(get_current_user)):
+    bloquear_franquia(user)
     result = await db.execute(select(TrocaPedido).where(TrocaPedido.id == troca_id))
     troca = result.scalar_one_or_none()
     if not troca:
@@ -291,16 +297,17 @@ async def reprovar_troca(troca_id: int, payload: ReprovarTrocaRequest, db: Async
 
 
 @router.put("/{troca_id}/reenviar")
-async def reenviar_troca(troca_id: int, payload: ReenviarTrocaRequest, db: AsyncSession = Depends(get_db)):
+async def reenviar_troca(troca_id: int, payload: ReenviarTrocaRequest, db: AsyncSession = Depends(get_db), user: CurrentUser = Depends(get_current_user)):
     result = await db.execute(select(TrocaPedido).where(TrocaPedido.id == troca_id))
     troca = result.scalar_one_or_none()
     if not troca:
         raise HTTPException(status_code=404, detail="Troca de pedido não encontrada")
+    checar_franquia(user, troca.franquia_id)
 
     if troca.status != StatusTrocaPedido.aberto:
         raise HTTPException(status_code=400, detail="Só é possível reenviar solicitações com status 'aberto'")
 
-    troca.franquia_id = payload.franquia_id
+    troca.franquia_id = escopo_franquia(user, payload.franquia_id)
     troca.motivo = payload.motivo
     troca.motivo_detalhado = payload.motivo_detalhado
     troca.nome_vendedor = payload.nome_vendedor
@@ -331,11 +338,12 @@ async def reenviar_troca(troca_id: int, payload: ReenviarTrocaRequest, db: Async
 
 
 @router.delete("/{troca_id}", status_code=status.HTTP_204_NO_CONTENT)
-async def deletar_troca(troca_id: int, db: AsyncSession = Depends(get_db)):
+async def deletar_troca(troca_id: int, db: AsyncSession = Depends(get_db), user: CurrentUser = Depends(get_current_user)):
     result = await db.execute(select(TrocaPedido).where(TrocaPedido.id == troca_id))
     troca = result.scalar_one_or_none()
     if not troca:
         raise HTTPException(status_code=404, detail="Troca de pedido não encontrada")
+    checar_franquia(user, troca.franquia_id)
     if troca.status == StatusTrocaPedido.fechado:
         raise HTTPException(status_code=400, detail="Trocas concluídas não podem ser excluídas")
     await db.delete(troca)

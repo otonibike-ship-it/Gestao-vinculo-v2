@@ -7,6 +7,7 @@ from sqlalchemy import select
 from sqlalchemy.exc import IntegrityError
 from typing import Optional
 from app.core.database import get_db
+from app.core.security import CurrentUser, get_current_user, escopo_franquia, checar_franquia, bloquear_franquia
 from app.models.vinculo import Vinculo, StatusVinculo
 from app.models.pessoa import Empresa
 from app.models.usuario import Usuario, PerfilUsuario
@@ -89,11 +90,12 @@ async def listar_vinculos(
     franquia_id: Optional[int] = Query(None),
     skip: int = 0,
     limit: int = Query(1000, ge=1, le=5000),
-    db: AsyncSession = Depends(get_db),
+    db: AsyncSession = Depends(get_db), user: CurrentUser = Depends(get_current_user),
 ):
     query = select(Vinculo)
     if status_filter:
         query = query.where(Vinculo.status == status_filter)
+    franquia_id = escopo_franquia(user, franquia_id)
     if franquia_id:
         query = query.where(Vinculo.franquia_id == franquia_id)
     query = query.order_by(Vinculo.criado_em.desc()).offset(skip).limit(limit)
@@ -112,16 +114,18 @@ async def listar_vinculos(
 
 
 @router.get("/{vinculo_id}")
-async def obter_vinculo(vinculo_id: int, db: AsyncSession = Depends(get_db)):
+async def obter_vinculo(vinculo_id: int, db: AsyncSession = Depends(get_db), user: CurrentUser = Depends(get_current_user)):
     result = await db.execute(select(Vinculo).where(Vinculo.id == vinculo_id))
     vinculo = result.scalar_one_or_none()
     if not vinculo:
         raise HTTPException(status_code=404, detail="Vínculo não encontrado")
+    checar_franquia(user, vinculo.franquia_id)
     return await _enrich(vinculo, db)
 
 
 @router.post("", status_code=status.HTTP_201_CREATED)
-async def criar_vinculo(payload: VinculoCreate, db: AsyncSession = Depends(get_db)):
+async def criar_vinculo(payload: VinculoCreate, db: AsyncSession = Depends(get_db), user: CurrentUser = Depends(get_current_user)):
+    payload.franquia_id = escopo_franquia(user, payload.franquia_id)
     logger.info("POST /vinculos recebido: numero_pedido=%s franquia_id=%s", payload.numero_pedido, payload.franquia_id)
     if not payload.franquia_id:
         raise HTTPException(status_code=422, detail="franquia_id é obrigatório")
@@ -168,7 +172,8 @@ async def criar_vinculo(payload: VinculoCreate, db: AsyncSession = Depends(get_d
 
 
 @router.put("/{vinculo_id}/aprovar")
-async def aprovar_vinculo(vinculo_id: int, payload: AprovarRequest, db: AsyncSession = Depends(get_db)):
+async def aprovar_vinculo(vinculo_id: int, payload: AprovarRequest, db: AsyncSession = Depends(get_db), user: CurrentUser = Depends(get_current_user)):
+    bloquear_franquia(user)
     result = await db.execute(select(Vinculo).where(Vinculo.id == vinculo_id))
     vinculo = result.scalar_one_or_none()
     if not vinculo:
@@ -241,7 +246,8 @@ async def aprovar_vinculo(vinculo_id: int, payload: AprovarRequest, db: AsyncSes
 
 
 @router.put("/{vinculo_id}/reprovar")
-async def reprovar_vinculo(vinculo_id: int, payload: ReprovarRequest, db: AsyncSession = Depends(get_db)):
+async def reprovar_vinculo(vinculo_id: int, payload: ReprovarRequest, db: AsyncSession = Depends(get_db), user: CurrentUser = Depends(get_current_user)):
+    bloquear_franquia(user)
     result = await db.execute(select(Vinculo).where(Vinculo.id == vinculo_id))
     vinculo = result.scalar_one_or_none()
     if not vinculo:
@@ -289,16 +295,17 @@ async def reprovar_vinculo(vinculo_id: int, payload: ReprovarRequest, db: AsyncS
 
 
 @router.put("/{vinculo_id}/reenviar")
-async def reenviar_vinculo(vinculo_id: int, payload: ReenviarRequest, db: AsyncSession = Depends(get_db)):
+async def reenviar_vinculo(vinculo_id: int, payload: ReenviarRequest, db: AsyncSession = Depends(get_db), user: CurrentUser = Depends(get_current_user)):
     result = await db.execute(select(Vinculo).where(Vinculo.id == vinculo_id))
     vinculo = result.scalar_one_or_none()
     if not vinculo:
         raise HTTPException(status_code=404, detail="Vínculo não encontrado")
+    checar_franquia(user, vinculo.franquia_id)
 
     if vinculo.status != StatusVinculo.aberto:
         raise HTTPException(status_code=400, detail="Só é possível reenviar pedidos com status 'aberto'")
 
-    vinculo.franquia_id = payload.franquia_id
+    vinculo.franquia_id = escopo_franquia(user, payload.franquia_id)
     vinculo.nome_cliente = payload.nome_cliente
     vinculo.cpf = payload.cpf
     vinculo.valor_pedido = payload.valor_pedido
@@ -318,11 +325,12 @@ async def reenviar_vinculo(vinculo_id: int, payload: ReenviarRequest, db: AsyncS
 
 
 @router.delete("/{vinculo_id}", status_code=status.HTTP_204_NO_CONTENT)
-async def deletar_vinculo(vinculo_id: int, db: AsyncSession = Depends(get_db)):
+async def deletar_vinculo(vinculo_id: int, db: AsyncSession = Depends(get_db), user: CurrentUser = Depends(get_current_user)):
     result = await db.execute(select(Vinculo).where(Vinculo.id == vinculo_id))
     vinculo = result.scalar_one_or_none()
     if not vinculo:
         raise HTTPException(status_code=404, detail="Vinculo nao encontrado")
+    checar_franquia(user, vinculo.franquia_id)
     if vinculo.status == StatusVinculo.fechado:
         raise HTTPException(status_code=400, detail="Pedidos vinculados não podem ser excluídos")
     await db.delete(vinculo)

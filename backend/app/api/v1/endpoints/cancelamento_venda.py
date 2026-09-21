@@ -6,6 +6,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
 from typing import Optional
 from app.core.database import get_db
+from app.core.security import CurrentUser, get_current_user, escopo_franquia, checar_franquia, bloquear_franquia
 from app.models.cancelamento_venda import CancelamentoVenda, StatusCancelamentoVenda
 from app.models.pessoa import Empresa
 from app.models.usuario import Usuario, PerfilUsuario
@@ -102,11 +103,12 @@ async def listar_cancelamentos(
     franquia_id: Optional[int] = Query(None),
     skip: int = 0,
     limit: int = Query(1000, ge=1, le=5000),
-    db: AsyncSession = Depends(get_db),
+    db: AsyncSession = Depends(get_db), user: CurrentUser = Depends(get_current_user),
 ):
     query = select(CancelamentoVenda)
     if status_filter:
         query = query.where(CancelamentoVenda.status == status_filter)
+    franquia_id = escopo_franquia(user, franquia_id)
     if franquia_id:
         query = query.where(CancelamentoVenda.franquia_id == franquia_id)
     query = query.order_by(CancelamentoVenda.criado_em.desc()).offset(skip).limit(limit)
@@ -124,16 +126,18 @@ async def listar_cancelamentos(
 
 
 @router.get("/{cancelamento_id}")
-async def obter_cancelamento(cancelamento_id: int, db: AsyncSession = Depends(get_db)):
+async def obter_cancelamento(cancelamento_id: int, db: AsyncSession = Depends(get_db), user: CurrentUser = Depends(get_current_user)):
     result = await db.execute(select(CancelamentoVenda).where(CancelamentoVenda.id == cancelamento_id))
     cancelamento = result.scalar_one_or_none()
     if not cancelamento:
         raise HTTPException(status_code=404, detail="Cancelamento de venda não encontrado")
+    checar_franquia(user, cancelamento.franquia_id)
     return await _enrich(cancelamento, db)
 
 
 @router.post("", status_code=status.HTTP_201_CREATED)
-async def criar_cancelamento(payload: CancelamentoVendaCreate, db: AsyncSession = Depends(get_db)):
+async def criar_cancelamento(payload: CancelamentoVendaCreate, db: AsyncSession = Depends(get_db), user: CurrentUser = Depends(get_current_user)):
+    payload.franquia_id = escopo_franquia(user, payload.franquia_id)
     emp = await db.scalar(select(Empresa).where(Empresa.id == payload.franquia_id))
     if not emp:
         raise HTTPException(status_code=422, detail=f"Franquia {payload.franquia_id} não encontrada")
@@ -177,7 +181,8 @@ async def criar_cancelamento(payload: CancelamentoVendaCreate, db: AsyncSession 
 
 
 @router.put("/{cancelamento_id}/aprovar")
-async def aprovar_cancelamento(cancelamento_id: int, payload: AprovarCancelamentoRequest, db: AsyncSession = Depends(get_db)):
+async def aprovar_cancelamento(cancelamento_id: int, payload: AprovarCancelamentoRequest, db: AsyncSession = Depends(get_db), user: CurrentUser = Depends(get_current_user)):
+    bloquear_franquia(user)
     result = await db.execute(select(CancelamentoVenda).where(CancelamentoVenda.id == cancelamento_id))
     cancelamento = result.scalar_one_or_none()
     if not cancelamento:
@@ -242,7 +247,8 @@ async def aprovar_cancelamento(cancelamento_id: int, payload: AprovarCancelament
 
 
 @router.put("/{cancelamento_id}/reprovar")
-async def reprovar_cancelamento(cancelamento_id: int, payload: ReprovarCancelamentoRequest, db: AsyncSession = Depends(get_db)):
+async def reprovar_cancelamento(cancelamento_id: int, payload: ReprovarCancelamentoRequest, db: AsyncSession = Depends(get_db), user: CurrentUser = Depends(get_current_user)):
+    bloquear_franquia(user)
     result = await db.execute(select(CancelamentoVenda).where(CancelamentoVenda.id == cancelamento_id))
     cancelamento = result.scalar_one_or_none()
     if not cancelamento:
@@ -290,16 +296,17 @@ async def reprovar_cancelamento(cancelamento_id: int, payload: ReprovarCancelame
 
 
 @router.put("/{cancelamento_id}/reenviar")
-async def reenviar_cancelamento(cancelamento_id: int, payload: ReenviarCancelamentoRequest, db: AsyncSession = Depends(get_db)):
+async def reenviar_cancelamento(cancelamento_id: int, payload: ReenviarCancelamentoRequest, db: AsyncSession = Depends(get_db), user: CurrentUser = Depends(get_current_user)):
     result = await db.execute(select(CancelamentoVenda).where(CancelamentoVenda.id == cancelamento_id))
     cancelamento = result.scalar_one_or_none()
     if not cancelamento:
         raise HTTPException(status_code=404, detail="Cancelamento de venda não encontrado")
+    checar_franquia(user, cancelamento.franquia_id)
 
     if cancelamento.status != StatusCancelamentoVenda.aberto:
         raise HTTPException(status_code=400, detail="Só é possível reenviar solicitações com status 'aberto'")
 
-    cancelamento.franquia_id = payload.franquia_id
+    cancelamento.franquia_id = escopo_franquia(user, payload.franquia_id)
     cancelamento.motivo = payload.motivo
     cancelamento.vendedor = payload.vendedor
     cancelamento.numero_pedido_cancelar = payload.numero_pedido_cancelar
@@ -330,11 +337,12 @@ async def reenviar_cancelamento(cancelamento_id: int, payload: ReenviarCancelame
 
 
 @router.delete("/{cancelamento_id}", status_code=status.HTTP_204_NO_CONTENT)
-async def deletar_cancelamento(cancelamento_id: int, db: AsyncSession = Depends(get_db)):
+async def deletar_cancelamento(cancelamento_id: int, db: AsyncSession = Depends(get_db), user: CurrentUser = Depends(get_current_user)):
     result = await db.execute(select(CancelamentoVenda).where(CancelamentoVenda.id == cancelamento_id))
     cancelamento = result.scalar_one_or_none()
     if not cancelamento:
         raise HTTPException(status_code=404, detail="Cancelamento de venda não encontrado")
+    checar_franquia(user, cancelamento.franquia_id)
     if cancelamento.status == StatusCancelamentoVenda.fechado:
         raise HTTPException(status_code=400, detail="Cancelamentos concluídos não podem ser excluídos")
     await db.delete(cancelamento)

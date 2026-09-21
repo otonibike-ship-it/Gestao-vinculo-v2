@@ -140,6 +140,7 @@ export default function ConfiguracoesPage() {
                 className={inputClass + ' pr-10'}
                 value={valores.smtp_password || ''}
                 onChange={e => set('smtp_password', e.target.value)}
+                placeholder="Deixe em branco para manter a senha atual"
               />
               <button type="button" onClick={() => setMostrarSenha(v => !v)} className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600">
                 {mostrarSenha ? <EyeOff size={15} /> : <Eye size={15} />}

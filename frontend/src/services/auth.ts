@@ -37,6 +37,8 @@ export const authService = {
 
     // Salva cookie para o middleware do Next.js validar no servidor
     document.cookie = `access_token=${data.access_token}; path=/; max-age=${60 * 60 * 8}; SameSite=Lax`
+    // Só para o middleware direcionar/limitar rotas; a autorização real é feita pela API
+    document.cookie = `perfil=${data.perfil}; path=/; max-age=${60 * 60 * 8}; SameSite=Lax`
 
     return data
   },
@@ -50,6 +52,7 @@ export const authService = {
     localStorage.removeItem('franquia_id')
     // Remove cookie
     document.cookie = 'access_token=; path=/; max-age=0'
+    document.cookie = 'perfil=; path=/; max-age=0'
     window.location.href = '/login'
   },
 

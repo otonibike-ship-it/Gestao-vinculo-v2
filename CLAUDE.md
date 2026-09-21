@@ -110,6 +110,10 @@ Each profile lands on a different dashboard after login:
 
 **SSR gotcha:** All `authService` calls (and any `localStorage` reads) must be inside `useEffect` or guarded by `typeof window === 'undefined'`, or they will crash during SSR.
 
+### API authorization (added 2026-09-21)
+
+Before this date the whole API was unauthenticated. Now `backend/app/core/security.py` provides `get_current_user` (decodes the Bearer JWT, then loads the user from the DB so perfil/franquia_id/ativo changes apply immediately — token claims are not trusted for authorization). `api/v1/router.py` applies it router-wide to every router except `/auth`; `/usuarios` and `/configuracoes` require `admin` (`require_perfis`); `/empresas` writes require admin/comercial/financeiro/ti. For `franquia` users every form endpoint forces `franquia_id` server-side (`escopo_franquia` on list/create/reenviar), returns 404 for other franchises' records (`checar_franquia`) and 403 on aprovar/reprovar (`bloquear_franquia`). Copy this pattern in any new form endpoint. `GET /configuracoes` never returns `smtp_password`; `PUT` ignores an empty one. Access token lifetime is 480 min (no refresh flow in the frontend). Frontend: login also sets a `perfil` cookie used only by `middleware.ts` to route/limit franquia users (and block /admin, /configuracoes for non-admin) — UX only, the API is the real gate; the 401 interceptor clears both cookies to avoid a /login→dashboard redirect loop.
+
 ### Backend Session / Background Tasks
 
 `get_db()` commits and closes the session when the endpoint returns. Any `asyncio.create_task()` call runs **after** that — so it must **not** use the request's `db` session.
