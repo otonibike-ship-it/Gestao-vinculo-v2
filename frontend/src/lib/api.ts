@@ -13,11 +13,15 @@ api.interceptors.request.use((config) => {
   return config
 })
 
-// Redireciona para login em 401
+// Sessão expirada (401) volta para o login — exceto quando o 401 é a própria resposta de
+// uma chamada de autenticação (senha errada no login), senão a página recarrega e a
+// mensagem de erro some em ~1s.
 api.interceptors.response.use(
   (res) => res,
   (error) => {
-    if (error.response?.status === 401 && typeof window !== 'undefined') {
+    const urlDaChamada: string = error.config?.url || ''
+    const chamadaDeAuth = urlDaChamada.startsWith('/auth/')
+    if (error.response?.status === 401 && typeof window !== 'undefined' && !chamadaDeAuth) {
       localStorage.removeItem('access_token')
       window.location.href = '/login'
     }
