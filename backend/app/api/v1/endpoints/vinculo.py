@@ -88,7 +88,7 @@ async def listar_vinculos(
     status_filter: Optional[str] = Query(None, alias="status"),
     franquia_id: Optional[int] = Query(None),
     skip: int = 0,
-    limit: int = 100,
+    limit: int = Query(1000, ge=1, le=5000),
     db: AsyncSession = Depends(get_db),
 ):
     query = select(Vinculo)

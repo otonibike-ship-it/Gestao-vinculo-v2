@@ -21,7 +21,7 @@ router = APIRouter()
 
 
 @router.get("", response_model=List[EmpresaResponse])
-async def listar_empresas(skip: int = 0, limit: int = 50, db: AsyncSession = Depends(get_db)):
+async def listar_empresas(skip: int = 0, limit: int = 500, db: AsyncSession = Depends(get_db)):
     result = await db.execute(select(Empresa).offset(skip).limit(limit))
     return result.scalars().all()
 
