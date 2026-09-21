@@ -199,6 +199,12 @@ async def aprovar_vinculo(vinculo_id: int, payload: AprovarRequest, db: AsyncSes
         elif area_atual == "ti":
             vinculo.status = StatusVinculo.fechado
 
+    # Qualquer caminho que leve o pedido ao Financeiro (inclusive o destino escolhido no
+    # DestinoPicker, que é o que a UI sempre envia) marca a validação financeira como
+    # necessária — é isso que mantém a etapa "Financeiro" no fluxo e a coluna "Valid. Financeiro".
+    if vinculo.status == StatusVinculo.validacao_financeiro:
+        vinculo.necessario_validacao = True
+
     if payload.anexos:
         vinculo.anexos = (vinculo.anexos or []) + payload.anexos
     if area_atual == "financeiro" and payload.observacoes_financeiro is not None:
@@ -253,6 +259,8 @@ async def reprovar_vinculo(vinculo_id: int, payload: ReprovarRequest, db: AsyncS
         vinculo.anexos = (vinculo.anexos or []) + payload.anexos
 
     vinculo.status = StatusVinculo.aberto if payload.destino == "franquia" else _AREA_STATUS[payload.destino]
+    if vinculo.status == StatusVinculo.validacao_financeiro:
+        vinculo.necessario_validacao = True
     vinculo.justificativa_reprovacao = payload.justificativa
     vinculo.destino_reprovacao = payload.destino
     await db.flush()

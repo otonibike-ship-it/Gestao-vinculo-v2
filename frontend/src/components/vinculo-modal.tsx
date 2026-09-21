@@ -446,7 +446,11 @@ export function VinculoModal({ vinculo, onClose, modo }: VinculoModalProps) {
 
               {/* Histórico do Fluxo */}
               {(() => {
-                const comFinanceiro = vinculo.necessario_validacao || vinculo.status === 'validacao_financeiro'
+                const comFinanceiro =
+                  vinculo.necessario_validacao ||
+                  vinculo.status === 'validacao_financeiro' ||
+                  !!vinculo.observacoes_financeiro ||
+                  (vinculo.historico_observacoes || []).some(h => h.area === 'financeiro')
                 const steps = [
                   { key: 'franquia', label: 'Franquia' },
                   { key: 'comercial', label: 'Comercial' },
