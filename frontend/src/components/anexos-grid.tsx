@@ -84,7 +84,7 @@ export function AnexosGrid({ anexos, titulo = 'Anexos' }: AnexosGridProps) {
               </div>
             </div>
             <iframe
-              src={`https://docs.google.com/viewer?url=${encodeURIComponent(pdfViewerUrl)}&embedded=true`}
+              src={pdfViewerUrl}
               className="flex-1 w-full border-0 bg-white"
               title="PDF"
             />
