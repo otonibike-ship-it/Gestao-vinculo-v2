@@ -167,17 +167,20 @@ async def aprovar_carta(carta_id: int, payload: AprovarCartaRequest, db: AsyncSe
         _registrar_nota(carta, area_atual, payload.observacao, "aprovacao")
 
     if carta.status == StatusCartaCorrecao.aguardando_faturamento:
-        carta.status = StatusCartaCorrecao.aguardando_financeiro
+        # Financeiro foi removido do fluxo em 2026-09-25: o aprovar do Faturamento já
+        # conclui a carta. O ramo aguardando_financeiro abaixo fica só para não travar
+        # cartas que já estavam paradas lá quando a mudança entrou em produção.
+        carta.status = StatusCartaCorrecao.fechado
         carta.observacao_comercial = payload.observacao
 
     elif carta.status == StatusCartaCorrecao.aguardando_financeiro:
-        if payload.anexos:
-            carta.anexos = (carta.anexos or []) + payload.anexos
         carta.status = StatusCartaCorrecao.fechado
 
     else:
         raise HTTPException(status_code=400, detail=f"Não é possível aprovar com status '{carta.status.value}'")
 
+    if payload.anexos:
+        carta.anexos = (carta.anexos or []) + payload.anexos
     carta.justificativa_reprovacao = None
     carta.destino_reprovacao = None
     await db.flush()

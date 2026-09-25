@@ -155,13 +155,13 @@ async def aprovar_estorno(estorno_id: int, payload: AprovarEstornoRequest, db: A
 
     elif estorno.status == StatusSolicitacaoEstorno.aguardando_financeiro:
         _registrar_nota(estorno, "financeiro", payload.observacao, "aprovacao")
-        if payload.anexos:
-            estorno.anexos = (estorno.anexos or []) + payload.anexos
         estorno.status = StatusSolicitacaoEstorno.fechado
 
     else:
         raise HTTPException(status_code=400, detail=f"Não é possível aprovar com status '{estorno.status.value}'")
 
+    if payload.anexos:
+        estorno.anexos = (estorno.anexos or []) + payload.anexos
     estorno.justificativa_reprovacao = None
     estorno.destino_reprovacao = None
     await db.flush()

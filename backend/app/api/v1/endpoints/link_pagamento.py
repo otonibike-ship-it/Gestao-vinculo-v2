@@ -187,12 +187,12 @@ async def aprovar_link(link_id: int, payload: AprovarLinkRequest, db: AsyncSessi
         link.status = StatusLinkPagamento.fechado
         link.link_gerado = payload.link_gerado
         _registrar_nota(link, "financeiro", payload.link_gerado, "aprovacao")
-        if payload.anexos:
-            link.anexos = (link.anexos or []) + payload.anexos
 
     else:
         raise HTTPException(status_code=400, detail=f"Não é possível aprovar com status '{link.status.value}'")
 
+    if payload.anexos:
+        link.anexos = (link.anexos or []) + payload.anexos
     link.justificativa_reprovacao = None
     link.destino_reprovacao = None
     await db.flush()

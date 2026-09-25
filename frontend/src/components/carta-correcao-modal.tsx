@@ -338,13 +338,14 @@ export function CartaCorrecaoModal({ carta, onClose, modo }: CartaCorrecaoModalP
                 const steps = [
                   { key: 'franquia', label: 'Franquia' },
                   { key: 'faturamento', label: 'Faturamento' },
-                  { key: 'financeiro', label: 'Financeiro' },
                   { key: 'concluido', label: 'Carta Gerada' },
                 ]
                 const currentKeyMap: Record<string, string> = {
                   aberto: 'franquia',
                   aguardando_faturamento: 'faturamento',
-                  aguardando_financeiro: 'financeiro',
+                  // Financeiro saiu do fluxo em 2026-09-25; mapeado em 'faturamento' só para
+                  // não travar cartas antigas que ainda estejam paradas nesse status.
+                  aguardando_financeiro: 'faturamento',
                   fechado: 'concluido',
                 }
                 const currentIdx = steps.findIndex(s => s.key === (currentKeyMap[carta.status] ?? 'franquia'))
@@ -360,7 +361,7 @@ export function CartaCorrecaoModal({ carta, onClose, modo }: CartaCorrecaoModalP
                   <textarea
                     value={observacao}
                     onChange={(e) => setObservacao(e.target.value)}
-                    placeholder="Informação para o Financeiro (opcional)..."
+                    placeholder="Observação sobre a carta gerada (opcional)..."
                     className="w-full border border-slate-200 rounded-xl px-4 py-3 text-sm text-slate-700 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-brand-teal/60 transition-all resize-none"
                     rows={2}
                   />
