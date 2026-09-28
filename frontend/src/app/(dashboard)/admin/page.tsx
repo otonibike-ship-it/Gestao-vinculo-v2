@@ -327,7 +327,7 @@ export default function AdminPage() {
               <p className="text-xs font-semibold text-slate-600">{editUser ? 'Editar Usuário' : 'Novo Usuário'}</p>
               <button onClick={resetFormUser} className="text-slate-400 hover:text-slate-600"><X size={16} /></button>
             </div>
-            <div className="grid grid-cols-4 gap-3">
+            <div className="grid grid-cols-1 sm:grid-cols-4 gap-3">
               <input value={formNome} onChange={(e) => setFormNome(e.target.value)} placeholder="Nome" className={inputCls} />
               <input value={formEmail} onChange={(e) => setFormEmail(e.target.value)} placeholder="Email" className={inputCls} />
               <input type="password" value={formSenha} onChange={(e) => setFormSenha(e.target.value)}
@@ -351,8 +351,8 @@ export default function AdminPage() {
           </div>
         )}
 
-        <div className="max-h-[240px] overflow-y-auto">
-          <table className="w-full text-sm">
+        <div className="max-h-[240px] overflow-y-auto overflow-x-auto">
+          <table className="w-full min-w-[720px] text-sm">
             <thead className="sticky top-0 z-10">
               <tr className="border-b border-slate-100 bg-brand-mist">
                 <th className="text-left px-5 py-2.5 font-medium text-slate-500 text-xs uppercase tracking-wider">Nome</th>
@@ -422,7 +422,7 @@ export default function AdminPage() {
               <p className="text-xs font-semibold text-slate-600">{editFranq ? 'Editar Franquia' : 'Nova Franquia'}</p>
               <button onClick={resetFormFranq} className="text-slate-400 hover:text-slate-600"><X size={16} /></button>
             </div>
-            <div className="grid grid-cols-4 gap-3">
+            <div className="grid grid-cols-1 sm:grid-cols-4 gap-3">
               <input value={fNome} onChange={(e) => setFNome(e.target.value)} placeholder="Nome da franquia" className={inputCls} />
               <input value={fCnpj} onChange={(e) => setFCnpj(formatCnpj(e.target.value))} placeholder="00.000.000/0000-00" className={`${inputCls} font-mono`} />
               <input type="email" value={fEmail} onChange={(e) => setFEmail(e.target.value)} placeholder="E-mail de acesso" className={inputCls} />
@@ -452,8 +452,8 @@ export default function AdminPage() {
           </div>
         )}
 
-        <div className="max-h-[260px] overflow-y-auto">
-          <table className="w-full text-sm">
+        <div className="max-h-[260px] overflow-y-auto overflow-x-auto">
+          <table className="w-full min-w-[720px] text-sm">
             <thead className="sticky top-0 z-10">
               <tr className="border-b border-slate-100 bg-brand-mist">
                 <th className="text-left px-5 py-2.5 font-medium text-slate-500 text-xs uppercase tracking-wider">Nome</th>
@@ -532,8 +532,8 @@ export default function AdminPage() {
           </div>
         </div>
 
-        <div className="max-h-[280px] overflow-y-auto">
-          <table className="w-full text-sm">
+        <div className="max-h-[280px] overflow-y-auto overflow-x-auto">
+          <table className="w-full min-w-[720px] text-sm">
             <thead className="sticky top-0 z-10">
               <tr className="border-b border-slate-100 bg-brand-mist">
                 <th className="text-left px-5 py-2.5 font-medium text-slate-500 text-xs uppercase tracking-wider">N. Pedido</th>

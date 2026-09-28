@@ -158,8 +158,8 @@ export default function FranquiaPage() {
       </div>
     ) : (
       <>
-        <div className="max-h-[260px] overflow-y-auto">
-          <table className="w-full text-sm">
+        <div className="max-h-[260px] overflow-y-auto overflow-x-auto">
+          <table className="w-full min-w-[720px] text-sm">
             <thead className="sticky top-0 z-10">
               <tr className="border-b border-slate-100 bg-white">
                 <th className="text-left px-5 py-2.5 font-medium text-slate-500 text-xs uppercase tracking-wider">N. Pedido</th>
@@ -229,8 +229,8 @@ export default function FranquiaPage() {
             </div>
           ) : (
             <>
-              <div className="max-h-[260px] overflow-y-auto">
-                <table className="w-full text-sm">
+              <div className="max-h-[260px] overflow-y-auto overflow-x-auto">
+                <table className="w-full min-w-[720px] text-sm">
                   <tbody className="divide-y divide-slate-50">
                     {itens.map((item) => (
                       <tr key={item.id} onClick={() => onSelect(item)} className="hover:bg-brand-mist/60 transition-colors cursor-pointer">
@@ -254,8 +254,8 @@ export default function FranquiaPage() {
             <AlertCircle size={16} className="text-brand-umber" />
             <p className="text-xs font-semibold text-brand-umber uppercase tracking-wider">{titulo} Reprovados — Ação Necessária</p>
           </div>
-          <div className="max-h-[260px] overflow-y-auto">
-            <table className="w-full text-sm">
+          <div className="max-h-[260px] overflow-y-auto overflow-x-auto">
+            <table className="w-full min-w-[720px] text-sm">
               <tbody className="divide-y divide-brand-khaki/10">
                 {itensReprovados.map((item) => (
                   <tr key={item.id} onClick={() => onSelect(item)} className="hover:bg-brand-khaki/10 transition-colors cursor-pointer">
@@ -345,8 +345,8 @@ export default function FranquiaPage() {
             <AlertCircle size={16} className="text-brand-umber" />
             <p className="text-xs font-semibold text-brand-umber uppercase tracking-wider">Pedidos Reprovados — Ação Necessária</p>
           </div>
-          <div className="max-h-[260px] overflow-y-auto">
-            <table className="w-full text-sm">
+          <div className="max-h-[260px] overflow-y-auto overflow-x-auto">
+            <table className="w-full min-w-[720px] text-sm">
               <tbody className="divide-y divide-brand-khaki/10">
                 {reprovados.map((v) => (
                   <tr key={v.id} onClick={() => setSelecionado(v)} className="hover:bg-brand-khaki/10 transition-colors cursor-pointer">

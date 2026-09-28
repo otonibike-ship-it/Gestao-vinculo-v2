@@ -285,7 +285,7 @@ export function TrocaPedidoModal({ troca, onClose, modo }: TrocaPedidoModalProps
                 <input value={formNomeVendedor} onChange={(e) => setFormNomeVendedor(e.target.value)} className={inputClass} />
               </div>
 
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
                   <label className={labelClass}>N. do Pedido a Cancelar</label>
                   <input value={formNumeroPedidoCancelar} onChange={(e) => setFormNumeroPedidoCancelar(e.target.value)} className={inputClass} />
@@ -361,7 +361,7 @@ export function TrocaPedidoModal({ troca, onClose, modo }: TrocaPedidoModalProps
                 <input value={formCpf} onChange={(e) => setFormCpf(formatCpf(e.target.value))} className={inputClass} maxLength={14} />
               </div>
 
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
                   <label className={labelClass}>Valor do novo Pedido no portal</label>
                   <MoneyInput value={formValorNovoPedido} onChange={setFormValorNovoPedido} className={inputClass} />
@@ -429,7 +429,7 @@ export function TrocaPedidoModal({ troca, onClose, modo }: TrocaPedidoModalProps
           ) : (
             /* ===== MODO VISUALIZACAO ===== */
             <>
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <Campo label="Franquia" valor={troca.franquia_nome} />
                 <Campo label="Vendedor" valor={troca.nome_vendedor} />
                 <Campo label="Motivo" valor={troca.motivo} />
@@ -441,7 +441,7 @@ export function TrocaPedidoModal({ troca, onClose, modo }: TrocaPedidoModalProps
 
               <div className="bg-slate-50 border border-slate-100 rounded-xl px-4 py-3 space-y-3">
                 <p className="text-xs font-medium text-slate-500 uppercase tracking-wider">Status do pedido</p>
-                <div className="grid grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <Campo label="Status no Portal" valor={STATUS_PORTAL_OPCOES.find(o => o.value === troca.status_portal)?.label || troca.status_portal} />
                   <Campo label="N. Nota Fiscal" valor={troca.numero_nota_fiscal || '—'} />
                   <Campo label="Emissão da NF" valor={troca.data_emissao_nota_fiscal ? new Date(troca.data_emissao_nota_fiscal + 'T00:00:00').toLocaleDateString('pt-BR') : '—'} />
@@ -452,7 +452,7 @@ export function TrocaPedidoModal({ troca, onClose, modo }: TrocaPedidoModalProps
 
               <div className="bg-slate-50 border border-slate-100 rounded-xl px-4 py-3 space-y-3">
                 <p className="text-xs font-medium text-slate-500 uppercase tracking-wider">Cliente</p>
-                <div className="grid grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <Campo label="Nome" valor={troca.nome_cliente || '—'} />
                   <Campo label="CPF" valor={troca.cpf || '—'} />
                   <Campo label="Valor do novo Pedido" valor={troca.valor_novo_pedido != null ? `R$ ${Number(troca.valor_novo_pedido).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}` : '—'} />
@@ -462,7 +462,7 @@ export function TrocaPedidoModal({ troca, onClose, modo }: TrocaPedidoModalProps
 
               <div className="bg-slate-50 border border-slate-100 rounded-xl px-4 py-3 space-y-3">
                 <p className="text-xs font-medium text-slate-500 uppercase tracking-wider">Pedido a cancelar</p>
-                <div className="grid grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <Campo label="N. do Pedido" valor={troca.numero_pedido_cancelar} />
                   <Campo label="Data" valor={troca.data_pedido_cancelar ? new Date(troca.data_pedido_cancelar + 'T00:00:00').toLocaleDateString('pt-BR') : '—'} />
                   <Campo label="Código Produto" valor={troca.codigo_produto_cancelar} />
@@ -472,7 +472,7 @@ export function TrocaPedidoModal({ troca, onClose, modo }: TrocaPedidoModalProps
 
               <div className="bg-slate-50 border border-slate-100 rounded-xl px-4 py-3 space-y-3">
                 <p className="text-xs font-medium text-slate-500 uppercase tracking-wider">Novo pedido</p>
-                <div className="grid grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <Campo label="N. do Novo Pedido" valor={troca.numero_novo_pedido} />
                   <Campo label="Código Produto" valor={troca.codigo_produto_novo} />
                 </div>

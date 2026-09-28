@@ -243,7 +243,7 @@ export function LinkPagamentoModal({ link, onClose, modo }: LinkPagamentoModalPr
                 <textarea value={formMotivo} onChange={(e) => setFormMotivo(e.target.value)} className={inputClass + ' resize-none'} rows={3} />
               </div>
 
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
                   <label className={labelClass}>N. do Pedido</label>
                   <input value={formNumeroPedido} onChange={(e) => setFormNumeroPedido(e.target.value)} className={inputClass} />
@@ -254,7 +254,7 @@ export function LinkPagamentoModal({ link, onClose, modo }: LinkPagamentoModalPr
                 </div>
               </div>
 
-              <div className="grid grid-cols-3 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
                 <div>
                   <label className={labelClass}>Valor do Pedido</label>
                   <MoneyInput value={formValorPedido} onChange={setFormValorPedido} className={inputClass} />
@@ -291,7 +291,7 @@ export function LinkPagamentoModal({ link, onClose, modo }: LinkPagamentoModalPr
                 <textarea value={formNomeCliente} onChange={(e) => setFormNomeCliente(e.target.value)} className={inputClass + ' resize-none'} rows={2} />
               </div>
 
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
                   <label className={labelClass}>CPF</label>
                   <input value={formCpf} onChange={(e) => setFormCpf(formatCpf(e.target.value))} className={inputClass} maxLength={14} />
@@ -364,7 +364,7 @@ export function LinkPagamentoModal({ link, onClose, modo }: LinkPagamentoModalPr
           ) : (
             /* ===== MODO VISUALIZACAO ===== */
             <>
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <Campo label="Franquia" valor={link.franquia_nome} />
                 <Campo label="Vendedor" valor={link.vendedor} />
               </div>
@@ -372,7 +372,7 @@ export function LinkPagamentoModal({ link, onClose, modo }: LinkPagamentoModalPr
 
               <div className="bg-slate-50 border border-slate-100 rounded-xl px-4 py-3 space-y-3">
                 <p className="text-xs font-medium text-slate-500 uppercase tracking-wider">Pedido</p>
-                <div className="grid grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <Campo label="N. do Pedido" valor={link.numero_pedido} />
                   <Campo label="Data" valor={link.data_pedido ? new Date(link.data_pedido + 'T00:00:00').toLocaleDateString('pt-BR') : '—'} />
                   <Campo label="Valor do Pedido" valor={`R$ ${Number(link.valor_pedido).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`} />
@@ -386,7 +386,7 @@ export function LinkPagamentoModal({ link, onClose, modo }: LinkPagamentoModalPr
               <div className="bg-slate-50 border border-slate-100 rounded-xl px-4 py-3 space-y-3">
                 <p className="text-xs font-medium text-slate-500 uppercase tracking-wider">Cliente</p>
                 <Campo label="Nome" valor={link.nome_cliente} />
-                <div className="grid grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <Campo label="CPF" valor={link.cpf} />
                   <Campo label="Telefone" valor={link.telefone} />
                 </div>

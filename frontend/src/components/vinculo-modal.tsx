@@ -233,7 +233,7 @@ export function VinculoModal({ vinculo, onClose, modo }: VinculoModalProps) {
                 </div>
               )}
 
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
                   <label className={labelClass}>Nome do Cliente</label>
                   <input
@@ -260,7 +260,7 @@ export function VinculoModal({ vinculo, onClose, modo }: VinculoModalProps) {
                 <MotivoSelect value={formMotivo} onChange={setFormMotivo} />
               </div>
 
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
                   <label className={labelClass}>Valor</label>
                   <MoneyInput value={formValor} onChange={setFormValor} className={inputClass} />
@@ -400,7 +400,7 @@ export function VinculoModal({ vinculo, onClose, modo }: VinculoModalProps) {
           ) : (
             /* ===== MODO VISUALIZACAO ===== */
             <>
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <Campo label="Franquia" valor={vinculo.franquia_nome} />
                 <Campo label="Cliente" valor={vinculo.nome_cliente} />
                 <Campo label="CPF" valor={vinculo.cpf || '—'} />

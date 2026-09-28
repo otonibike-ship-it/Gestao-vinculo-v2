@@ -174,7 +174,7 @@ export default function NovoPedidoForm({ voltarPara }: Props) {
         </div>
 
         <form onSubmit={handleSubmit} className="px-6 py-5 space-y-5">
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             {/* Número do Pedido */}
             <div>
               <label className={labelClass}>N. do Pedido</label>
@@ -214,7 +214,7 @@ export default function NovoPedidoForm({ voltarPara }: Props) {
           </div>
 
           {/* Nome do Cliente + CPF */}
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
               <label className={labelClass}>Nome do Cliente</label>
               <input
@@ -243,7 +243,7 @@ export default function NovoPedidoForm({ voltarPara }: Props) {
             <MotivoSelect value={motivo} onChange={setMotivo} />
           </div>
 
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             {/* Valor */}
             <div>
               <label className={labelClass}>Valor do Pedido</label>

@@ -181,7 +181,7 @@ export default function SolicitacaoEstornoForm({ voltarPara }: Props) {
           </div>
 
           <div className="border border-slate-200 rounded-xl p-4 space-y-4 bg-slate-50">
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div>
                 <label className={labelClass}>Nome do Vendedor</label>
                 <input value={vendedor} onChange={e => setVendedor(e.target.value)} className={inputClass + ' bg-white'} />
@@ -191,7 +191,7 @@ export default function SolicitacaoEstornoForm({ voltarPara }: Props) {
                 <input value={numeroPedido} onChange={e => setNumeroPedido(e.target.value)} className={inputClass + ' bg-white'} placeholder="PED-001" />
               </div>
             </div>
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div>
                 <label className={labelClass}>Data do Pedido</label>
                 <input type="date" value={dataPedido} onChange={e => setDataPedido(e.target.value)} className={inputClass + ' bg-white'} />

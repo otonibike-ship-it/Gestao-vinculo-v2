@@ -119,7 +119,7 @@ export default function ConfiguracoesPage() {
           <Mail size={15} className="text-slate-500" />
           <p className="text-xs font-semibold text-slate-600 uppercase tracking-wider">Configuração Gmail (SMTP)</p>
         </div>
-        <div className="px-5 py-5 grid grid-cols-2 gap-4">
+        <div className="px-5 py-5 grid grid-cols-1 sm:grid-cols-2 gap-4">
           <div>
             <label className={labelClass}>Host SMTP</label>
             <input className={inputClass} value={valores.smtp_host || ''} onChange={e => set('smtp_host', e.target.value)} />

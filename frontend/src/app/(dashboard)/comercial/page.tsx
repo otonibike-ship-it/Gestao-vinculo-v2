@@ -233,8 +233,8 @@ export default function ComercialPage() {
 
       {filtrados && filtrados.length > 0 && (
         <div className="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
-          <div className="max-h-[280px] overflow-y-auto">
-            <table className="w-full text-sm">
+          <div className="max-h-[280px] overflow-y-auto overflow-x-auto">
+            <table className="w-full min-w-[720px] text-sm">
               <thead className="sticky top-0 z-10">
                 <tr className="border-b border-slate-100 bg-brand-mist">
                   <th className="text-left px-5 py-3 font-medium text-slate-500 text-xs uppercase tracking-wider">N. Pedido</th>
@@ -296,8 +296,8 @@ export default function ComercialPage() {
         )}
         {trocasFiltradas && trocasFiltradas.length > 0 && (
           <div className="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
-            <div className="max-h-[280px] overflow-y-auto">
-              <table className="w-full text-sm">
+            <div className="max-h-[280px] overflow-y-auto overflow-x-auto">
+              <table className="w-full min-w-[720px] text-sm">
                 <thead className="sticky top-0 z-10">
                   <tr className="border-b border-slate-100 bg-brand-mist">
                     <th className="text-left px-5 py-3 font-medium text-slate-500 text-xs uppercase tracking-wider">N. Pedido a Cancelar</th>
@@ -344,8 +344,8 @@ export default function ComercialPage() {
         )}
         {linksFiltrados && linksFiltrados.length > 0 && (
           <div className="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
-            <div className="max-h-[280px] overflow-y-auto">
-              <table className="w-full text-sm">
+            <div className="max-h-[280px] overflow-y-auto overflow-x-auto">
+              <table className="w-full min-w-[720px] text-sm">
                 <thead className="sticky top-0 z-10">
                   <tr className="border-b border-slate-100 bg-brand-mist">
                     <th className="text-left px-5 py-3 font-medium text-slate-500 text-xs uppercase tracking-wider">N. Pedido</th>
@@ -394,8 +394,8 @@ export default function ComercialPage() {
         )}
         {cartasFiltradas && cartasFiltradas.length > 0 && (
           <div className="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
-            <div className="max-h-[280px] overflow-y-auto">
-              <table className="w-full text-sm">
+            <div className="max-h-[280px] overflow-y-auto overflow-x-auto">
+              <table className="w-full min-w-[720px] text-sm">
                 <thead className="sticky top-0 z-10">
                   <tr className="border-b border-slate-100 bg-brand-mist">
                     <th className="text-left px-5 py-3 font-medium text-slate-500 text-xs uppercase tracking-wider">N. Pedido</th>
@@ -442,8 +442,8 @@ export default function ComercialPage() {
         )}
         {estornosFiltrados && estornosFiltrados.length > 0 && (
           <div className="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
-            <div className="max-h-[280px] overflow-y-auto">
-              <table className="w-full text-sm">
+            <div className="max-h-[280px] overflow-y-auto overflow-x-auto">
+              <table className="w-full min-w-[720px] text-sm">
                 <thead className="sticky top-0 z-10">
                   <tr className="border-b border-slate-100 bg-brand-mist">
                     <th className="text-left px-5 py-3 font-medium text-slate-500 text-xs uppercase tracking-wider">N. Pedido</th>
@@ -492,8 +492,8 @@ export default function ComercialPage() {
         )}
         {cancelamentosFiltrados && cancelamentosFiltrados.length > 0 && (
           <div className="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
-            <div className="max-h-[280px] overflow-y-auto">
-              <table className="w-full text-sm">
+            <div className="max-h-[280px] overflow-y-auto overflow-x-auto">
+              <table className="w-full min-w-[720px] text-sm">
                 <thead className="sticky top-0 z-10">
                   <tr className="border-b border-slate-100 bg-brand-mist">
                     <th className="text-left px-5 py-3 font-medium text-slate-500 text-xs uppercase tracking-wider">N. Pedido</th>

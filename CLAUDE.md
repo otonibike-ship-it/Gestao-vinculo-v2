@@ -160,6 +160,10 @@ Uploads go **directly from the browser to Cloudinary** using an unsigned preset 
 | `app/core/database.py` | Async engine, `get_db` dependency, `AsyncSessionLocal` |
 | `alembic/versions/` | 20 migrations; latest is `0020_vinculo_backfill_validacao_financeiro.py` |
 
+### Mobile responsiveness (added 2026-09-28)
+
+The app was desktop-first with no breakpoints on the structural layout; many franchise users are on phones. `components/layout/mobile-nav-context.tsx` (`MobileNavProvider`/`useMobileNav`) holds an `aberto` (open) boolean shared between `Sidebar` and `Header`, wrapping both in `app/(dashboard)/layout.tsx`. Below `md:`, `Sidebar` becomes a fixed off-canvas drawer (`-translate-x-full` ↔ `translate-x-0`, with a click-to-close backdrop) instead of the static `w-60` column, closes itself on route change, and `Header` shows a hamburger button (`md:hidden`) that opens it; at `md:` and up both render exactly as before (drawer classes are neutralized by `md:static md:translate-x-0`). Every dashboard table's scroll wrapper got `overflow-x-auto` added next to its existing `overflow-y-auto`, and every `<table className="w-full ...">` got `min-w-[720px]` so columns scroll horizontally on a phone instead of being crushed unreadable — copy this pair (`overflow-x-auto` wrapper + `min-w-[…]` table) for any new dashboard table. Every hardcoded `grid-cols-2`/`grid-cols-3`/`grid-cols-4` field grid across all 6 create-forms, all 6 approve/reject modals, and the Configurações page became `grid-cols-1 sm:grid-cols-N` so fields stack on narrow screens — copy that pattern (never a bare `grid-cols-N` above 1) for any new form/modal field grid.
+
 ### Key Frontend Files
 
 | File | Purpose |

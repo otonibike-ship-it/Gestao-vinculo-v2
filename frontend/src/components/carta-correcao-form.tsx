@@ -156,7 +156,7 @@ export default function CartaCorrecaoForm({ voltarPara }: Props) {
             </div>
           )}
 
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
               <label className={labelClass}>Número da Nota Fiscal</label>
               <input value={numeroNotaFiscal} onChange={e => setNumeroNotaFiscal(e.target.value)} className={inputClass} />
@@ -199,7 +199,7 @@ export default function CartaCorrecaoForm({ voltarPara }: Props) {
             <p className="text-xs font-semibold text-slate-600 uppercase tracking-wider">
               Preencha conforme o campo selecionado acima (opcional)
             </p>
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div>
                 <label className={labelClass}>Nome correto do cliente</label>
                 <input value={nomeCorretoCliente} onChange={e => setNomeCorretoCliente(e.target.value)} className={inputClass + ' bg-white'} />

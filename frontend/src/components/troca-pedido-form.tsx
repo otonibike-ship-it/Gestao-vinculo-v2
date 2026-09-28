@@ -253,7 +253,7 @@ export default function TrocaPedidoForm({ voltarPara }: Props) {
           {/* Pedido a cancelar */}
           <div className="border border-slate-200 rounded-xl p-4 space-y-4 bg-slate-50">
             <p className="text-xs font-semibold text-slate-600 uppercase tracking-wider">Pedido a cancelar</p>
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div>
                 <label className={labelClass}>N. do Pedido</label>
                 <input
@@ -390,7 +390,7 @@ export default function TrocaPedidoForm({ voltarPara }: Props) {
                 maxLength={14}
               />
             </div>
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div>
                 <label className={labelClass}>Valor do novo Pedido no portal</label>
                 <MoneyInput value={valorNovoPedido} onChange={setValorNovoPedido} className={inputClass + ' bg-white'} />

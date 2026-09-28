@@ -155,7 +155,7 @@ export function CancelamentoVendaModal({ cancelamento, onClose, modo }: Cancelam
             </div>
           )}
 
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <Campo label="Franquia" valor={cancelamento.franquia_nome} />
             <Campo label="Vendedor" valor={cancelamento.vendedor || '—'} />
           </div>
@@ -163,7 +163,7 @@ export function CancelamentoVendaModal({ cancelamento, onClose, modo }: Cancelam
 
           <div className="bg-slate-50 border border-slate-100 rounded-xl px-4 py-3 space-y-3">
             <p className="text-xs font-medium text-slate-500 uppercase tracking-wider">Pedido a cancelar</p>
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <Campo label="N. do Pedido" valor={cancelamento.numero_pedido_cancelar || '—'} />
               <Campo label="Data" valor={cancelamento.data_pedido_cancelar ? new Date(cancelamento.data_pedido_cancelar + 'T00:00:00').toLocaleDateString('pt-BR') : '—'} />
               <Campo label="Status no Portal" valor={(cancelamento.status_portal && (STATUS_PORTAL_LABELS[cancelamento.status_portal] || cancelamento.status_portal)) || '—'} />
@@ -174,7 +174,7 @@ export function CancelamentoVendaModal({ cancelamento, onClose, modo }: Cancelam
 
           <div className="bg-slate-50 border border-slate-100 rounded-xl px-4 py-3 space-y-3">
             <p className="text-xs font-medium text-slate-500 uppercase tracking-wider">Bike</p>
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <Campo label="Está na loja?" valor={cancelamento.bike_na_loja == null ? '—' : (cancelamento.bike_na_loja ? 'Sim' : 'Não')} />
               <Campo label="Sinais de uso?" valor={cancelamento.sinais_uso == null ? '—' : (cancelamento.sinais_uso ? 'Sim' : 'Não')} />
               <Campo label="Código Produto" valor={cancelamento.codigo_produto || '—'} />
@@ -192,7 +192,7 @@ export function CancelamentoVendaModal({ cancelamento, onClose, modo }: Cancelam
               <Campo label="Valor Total do Pedido" valor={cancelamento.valor_total_pedido != null ? `R$ ${Number(cancelamento.valor_total_pedido).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}` : '—'} />
               <Campo label="Valor a Cancelar" valor={cancelamento.valor_cancelar != null ? `R$ ${Number(cancelamento.valor_cancelar).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}` : '—'} />
             </div>
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <Campo label="Forma de Pagamento" valor={(cancelamento.forma_pagamento && (FORMA_PAGAMENTO_LABELS[cancelamento.forma_pagamento] || cancelamento.forma_pagamento)) || '—'} />
               <Campo label="Pago em +1 cartão?" valor={cancelamento.pago_mais_um_cartao == null ? '—' : (cancelamento.pago_mais_um_cartao ? 'Sim' : 'Não')} />
             </div>

@@ -217,7 +217,7 @@ export function SolicitacaoEstornoModal({ estorno, onClose, modo }: SolicitacaoE
                 <label className={labelClass}>Motivo</label>
                 <textarea value={formMotivo} onChange={(e) => setFormMotivo(e.target.value)} className={inputClass + ' resize-none'} rows={3} />
               </div>
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
                   <label className={labelClass}>Vendedor</label>
                   <input value={formVendedor} onChange={(e) => setFormVendedor(e.target.value)} className={inputClass} />
@@ -227,7 +227,7 @@ export function SolicitacaoEstornoModal({ estorno, onClose, modo }: SolicitacaoE
                   <input value={formNumeroPedido} onChange={(e) => setFormNumeroPedido(e.target.value)} className={inputClass} />
                 </div>
               </div>
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
                   <label className={labelClass}>Data do Pedido</label>
                   <input type="date" value={formDataPedido} onChange={(e) => setFormDataPedido(e.target.value)} className={inputClass} />
@@ -245,7 +245,7 @@ export function SolicitacaoEstornoModal({ estorno, onClose, modo }: SolicitacaoE
                 <label className={labelClass}>CPF</label>
                 <input value={formCpf} onChange={(e) => setFormCpf(formatCpf(e.target.value))} className={inputClass} maxLength={14} />
               </div>
-              <div className="grid grid-cols-3 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
                 <div>
                   <label className={labelClass}>Valor Pedido Portal</label>
                   <MoneyInput value={formValorPedidoPortal} onChange={setFormValorPedidoPortal} className={inputClass} />
@@ -311,14 +311,14 @@ export function SolicitacaoEstornoModal({ estorno, onClose, modo }: SolicitacaoE
             </div>
           ) : (
             <>
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <Campo label="Franquia" valor={estorno.franquia_nome} />
                 <Campo label="Vendedor" valor={estorno.vendedor} />
               </div>
               <Campo label="Motivo do pagamento a mais" valor={estorno.motivo} />
 
               <div className="bg-slate-50 border border-slate-100 rounded-xl px-4 py-3 space-y-3">
-                <div className="grid grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <Campo label="N. do Pedido" valor={estorno.numero_pedido || 'Sinal/Garantia (sem pedido)'} />
                   <Campo label="Data do Pedido" valor={estorno.data_pedido ? new Date(estorno.data_pedido + 'T00:00:00').toLocaleDateString('pt-BR') : '—'} />
                   <Campo label="Data do Pagamento" valor={estorno.data_pagamento ? new Date(estorno.data_pagamento + 'T00:00:00').toLocaleDateString('pt-BR') : '—'} />

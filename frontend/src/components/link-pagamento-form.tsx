@@ -215,7 +215,7 @@ export default function LinkPagamentoForm({ voltarPara }: Props) {
 
           {/* Pedido */}
           <div className="border border-slate-200 rounded-xl p-4 space-y-4 bg-slate-50">
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div>
                 <label className={labelClass}>Número do Pedido</label>
                 <input
@@ -235,7 +235,7 @@ export default function LinkPagamentoForm({ voltarPara }: Props) {
                 />
               </div>
             </div>
-            <div className="grid grid-cols-3 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
               <div>
                 <label className={labelClass}>Valor do Pedido</label>
                 <MoneyInput value={valorPedido} onChange={setValorPedido} className={inputClass + ' bg-white'} />
@@ -304,7 +304,7 @@ export default function LinkPagamentoForm({ voltarPara }: Props) {
                 rows={2}
               />
             </div>
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div>
                 <label className={labelClass}>CPF</label>
                 <input

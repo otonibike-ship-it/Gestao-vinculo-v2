@@ -214,7 +214,7 @@ export function CartaCorrecaoModal({ carta, onClose, modo }: CartaCorrecaoModalP
                   </select>
                 </div>
               )}
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
                   <label className={labelClass}>N. Nota Fiscal</label>
                   <input value={formNumeroNotaFiscal} onChange={(e) => setFormNumeroNotaFiscal(e.target.value)} className={inputClass} />
@@ -240,7 +240,7 @@ export function CartaCorrecaoModal({ carta, onClose, modo }: CartaCorrecaoModalP
                 <label className={labelClass}>Número de série / ticket</label>
                 <textarea value={formInfoNumeroSerie} onChange={(e) => setFormInfoNumeroSerie(e.target.value)} className={inputClass + ' resize-none'} rows={2} />
               </div>
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
                   <label className={labelClass}>Nome correto</label>
                   <input value={formNomeCorreto} onChange={(e) => setFormNomeCorreto(e.target.value)} className={inputClass} />
@@ -306,7 +306,7 @@ export function CartaCorrecaoModal({ carta, onClose, modo }: CartaCorrecaoModalP
             </div>
           ) : (
             <>
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <Campo label="Franquia" valor={carta.franquia_nome} />
                 <Campo label="N. Nota Fiscal" valor={carta.numero_nota_fiscal} />
                 <Campo label="N. do Pedido" valor={carta.numero_pedido} />

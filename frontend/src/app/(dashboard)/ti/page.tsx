@@ -139,8 +139,8 @@ export default function TIPage() {
       )}
       {itens && itens.length > 0 && (
         <div className="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
-          <div className="max-h-[280px] overflow-y-auto">
-            <table className="w-full text-sm">
+          <div className="max-h-[280px] overflow-y-auto overflow-x-auto">
+            <table className="w-full min-w-[720px] text-sm">
               <thead className="sticky top-0 z-10">
                 <tr className="border-b border-slate-100 bg-brand-mist">
                   {colunas.map((c) => (
@@ -195,8 +195,8 @@ export default function TIPage() {
       )}
       {filtrados && filtrados.length > 0 && (
         <div className="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
-          <div className="max-h-[280px] overflow-y-auto">
-            <table className="w-full text-sm">
+          <div className="max-h-[280px] overflow-y-auto overflow-x-auto">
+            <table className="w-full min-w-[720px] text-sm">
               <thead className="sticky top-0 z-10">
                 <tr className="border-b border-slate-100 bg-brand-mist">
                   <th className="text-left px-5 py-3 font-medium text-slate-500 text-xs uppercase tracking-wider">N. Pedido</th>
@@ -354,8 +354,8 @@ export default function TIPage() {
           <div className="px-5 py-8 text-center text-sm text-slate-400">Carregando...</div>
         ) : franquiasFiltradas && franquiasFiltradas.length > 0 ? (
           <>
-            <div className="max-h-[220px] overflow-y-auto">
-              <table className="w-full text-sm">
+            <div className="max-h-[220px] overflow-y-auto overflow-x-auto">
+              <table className="w-full min-w-[720px] text-sm">
                 <thead className="sticky top-0 z-10">
                   <tr className="border-b border-slate-100 bg-brand-mist/60">
                     <th className="text-left px-5 py-2.5 font-medium text-slate-500 text-xs uppercase tracking-wider">Nome</th>

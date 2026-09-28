@@ -329,8 +329,8 @@ export default function EmpresasPage() {
 
       {/* Tabela */}
       {filtrados && filtrados.length > 0 && (
-        <div className="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
-          <table className="w-full text-sm">
+        <div className="bg-white rounded-xl border border-slate-200 shadow-sm overflow-x-auto">
+          <table className="w-full min-w-[720px] text-sm">
             <thead>
               <tr className="border-b border-slate-100 bg-brand-mist">
                 <th className="text-left px-5 py-3 font-medium text-slate-500 text-xs uppercase tracking-wider">Nome</th>

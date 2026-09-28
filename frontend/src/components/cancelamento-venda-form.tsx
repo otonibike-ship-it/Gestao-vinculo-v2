@@ -262,7 +262,7 @@ export default function CancelamentoVendaForm({ voltarPara }: Props) {
 
           <div className="border border-slate-200 rounded-xl p-4 space-y-4 bg-slate-50">
             <p className="text-xs font-semibold text-slate-600 uppercase tracking-wider">Pedido a cancelar</p>
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div>
                 <label className={labelClass}>Número do Pedido</label>
                 <input value={numeroPedidoCancelar} onChange={e => setNumeroPedidoCancelar(e.target.value)} className={inputClass + ' bg-white'} placeholder="PED-001" />
@@ -279,7 +279,7 @@ export default function CancelamentoVendaForm({ voltarPara }: Props) {
                 {STATUS_PORTAL_OPCOES.map(o => <option key={o.value} value={o.value}>{o.label}</option>)}
               </select>
             </div>
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div>
                 <label className={labelClass}>Número da Nota Fiscal de Venda</label>
                 <input value={numeroNotaFiscal} onChange={e => setNumeroNotaFiscal(e.target.value)} className={inputClass + ' bg-white'} />
@@ -293,7 +293,7 @@ export default function CancelamentoVendaForm({ voltarPara }: Props) {
 
           <div className="border border-slate-200 rounded-xl p-4 space-y-4 bg-slate-50">
             <p className="text-xs font-semibold text-slate-600 uppercase tracking-wider">Estado da bike</p>
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div>
                 <label className={labelClass}>Bike está fisicamente na loja?</label>
                 <SimNaoSelect value={bikeNaLoja} onChange={setBikeNaLoja} className={inputClass + ' bg-white'} />
@@ -336,7 +336,7 @@ export default function CancelamentoVendaForm({ voltarPara }: Props) {
                 inputMode="numeric"
               />
             </div>
-            <div className="grid grid-cols-3 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
               <div>
                 <label className={labelClass}>Valor Total Pago</label>
                 <MoneyInput value={valorTotalPagoCliente} onChange={setValorTotalPagoCliente} className={inputClass + ' bg-white'} />
@@ -350,7 +350,7 @@ export default function CancelamentoVendaForm({ voltarPara }: Props) {
                 <MoneyInput value={valorCancelar} onChange={setValorCancelar} className={inputClass + ' bg-white'} />
               </div>
             </div>
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div>
                 <label className={labelClass}>Forma de Pagamento</label>
                 <select value={formaPagamento} onChange={e => setFormaPagamento(e.target.value)} className={inputClass + ' bg-white'}>
